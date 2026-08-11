@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TripFit | Your Trip. Already Planned.</title>
-  <meta name="description" content="Tell us where you're going. We'll plan the trip around you." />
-  <link rel="icon" href="data:," />
+  <title>Dastaan | Crafting Your Travel Story</title>
+  <meta name="description" content="Your curated historical and cultural travel experience, tailored to your story." />
+  <link rel="icon" href="images/logo.png" type="image/png" />
   <link rel="stylesheet" href="styles.css" />
   <style>
     @font-face {
@@ -19,16 +19,21 @@
 </head>
 <body>
 <main class="site-shell">
-  <section class="cinema-scroll" id="cinema" aria-label="TripFit cinematic scroll story">
+  <section class="cinema-scroll" id="cinema" aria-label="Dastaan cinematic scroll story">
     <div class="stage">
       <div class="world">
         <img class="scene-img sky-img" src="https://raft-blast-61784561.figma.site/_assets/v11/16b5007d9c93971e26ffe4e0e3e37946f6bd538c.png" alt="" />
         <header class="site-header" aria-label="Primary navigation">
-          <a class="site-logo" href="#cinema">TRIPFIT</a>
+          <a class="site-logo" href="#cinema">
+            <img class="logo-icon" src="images/logo.png" alt="Dastaan Logo" width="44" height="44" />
+            <div class="logo-text">
+              <span class="logo-title">Dastaan</span>
+              <span class="logo-tagline">STORIES &bull; IDEAS &bull; EMOTIONS</span>
+            </div>
+          </a>
           <nav class="site-nav" aria-label="Main menu">
             <a href="#explore">Explore</a>
             <a href="#how-it-works">How It Works</a>
-            <a href="#features">Features</a>
           </nav>
           <div class="header-actions">
             <a href="#signin" class="nav-link">Sign In</a>
@@ -41,8 +46,9 @@
         </div>
         
         <div class="hero-title">
-          <h1>YOUR TRIP.<br/>ALREADY PLANNED.</h1>
-          <p class="hero-subtitle">Tell us where you're going, how long you have, and what you want to spend. TripFit builds the itinerary around you.</p>
+          <h1 class="hero-main-title">DASTAAN</h1>
+          <p class="hero-tagline-main">EXPLORE. DISCOVER. JOURNEY.</p>
+          <p class="hero-description">Your curated historical and cultural travel experience,<br/>tailored to your story.</p>
           <div class="hero-ctas">
             <a href="#plan" class="btn-primary btn-large">PLAN MY TRIP &rarr;</a>
             <a href="#how-it-works" class="btn-secondary btn-large">SEE HOW IT WORKS</a>
@@ -51,14 +57,93 @@
 
         <img class="scene-img splitframe-img splitframe-left" src="https://raft-blast-61784561.figma.site/_assets/v11/7536d7b60a1fce482cf6edf3f0bffd3bad5d0f8a.png" alt="" />
         <img class="scene-img splitframe-img splitframe-right" src="https://raft-blast-61784561.figma.site/_assets/v11/392db6a6a6b98e868bd7f8d3f55bb719d51e5028.png" alt="" />
+        
+        <div class="water-cards-container">
+          <!-- Card 1 — DISCOVER -->
+          <div class="water-card" id="water-card-1">
+            <div class="card-img-wrapper">
+              <img src="https://images.unsplash.com/photo-1555992336-03a23c7b20eb?auto=format&fit=crop&w=600&q=80" alt="Mostar Bosnia" class="card-img" />
+            </div>
+            <div class="card-body">
+              <span class="card-tag">DISCOVER — CHAPTER 01</span>
+              <h3 class="card-title">Mostar, Bosnia</h3>
+              <p class="card-desc">Begin your story at a historic cultural crossroads, where Ottoman stone architecture meets the winding Neretva River.</p>
+              <div class="card-footer">
+                <span class="card-rating">★ 4.9</span>
+                <span class="card-duration">Overview</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 2 — EXPLORE -->
+          <div class="water-card" id="water-card-2">
+            <div class="card-img-wrapper">
+              <img src="https://images.unsplash.com/photo-1561571434-ccc000c2f17d?auto=format&fit=crop&w=600&q=80" alt="Stari Most Bridge" class="card-img" />
+            </div>
+            <div class="card-body">
+              <span class="card-tag">EXPLORE — CHAPTER 02</span>
+              <h3 class="card-title">Stari Most Bridge</h3>
+              <p class="card-desc">Walk the iconic 16th-century Ottoman bridge and trace cobblestone alleyways that have stood for centuries.</p>
+              <div class="card-footer">
+                <span class="card-rating">★ 4.9</span>
+                <span class="card-duration">Landmark</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 3 — EXPERIENCE -->
+          <div class="water-card" id="water-card-3">
+            <div class="card-img-wrapper">
+              <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80" alt="Bosnian Coffee" class="card-img" />
+            </div>
+            <div class="card-body">
+              <span class="card-tag">EXPERIENCE — CHAPTER 03</span>
+              <h3 class="card-title">Artisan Old Bazaar</h3>
+              <p class="card-desc">Savor authentic Bosnian coffee copper-poured in Kujundžiluk Bazaar, surrounded by copper crafts and local artisans.</p>
+              <div class="card-footer">
+                <span class="card-rating">★ 4.8</span>
+                <span class="card-duration">Local Vibe</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 4 — PERSONALIZE -->
+          <div class="water-card" id="water-card-4">
+            <div class="card-img-wrapper">
+              <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80" alt="Personalize Plan" class="card-img" />
+            </div>
+            <div class="card-body">
+              <span class="card-tag">PERSONALIZE — CHAPTER 04</span>
+              <h3 class="card-title">Tailored to Your Story</h3>
+              <p class="card-desc">Tell us your budget, pace, and interests. Dastaan customizes stays, routes, and activities directly around you.</p>
+              <div class="card-footer">
+                <span class="card-rating">★ 5.0</span>
+                <span class="card-duration">Flexible</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 5 — JOURNEY -->
+          <div class="water-card" id="water-card-5">
+            <div class="card-img-wrapper">
+              <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=600&q=80" alt="Completed Itinerary" class="card-img" />
+            </div>
+            <div class="card-body">
+              <span class="card-tag">JOURNEY — CHAPTER 05</span>
+              <h3 class="card-title">Your Custom Story</h3>
+              <p class="card-desc">Receive a seamless day-by-day plan with smart directions and real-time cost breakdown. Less tabs, more travel.</p>
+              <div class="card-footer">
+                <span class="card-rating">★ 4.9</span>
+                <span class="card-duration">Completed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <img class="scene-img bridge-img" src="https://raft-blast-61784561.figma.site/_assets/v11/c6a6d8ef49bca43f708aa852692942c45ec950d4.png" alt="" />
         <img class="scene-img frame-two-img" src="https://raft-blast-61784561.figma.site/_assets/v11/ba75252bab2b1c510987b74837770f7bc8a6b2d4.png" alt="" />
         <div class="shade"></div>
       </div>
       
-      <section class="story-panel story-panel-bridge" aria-label="TripFit problem">
+      <section class="story-panel story-panel-bridge" aria-label="Dastaan problem">
         <h2 class="intro-headline">PLANNING A TRIP SHOULDN'T MEAN OPENING 20 TABS.</h2>
-        <p style="font-size: 1.25rem; max-width: 600px; margin: 16px auto; color: rgba(232, 220, 199, 0.9);">Maps for places. Blogs for recommendations. Booking sites for stays. Spreadsheets for budgets. TripFit brings the planning together.</p>
+        <p style="font-size: 1.25rem; max-width: 600px; margin: 16px auto; color: rgba(232, 220, 199, 0.9);">Maps for places. Blogs for recommendations. Booking sites for stays. Spreadsheets for budgets. Dastaan brings the planning together.</p>
         <div class="hero-tags" aria-label="Planning elements">
           <span>Maps</span>
           <span>Travel Blogs</span>
@@ -68,12 +153,12 @@
           <span>Notes</span>
         </div>
         <div class="intro-reveal">
-          <h3>TRIPFIT</h3>
+          <h3>DASTAAN</h3>
           <p>One destination. One plan.</p>
         </div>
       </section>
       
-      <section class="story-panel story-panel-bazaar" id="how-it-works" aria-label="How TripFit Works">
+      <section class="story-panel story-panel-bazaar" id="how-it-works" aria-label="How Dastaan Works">
         <h2 style="font-size: 2.5rem; margin-bottom: 24px;">FROM "WHERE SHOULD I GO?"<br/>TO "HERE'S YOUR TRIP."</h2>
         <div class="steps-grid" style="margin-top: 0;">
           <div class="step">
@@ -83,7 +168,7 @@
               <li>Duration</li>
               <li>Budget</li>
             </ul>
-            <p>Give TripFit the constraints that matter to you.</p>
+            <p>Give Dastaan the constraints that matter to you.</p>
           </div>
           <div class="step">
             <span class="step-num">02 — WE PLAN</span>
@@ -92,7 +177,7 @@
               <li>Routes</li>
               <li>Costs</li>
             </ul>
-            <p>TripFit builds an itinerary around your time and budget.</p>
+            <p>Dastaan builds an itinerary around your time and budget.</p>
           </div>
           <div class="step">
             <span class="step-num">03 — YOU TRAVEL</span>
@@ -133,7 +218,7 @@
     <div class="container">
       <div class="replanning-content">
         <h2 class="section-title">PLANS CHANGE.<br/>YOUR ITINERARY SHOULD TOO.</h2>
-        <p class="section-desc">Change your budget, time or preferences. TripFit adapts the plan instead of making you start over.</p>
+        <p class="section-desc">Change your budget, time or preferences. Dastaan adapts the plan instead of making you start over.</p>
       </div>
       <div class="replanning-demo">
         <div class="demo-card before-state">
@@ -145,7 +230,7 @@
         </div>
         <div class="demo-arrow">&rarr;</div>
         <div class="demo-card after-state">
-          <span class="demo-label active-label">TRIPFIT REPLANS</span>
+          <span class="demo-label active-label">DASTAAN REPLANS</span>
           <ul class="replan-list">
             <li>✓ Lower-cost activities</li>
             <li>✓ Adjusted accommodation estimate</li>
@@ -160,40 +245,54 @@
     </div>
   </section>
 
-  <section class="features-section observe-fade" id="features">
-    <div class="container">
-      <div class="bento-grid">
-        <div class="bento-item">
-          <h3>PERSONALIZED ITINERARY</h3>
-          <p>A day-by-day plan built around your preferences.</p>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="site-logo" href="#cinema">
+          <img class="logo-icon" src="images/logo.png" alt="Dastaan Logo" width="44" height="44" />
+          <div class="logo-text">
+            <span class="logo-title" style="color: var(--paper);">Dastaan</span>
+            <span class="logo-tagline" style="color: rgba(232, 220, 199, 0.65);">STORIES &bull; IDEAS &bull; EMOTIONS</span>
+          </div>
+        </a>
+        <p class="footer-desc">Dastaan brings travel logs, maps, stays, and budgets into a single cinematic planning experience tailored to your journey.</p>
+      </div>
+      <div class="footer-links-group">
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="#cinema">Story</a></li>
+            <li><a href="#plan">Plan a Trip</a></li>
+          </ul>
         </div>
-        <div class="bento-item">
-          <h3>BUDGET BREAKDOWN</h3>
-          <p>Transport, stay, food and activities in one view.</p>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Travel Journal</a></li>
+            <li><a href="#">Careers</a></li>
+          </ul>
         </div>
-        <div class="bento-item">
-          <h3>SMART ROUTING</h3>
-          <p>Group nearby places so you don't waste the day travelling.</p>
-        </div>
-        <div class="bento-item">
-          <h3>FLEXIBLE REPLANNING</h3>
-          <p>Change your constraints and rebuild the trip.</p>
-        </div>
-        <div class="bento-item">
-          <h3>TRIP SAVING</h3>
-          <p>Save and revisit your plans whenever you need them.</p>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+          </ul>
         </div>
       </div>
     </div>
-  </section>
-
-  <section class="final-cta observe-fade">
-    <div class="final-cta-content">
-      <h2 class="section-title">WHERE ARE YOU GOING?</h2>
-      <p>Give TripFit the destination. We'll figure out the rest.</p>
-      <a href="#plan" class="btn-primary btn-large">PLAN MY TRIP &rarr;</a>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Dastaan. All rights reserved.</p>
+      <div class="footer-socials">
+        <a href="#" aria-label="Twitter">Twitter</a>
+        <a href="#" aria-label="Instagram">Instagram</a>
+        <a href="#" aria-label="GitHub">GitHub</a>
+      </div>
     </div>
-  </section>
+  </footer>
 
 </main>
 </body>

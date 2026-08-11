@@ -118,6 +118,84 @@ function update() {
   html.style.setProperty('--panel3-opacity', panel3Opacity.toFixed(4));
   html.style.setProperty('--panel3-y', `calc(-50% + ${-frame3.exit * 86 + (1 - frame3.enter) * 58}px)`);
   
+  // Water cards scroll-driven inverted arch animation
+  const waterCards = [
+    document.getElementById('water-card-1'),
+    document.getElementById('water-card-2'),
+    document.getElementById('water-card-3'),
+    document.getElementById('water-card-4'),
+    document.getElementById('water-card-5')
+  ];
+
+  const cardStart = 3300;
+  const cardInterval = 650;
+  
+  waterCards.forEach((card, idx) => {
+    if (!card) return;
+    
+    const start = cardStart + idx * cardInterval;
+    const end = start + cardInterval;
+    
+    let t;
+    let opacity = 0;
+    let pointerEvents = "none";
+    
+    if (smoothScroll < start) {
+      t = 0;
+      opacity = 0;
+    } else if (smoothScroll > end) {
+      t = 1;
+      opacity = 0;
+    } else {
+      t = (smoothScroll - start) / cardInterval;
+      pointerEvents = "auto";
+      
+      // Soft opacity transition near edges
+      if (t < 0.08) {
+        opacity = t / 0.08;
+      } else if (t > 0.92) {
+        opacity = (1 - t) / 0.08;
+      } else {
+        opacity = 1;
+      }
+    }
+    
+    // Speed distribution: Card emerges and submerges quickly, but crawls/slows down in the middle (near t = 0.5) for readability
+    const easedT = 0.4 * t + 0.6 * (0.5 + 4 * Math.pow(t - 0.5, 3));
+    
+    // Semicircle angle from right (-0.12 radians) to left (pi + 0.12 radians)
+    const theta = -0.12 + easedT * (Math.PI + 0.24);
+    
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    
+    // Responsive layout sizing
+    const cardWidth = W < 640 ? 240 : (W < 1100 ? 280 : 320);
+    const cardHeight = W < 640 ? 320 : (W < 1100 ? 380 : 420);
+    
+    const centerX = W / 2;
+    const rx = W * 0.36; // horizontal radius (36% of viewport width)
+    const ry = H * 0.44; // vertical radius (44% of viewport height)
+    
+    // Water shoreline/surface vertical line
+    const baselineY = H * 0.82; 
+    
+    const x = centerX + rx * Math.cos(theta) - cardWidth / 2;
+    const y = baselineY - ry * Math.sin(theta) - cardHeight / 2;
+    
+    // Responsive scale and rotation calculations
+    const baseScale = W < 640 ? 0.72 : (W < 1100 ? 0.86 : 1.0);
+    const scale = baseScale * (0.85 + 0.15 * Math.sin(theta));
+    
+    // Sleek 3D and tangent rotation effects
+    const zRot = -12 * Math.cos(theta); // tilt into curve
+    const yRot = -15 * Math.cos(theta); // face travel direction
+    
+    card.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) scale(${scale.toFixed(4)}) rotateZ(${zRot.toFixed(2)}deg) rotateY(${yRot.toFixed(2)}deg)`;
+    card.style.opacity = opacity.toFixed(4);
+    card.style.pointerEvents = pointerEvents;
+  });
+
   if (Math.abs(smoothScroll - targetScroll) > 0.08 ||
       Math.abs(mouseX - targetMouseX) > 0.001 ||
       Math.abs(mouseY - targetMouseY) > 0.001) {
