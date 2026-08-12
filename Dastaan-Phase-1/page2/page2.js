@@ -1,12 +1,18 @@
 /**
- * DASTAAN — PAGE 2 (TRIP PREFERENCES)
- * Vanilla JavaScript Implementation
+ * DASTAAN / TRIPFIT — PAGE 2 (TRIP PREFERENCES)
+ * Vanilla JavaScript Implementation (Visual Polish & Motion Upgrade)
  * Handles input state, multi-select interests, single-select travel style,
- * form validation, localStorage persistence, and navigation.
+ * vertical counter animations, progress bar tracking, cinematic transition,
+ * localStorage persistence, and navigation.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   
+  // Trigger sequential entrance reveal animations on load
+  requestAnimationFrame(() => {
+    document.body.classList.add('page-loaded');
+  });
+
   // ==========================================
   // 1. STATE INITIALIZATION
   // ==========================================
@@ -22,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. DOM ELEMENT REFERENCES
   // ==========================================
   const form = document.getElementById('trip-preferences-form');
+  const mainContentArea = document.getElementById('main-content-area');
   
   // Destination elements
   const destInput = document.getElementById('destination-input');
@@ -45,12 +52,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Travel Style elements
   const styleCards = document.querySelectorAll('.style-card');
   
+  // Progress Bar elements
+  const step1 = document.getElementById('step-1');
+  const step2 = document.getElementById('step-2');
+  const progressFill1 = document.getElementById('progress-fill-1');
+
   // Error Banner elements
   const errorBanner = document.getElementById('error-banner');
   const errorMessage = document.getElementById('error-message');
   const errorCloseBtn = document.getElementById('error-close-btn');
 
-  // Modal elements
+  // Transition & Modal elements
+  const continueBtn = document.getElementById('continue-btn');
+  const journeyTransitionOverlay = document.getElementById('journey-transition-overlay');
+  const transDestName = document.getElementById('trans-dest-name');
   const successModal = document.getElementById('success-modal');
   const summaryDest = document.getElementById('summary-dest');
   const summaryDays = document.getElementById('summary-days');
@@ -60,7 +75,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalProceedBtn = document.getElementById('modal-proceed-btn');
 
   // ==========================================
-  // 3. RESTORE PREVIOUS STATE (LOCAL STORAGE)
+  // 3. PROGRESS TRACKER ANIMATION
+  // ==========================================
+  function updateProgressTracker() {
+    const isDestValid = state.destination.trim().length > 0;
+    const isInterestsValid = state.interests.size > 0;
+    const isFormValid = isDestValid && isInterestsValid && state.days > 0 && state.budget > 0;
+
+    if (isFormValid) {
+      step1.classList.add('completed');
+      step2.classList.add('active');
+      if (progressFill1) progressFill1.style.width = '100%';
+    } else {
+      step1.classList.remove('completed');
+      step2.classList.remove('active');
+      if (progressFill1) {
+        const fillPercent = (isDestValid ? 50 : 0) + (isInterestsValid ? 30 : 0);
+        progressFill1.style.width = `${fillPercent}%`;
+      }
+    }
+  }
+
+  // ==========================================
+  // 4. RESTORE PREVIOUS STATE (LOCAL STORAGE)
   // ==========================================
   function restoreSavedPreferences() {
     try {
@@ -71,9 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
           destInput.value = parsed.destination;
           state.destination = parsed.destination;
           toggleClearBtn();
+          updateSuggestionChipSelection(parsed.destination);
         }
         if (parsed.days && !isNaN(parsed.days)) {
-          updateDays(parseInt(parsed.days));
+          updateDays(parseInt(parsed.days), false);
         }
         if (parsed.budget && !isNaN(parsed.budget)) {
           updateBudget(parseInt(parsed.budget));
@@ -98,10 +136,11 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       console.warn('Could not parse stored tripPreferences:', e);
     }
+    updateProgressTracker();
   }
 
   // ==========================================
-  // 4. DESTINATION INPUT HANDLING
+  // 5. DESTINATION INPUT & POPULAR CHIPS
   // ==========================================
   function toggleClearBtn() {
     if (destInput.value.trim().length > 0) {
@@ -111,9 +150,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function updateSuggestionChipSelection(currentDest) {
+    suggestionChips.forEach(chip => {
+      const chipVal = chip.getAttribute('data-dest');
+      if (chipVal.toLowerCase() === currentDest.trim().toLowerCase()) {
+        chip.classList.add('selected');
+      } else {
+        chip.classList.remove('selected');
+      }
+    });
+  }
+
   destInput.addEventListener('input', (e) => {
     state.destination = e.target.value;
     toggleClearBtn();
+    updateSuggestionChipSelection(e.target.value);
+    updateProgressTracker();
     clearError();
   });
 
@@ -121,6 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
     destInput.value = '';
     state.destination = '';
     toggleClearBtn();
+    updateSuggestionChipSelection('');
+    updateProgressTracker();
     destInput.focus();
   });
 
@@ -131,22 +185,28 @@ document.addEventListener('DOMContentLoaded', () => {
       destInput.value = destValue;
       state.destination = destValue;
       toggleClearBtn();
+      updateSuggestionChipSelection(destValue);
+      updateProgressTracker();
       clearError();
-      
-      // Visual feedback animation
-      destInput.classList.add('highlight-flash');
-      setTimeout(() => destInput.classList.remove('highlight-flash'), 400);
     });
   });
 
   // ==========================================
-  // 5. DAYS COUNTER & PRESETS
+  // 6. DAYS COUNTER & VERTICAL NUMBER ANIMATION
   // ==========================================
-  function updateDays(newDays) {
-    // Enforce Min: 1, Max: 30
+  function updateDays(newDays, animate = true) {
     const clamped = Math.min(30, Math.max(1, newDays));
     state.days = clamped;
-    daysDisplay.textContent = clamped;
+
+    if (animate) {
+      daysDisplay.classList.add('num-slide');
+      setTimeout(() => {
+        daysDisplay.textContent = clamped;
+        daysDisplay.classList.remove('num-slide');
+      }, 100);
+    } else {
+      daysDisplay.textContent = clamped;
+    }
 
     // Update active preset button highlight
     daysPresets.forEach(btn => {
@@ -157,6 +217,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.remove('active');
       }
     });
+
+    updateProgressTracker();
   }
 
   btnDecrementDays.addEventListener('click', () => {
@@ -175,14 +237,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 6. BUDGET INPUT & PRESETS
+  // 7. BUDGET INPUT & PRESETS
   // ==========================================
   function updateBudget(newBudget) {
     const validVal = isNaN(newBudget) || newBudget < 0 ? 0 : newBudget;
     state.budget = validVal;
     budgetInput.value = validVal;
 
-    // Update preset active button highlight
     budgetPresets.forEach(btn => {
       const pBudget = parseInt(btn.getAttribute('data-budget'));
       if (pBudget === validVal) {
@@ -191,6 +252,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.remove('active');
       }
     });
+
+    updateProgressTracker();
   }
 
   budgetInput.addEventListener('input', (e) => {
@@ -206,6 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.remove('active');
       }
     });
+
+    updateProgressTracker();
   });
 
   budgetPresets.forEach(btn => {
@@ -216,18 +281,18 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 7. INTERESTS MULTI-SELECT CHIPS
+  // 8. INTERESTS MULTI-SELECT CHIPS
   // ==========================================
   function updateInterestsBadge() {
     const count = state.interests.size;
     if (count === 0) {
       interestsBadge.textContent = 'Required: Select at least 1';
-      interestsBadge.style.color = 'var(--error-text)';
-      interestsBadge.style.background = 'var(--error-bg)';
+      interestsBadge.style.color = '#FAD0C4';
+      interestsBadge.style.background = 'rgba(200, 121, 85, 0.15)';
     } else {
       interestsBadge.textContent = `${count} Selected`;
-      interestsBadge.style.color = 'var(--gold)';
-      interestsBadge.style.background = 'rgba(223, 186, 115, 0.15)';
+      interestsBadge.style.color = 'var(--accent-gold)';
+      interestsBadge.style.background = 'rgba(214, 181, 109, 0.12)';
     }
   }
 
@@ -242,12 +307,13 @@ document.addEventListener('DOMContentLoaded', () => {
         chip.classList.add('active');
       }
       updateInterestsBadge();
+      updateProgressTracker();
       clearError();
     });
   });
 
   // ==========================================
-  // 8. TRAVEL STYLE SINGLE-SELECT CARDS
+  // 9. TRAVEL STYLE SINGLE-SELECT CARDS
   // ==========================================
   function selectTravelStyle(selectedStyleName) {
     state.travelStyle = selectedStyleName;
@@ -270,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 9. ERROR HANDLING & VALIDATION
+  // 10. ERROR HANDLING & VALIDATION
   // ==========================================
   function showError(msg, targetElement) {
     errorMessage.textContent = msg;
@@ -328,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // 10. FORM SUBMISSION & LOCALSTORAGE
+  // 11. FORM SUBMISSION & CINEMATIC TRANSITION
   // ==========================================
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -355,8 +421,25 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error saving to localStorage:', err);
     }
 
-    // Display summary modal
-    displaySuccessModal(tripPreferences);
+    // Step 1: CTA compression
+    continueBtn.style.transform = 'scale(0.97)';
+    
+    // Step 2: Content page exit slide
+    mainContentArea.classList.add('page-exiting');
+
+    // Step 3: Show Journey Creation Overlay after 200ms
+    setTimeout(() => {
+      transDestName.textContent = state.destination;
+      journeyTransitionOverlay.style.display = 'flex';
+    }, 200);
+
+    // Step 4: Show Modal Summary after sweeping route line animation finishes
+    setTimeout(() => {
+      journeyTransitionOverlay.style.display = 'none';
+      mainContentArea.classList.remove('page-exiting');
+      continueBtn.style.transform = '';
+      displaySuccessModal(tripPreferences);
+    }, 1400);
   });
 
   // Modal display logic
@@ -379,12 +462,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   modalProceedBtn.addEventListener('click', () => {
     // Navigate to Page 3 (Place Discovery)
-    // If page 3 exists relative to page 2, navigate directly
     window.location.href = '../page3/page3.html';
   });
 
   // ==========================================
-  // 11. EXPOSE PUBLIC HELPER METHOD
+  // 12. EXPOSE PUBLIC HELPER METHOD
   // ==========================================
   window.getTripPreferences = function() {
     try {
@@ -406,24 +488,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
   };
-
-  // ==========================================
-  // 12. SCROLL REVEAL OBSERVER ANIMATION
-  // ==========================================
-  const observeElements = document.querySelectorAll('.observe-fade');
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-        }
-      });
-    }, { threshold: 0.15 });
-
-    observeElements.forEach(el => observer.observe(el));
-  } else {
-    observeElements.forEach(el => el.classList.add('is-visible'));
-  }
 
   // Restore any previously saved data on initial load
   restoreSavedPreferences();

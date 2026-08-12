@@ -28,15 +28,27 @@
   <!-- Deferred JavaScript -->
   <script src="page2.js" defer></script>
 </head>
-<body>
+<body class="page-loading">
 
-  <!-- Background Overlay & Image Wrapper -->
+  <!-- Background Surface & Ambient Lighting -->
   <div class="page-bg-wrapper">
+    <div class="ambient-light light-top-left"></div>
+    <div class="ambient-light light-bottom-right"></div>
+    
+    <!-- Travel Route Visual Motif (Atmospheric SVG lines at low opacity) -->
+    <svg class="bg-route-motif" viewBox="0 0 1440 1000" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path class="route-line line-main" d="M -100 200 C 300 100, 450 450, 800 350 C 1150 250, 1300 650, 1600 550" stroke="#D6B56D" stroke-width="1.5" stroke-dasharray="8 8" />
+      <circle class="route-node node-1" cx="300" cy="180" r="3" fill="#D6B56D" />
+      <circle class="route-node node-2" cx="800" cy="350" r="3.5" fill="#D6B56D" />
+      <circle class="route-node node-3" cx="1300" cy="650" r="3" fill="#D6B56D" />
+      <path class="route-line line-secondary" d="M 100 850 C 450 700, 700 900, 1200 750" stroke="#C87955" stroke-width="1" stroke-dasharray="6 6" />
+    </svg>
+    
     <div class="page-bg-overlay"></div>
   </div>
 
-  <!-- Primary Site Header / Navbar -->
-  <header class="site-header" aria-label="Primary navigation">
+  <!-- Primary Site Header / Navbar (Reveal Sequence 2) -->
+  <header class="site-header reveal-seq reveal-seq-2" aria-label="Primary navigation">
     <a class="site-logo" href="../index.html">
       <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
       <div class="logo-text">
@@ -57,28 +69,48 @@
   </header>
 
   <!-- Main Container -->
-  <main class="preferences-container">
+  <main class="preferences-container" id="main-content-area">
     
     <!-- Hero / Intro Header -->
-    <header class="page-intro animate-fade-in">
-      <span class="chapter-badge">CHAPTER 01 &bull; TELL US</span>
-      <h1 class="main-heading">LET'S BEGIN YOUR JOURNEY</h1>
-      <p class="sub-heading">Tell us what makes a trip yours.</p>
+    <header class="page-intro">
+      <!-- Chapter Badge (Reveal Sequence 3) -->
+      <div class="reveal-seq reveal-seq-3">
+        <span class="chapter-badge">CHAPTER 01 &bull; TELL US</span>
+      </div>
       
-      <!-- Progress Bar Tracker -->
-      <div class="progress-tracker" aria-label="Planning progress steps">
-        <div class="progress-step active" title="Trip Preferences">
-          <span class="step-circle">1</span>
+      <!-- Main Heading (Reveal Sequence 4) -->
+      <h1 class="main-heading reveal-seq reveal-seq-4">LET'S BEGIN YOUR JOURNEY</h1>
+      
+      <!-- Subheading (Reveal Sequence 5) -->
+      <p class="sub-heading reveal-seq reveal-seq-5">Tell us what makes a trip yours.</p>
+      
+      <!-- Progress Bar Tracker (Reveal Sequence 6) -->
+      <div class="progress-tracker reveal-seq reveal-seq-6" aria-label="Planning progress steps">
+        <div class="progress-step active" id="step-1" title="Trip Preferences">
+          <span class="step-circle">
+            <span class="step-num-text">1</span>
+            <span class="step-check-icon">✓</span>
+          </span>
           <span class="step-label">Tell Us</span>
         </div>
-        <div class="progress-line"></div>
-        <div class="progress-step" title="Place Discovery">
-          <span class="step-circle">2</span>
+        <div class="progress-line-container">
+          <div class="progress-line-fill" id="progress-fill-1"></div>
+        </div>
+        <div class="progress-step" id="step-2" title="Place Discovery">
+          <span class="step-circle">
+            <span class="step-num-text">2</span>
+            <span class="step-check-icon">✓</span>
+          </span>
           <span class="step-label">We Plan</span>
         </div>
-        <div class="progress-line"></div>
-        <div class="progress-step" title="Generated Itinerary">
-          <span class="step-circle">3</span>
+        <div class="progress-line-container">
+          <div class="progress-line-fill" id="progress-fill-2"></div>
+        </div>
+        <div class="progress-step" id="step-3" title="Generated Itinerary">
+          <span class="step-circle">
+            <span class="step-num-text">3</span>
+            <span class="step-check-icon">✓</span>
+          </span>
           <span class="step-label">You Travel</span>
         </div>
       </div>
@@ -94,14 +126,14 @@
     <!-- Form Sections Wrapper -->
     <form id="trip-preferences-form" novalidate>
 
-      <!-- SECTION 01 — DESTINATION -->
-      <section class="pref-section observe-fade" id="sec-destination">
+      <!-- SECTION 01 — DESTINATION (Reveal Sequence 7) -->
+      <section class="pref-section reveal-seq reveal-seq-7" id="sec-destination">
         <div class="section-label-group">
           <span class="section-num">01 &mdash; DESTINATION</span>
           <h2 class="section-heading">Where will your story take you?</h2>
         </div>
 
-        <div class="input-card glass-card">
+        <div class="input-card pref-card">
           <label for="destination-input" class="input-label">CHOOSE YOUR DESTINATION</label>
           <div class="search-input-wrapper">
             <span class="search-icon" aria-hidden="true">🔍</span>
@@ -120,19 +152,37 @@
           <div class="suggestions-wrapper">
             <span class="suggestions-title">POPULAR DESTINATIONS:</span>
             <div class="suggestion-chips">
-              <button type="button" class="chip-suggestion" data-dest="Mostar, Bosnia">Mostar</button>
-              <button type="button" class="chip-suggestion" data-dest="New Delhi, India">New Delhi</button>
-              <button type="button" class="chip-suggestion" data-dest="Kyoto, Japan">Kyoto</button>
-              <button type="button" class="chip-suggestion" data-dest="Florence, Italy">Florence</button>
-              <button type="button" class="chip-suggestion" data-dest="Istanbul, Turkey">Istanbul</button>
-              <button type="button" class="chip-suggestion" data-dest="Jaipur, India">Jaipur</button>
+              <button type="button" class="chip-suggestion" data-dest="Mostar, Bosnia">
+                <span class="chip-text">Mostar</span>
+                <span class="chip-check">✓</span>
+              </button>
+              <button type="button" class="chip-suggestion" data-dest="New Delhi, India">
+                <span class="chip-text">New Delhi</span>
+                <span class="chip-check">✓</span>
+              </button>
+              <button type="button" class="chip-suggestion" data-dest="Kyoto, Japan">
+                <span class="chip-text">Kyoto</span>
+                <span class="chip-check">✓</span>
+              </button>
+              <button type="button" class="chip-suggestion" data-dest="Florence, Italy">
+                <span class="chip-text">Florence</span>
+                <span class="chip-check">✓</span>
+              </button>
+              <button type="button" class="chip-suggestion" data-dest="Istanbul, Turkey">
+                <span class="chip-text">Istanbul</span>
+                <span class="chip-check">✓</span>
+              </button>
+              <button type="button" class="chip-suggestion" data-dest="Jaipur, India">
+                <span class="chip-text">Jaipur</span>
+                <span class="chip-check">✓</span>
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- SECTION 02 — YOUR JOURNEY -->
-      <section class="pref-section observe-fade" id="sec-journey">
+      <!-- SECTION 02 — YOUR JOURNEY (Reveal Sequence 8) -->
+      <section class="pref-section reveal-seq reveal-seq-8" id="sec-journey">
         <div class="section-label-group">
           <span class="section-num">02 &mdash; YOUR JOURNEY</span>
           <h2 class="section-heading">Tell us about the journey.</h2>
@@ -141,7 +191,7 @@
         <div class="grid-two-col">
           
           <!-- Control 1: Number of Days -->
-          <div class="journey-card glass-card">
+          <div class="journey-card pref-card">
             <span class="control-label">HOW MANY DAYS?</span>
             <div class="days-counter-control">
               <button type="button" id="btn-decrement-days" class="counter-btn" aria-label="Decrease number of days">&minus;</button>
@@ -162,7 +212,7 @@
           </div>
 
           <!-- Control 2: Budget -->
-          <div class="journey-card glass-card">
+          <div class="journey-card pref-card">
             <label for="budget-input" class="control-label">WHAT'S YOUR BUDGET?</label>
             <div class="currency-input-wrapper">
               <span class="currency-symbol">₹</span>
@@ -193,14 +243,14 @@
       </section>
 
       <!-- SECTION 03 — YOUR WAY -->
-      <section class="pref-section observe-fade" id="sec-yourway">
-        <div class="section-label-group">
+      <section class="pref-section" id="sec-yourway">
+        <div class="section-label-group reveal-seq reveal-seq-9">
           <span class="section-num">03 &mdash; YOUR WAY</span>
           <h2 class="section-heading">What makes a perfect trip for you?</h2>
         </div>
 
-        <!-- Subsection 1: Interests -->
-        <div class="interests-container glass-card">
+        <!-- Subsection 1: Interests (Reveal Sequence 9) -->
+        <div class="interests-container pref-card reveal-seq reveal-seq-9">
           <div class="sub-header">
             <h3 class="sub-heading-title">SELECT INTERESTS</h3>
             <span class="selection-status-badge" id="interests-count-badge">Required: Select at least 1</span>
@@ -250,8 +300,8 @@
           </div>
         </div>
 
-        <!-- Subsection 2: Travel Style -->
-        <div class="travel-style-container">
+        <!-- Subsection 2: Travel Style (Reveal Sequence 10) -->
+        <div class="travel-style-container reveal-seq reveal-seq-10">
           <div class="sub-header">
             <h3 class="sub-heading-title">TRAVEL STYLE</h3>
             <span class="selection-status-badge">Select one pace</span>
@@ -260,7 +310,7 @@
           <div class="style-cards-grid" id="style-cards-grid">
             
             <!-- RELAXED -->
-            <div class="style-card glass-card" data-style="Relaxed">
+            <div class="style-card pref-card" data-style="Relaxed">
               <div class="style-card-header">
                 <span class="style-radio-indicator"></span>
                 <span class="style-tag">UNHURRIED</span>
@@ -273,7 +323,7 @@
             </div>
 
             <!-- BALANCED (Default Active) -->
-            <div class="style-card glass-card active" data-style="Balanced">
+            <div class="style-card pref-card active" data-style="Balanced">
               <div class="style-card-header">
                 <span class="style-radio-indicator"></span>
                 <span class="style-tag gold-badge">RECOMMENDED</span>
@@ -286,7 +336,7 @@
             </div>
 
             <!-- PACKED -->
-            <div class="style-card glass-card" data-style="Packed">
+            <div class="style-card pref-card" data-style="Packed">
               <div class="style-card-header">
                 <span class="style-radio-indicator"></span>
                 <span class="style-tag">INTENSIVE</span>
@@ -303,10 +353,10 @@
 
       </section>
 
-      <!-- Submit Action Area -->
-      <div class="submit-action-area observe-fade">
+      <!-- Submit Action Area (Reveal Sequence 11) -->
+      <div class="submit-action-area reveal-seq reveal-seq-11">
         <button type="submit" id="continue-btn" class="btn-primary btn-cta-large">
-          <span>CONTINUE TO DISCOVERY</span>
+          <span class="btn-label-text">CONTINUE TO DISCOVERY</span>
           <span class="btn-arrow">&rarr;</span>
         </button>
         <p class="cta-note">Your preferences will be saved to curate your personalized itinerary.</p>
@@ -315,9 +365,23 @@
     </form>
   </main>
 
+  <!-- Journey Creation Transition Overlay (Cinematic sweeping line & fade) -->
+  <div id="journey-transition-overlay" class="journey-transition-overlay" style="display: none;" aria-hidden="true">
+    <div class="transition-route-container">
+      <svg class="transition-svg" viewBox="0 0 1000 400" fill="none">
+        <path class="transition-line" d="M 0 200 C 300 50, 700 350, 1000 200" stroke="#D6B56D" stroke-width="3" />
+      </svg>
+      <div class="transition-message-box">
+        <span class="transition-sparkle">✨</span>
+        <h3 class="transition-heading">CRAFTING YOUR JOURNEY</h3>
+        <p class="transition-dest-text">Curating experiences for <span id="trans-dest-name">New Delhi</span>...</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Dialog for Successful Submission / Next Step Handshake -->
   <div id="success-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal-card glass-card">
+    <div class="modal-card pref-card">
       <div class="modal-icon">✨</div>
       <h3 id="modal-title" class="modal-title">JOURNEY PREFERENCES SAVED</h3>
       <p class="modal-desc">
@@ -342,8 +406,8 @@
         <a class="site-logo" href="../index.html">
           <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
           <div class="logo-text">
-            <span class="logo-title" style="color: var(--paper);">Dastaan</span>
-            <span class="logo-tagline" style="color: rgba(232, 220, 199, 0.65);">STORIES &bull; IDEAS &bull; EMOTIONS</span>
+            <span class="logo-title" style="color: var(--color-text-primary);">Dastaan</span>
+            <span class="logo-tagline" style="color: var(--color-text-secondary);">STORIES &bull; IDEAS &bull; EMOTIONS</span>
           </div>
         </a>
         <p class="footer-desc">Dastaan brings travel logs, maps, stays, and budgets into a single cinematic planning experience tailored to your journey.</p>
