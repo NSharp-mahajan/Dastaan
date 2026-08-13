@@ -76,11 +76,11 @@ function update() {
   
   html.style.setProperty('--bazaar-y', `${20 - progress * 8}vh`);
   
-  html.style.setProperty('--blur-px', `${blurActive * 14}px`);
-  html.style.setProperty('--back-brightness', (1 - blurActive * 0.255).toFixed(4));
+  html.style.setProperty('--blur-px', `${blurActive * 3}px`);
+  html.style.setProperty('--back-brightness', (1 - blurActive * 0.4).toFixed(4));
   
-  html.style.setProperty('--bazaar-blur-px', `${frame2.active * 14}px`);
-  html.style.setProperty('--bazaar-brightness', (1 - frame2.active * 0.255 - frame3.active * 0.06).toFixed(4));
+  html.style.setProperty('--bazaar-blur-px', `${frame2.active * 3}px`);
+  html.style.setProperty('--bazaar-brightness', (1 - frame2.active * 0.4 - frame3.active * 0.06).toFixed(4));
   html.style.setProperty('--bazaar-saturation', (1 + frame3.active * 0.18).toFixed(4));
   
   html.style.setProperty('--shade-opacity', "1");
@@ -228,6 +228,16 @@ function observeElements() {
     });
   }, { threshold: 0.1 });
   
-  document.querySelectorAll('.observe-fade').forEach(el => observer.observe(el));
+  document.querySelectorAll('.observe-fade, .observe-panel').forEach(el => observer.observe(el));
 }
-window.addEventListener('DOMContentLoaded', observeElements);
+window.addEventListener('DOMContentLoaded', () => {
+  observeElements();
+  
+  const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+  const siteHeader = document.querySelector('.site-header');
+  if(mobileMenuToggle && siteHeader) {
+    mobileMenuToggle.addEventListener('click', () => {
+      siteHeader.classList.toggle('menu-open');
+    });
+  }
+});
