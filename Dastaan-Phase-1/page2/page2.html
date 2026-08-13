@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dastaan — Tell Us About Your Journey</title>
+  <meta name="description" content="Configure your trip preferences with Dastaan. Tell us your destination, days, budget, interests, and travel pace." />
+  
+  <!-- Favicon -->
+  <link rel="icon" href="../images/logo.png" type="image/png" />
+  
+  <!-- Google Fonts & Custom Ogg Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    @font-face {
+      font-family: 'Ogg Medium';
+      src: url('https://dcym8fthxf5uu.cloudfront.net/fonts/247a073c-29f5-4a89-aa3a-741020f346fc/OggText-Medium.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+    }
+  </style>
+
+  <!-- Page 2 Stylesheet -->
+  <link rel="stylesheet" href="page2.css" />
+  
+  <!-- Deferred JavaScript -->
+  <script src="page2.js" defer></script>
+</head>
+<body class="page-loading">
+
+  <!-- Background Surface & Ambient Lighting -->
+  <div class="page-bg-wrapper">
+    <div class="ambient-light light-top-left"></div>
+    <div class="ambient-light light-bottom-right"></div>
+    
+    <!-- Travel Route Visual Motif (Atmospheric SVG lines at low opacity) -->
+    <svg class="bg-route-motif" viewBox="0 0 1440 1000" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path class="route-line line-main" d="M -100 200 C 300 100, 450 450, 800 350 C 1150 250, 1300 650, 1600 550" stroke="#D6B56D" stroke-width="1.5" stroke-dasharray="8 8" />
+      <circle class="route-node node-1" cx="300" cy="180" r="3" fill="#D6B56D" />
+      <circle class="route-node node-2" cx="800" cy="350" r="3.5" fill="#D6B56D" />
+      <circle class="route-node node-3" cx="1300" cy="650" r="3" fill="#D6B56D" />
+      <path class="route-line line-secondary" d="M 100 850 C 450 700, 700 900, 1200 750" stroke="#C87955" stroke-width="1" stroke-dasharray="6 6" />
+    </svg>
+    
+    <div class="page-bg-overlay"></div>
+  </div>
+
+  <!-- Primary Site Header / Navbar (Reveal Sequence 2) -->
+  <header class="site-header reveal-seq reveal-seq-2" aria-label="Primary navigation">
+    <a class="site-logo" href="../index.html">
+      <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
+      <div class="logo-text">
+        <span class="logo-title">Dastaan</span>
+        <span class="logo-tagline">STORIES &bull; IDEAS &bull; EMOTIONS</span>
+      </div>
+    </a>
+    
+    <nav class="site-nav" aria-label="Main menu">
+      <a href="../index.html#explore">Explore</a>
+      <a href="../index.html#how-it-works">How It Works</a>
+    </nav>
+    
+    <div class="header-actions">
+      <a href="#signin" class="nav-link">Sign In</a>
+      <a href="#" class="btn-primary active-nav-btn">Plan a Trip &rarr;</a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="preferences-container" id="main-content-area">
+    
+    <!-- Hero / Intro Header -->
+    <header class="page-intro">
+      <!-- Chapter Badge (Reveal Sequence 3) -->
+      <div class="reveal-seq reveal-seq-3">
+        <span class="chapter-badge">CHAPTER 01 &bull; TELL US</span>
+      </div>
+      
+      <!-- Main Heading (Reveal Sequence 4) -->
+      <h1 class="main-heading reveal-seq reveal-seq-4">LET'S BEGIN YOUR JOURNEY</h1>
+      
+      <!-- Subheading (Reveal Sequence 5) -->
+      <p class="sub-heading reveal-seq reveal-seq-5">Tell us what makes a trip yours.</p>
+      
+      <!-- Progress Bar Tracker (Reveal Sequence 6) -->
+      <div class="progress-tracker reveal-seq reveal-seq-6" aria-label="Planning progress steps">
+        <div class="progress-step active" id="step-1" title="Trip Preferences">
+          <span class="step-circle">
+            <span class="step-num-text">1</span>
+            <span class="step-check-icon">✓</span>
+          </span>
+          <span class="step-label">Tell Us</span>
+        </div>
+        <div class="progress-line-container">
+          <div class="progress-line-fill" id="progress-fill-1"></div>
+        </div>
+        <div class="progress-step" id="step-2" title="Place Discovery">
+          <span class="step-circle">
+            <span class="step-num-text">2</span>
+            <span class="step-check-icon">✓</span>
+          </span>
+          <span class="step-label">We Plan</span>
+        </div>
+        <div class="progress-line-container">
+          <div class="progress-line-fill" id="progress-fill-2"></div>
+        </div>
+        <div class="progress-step" id="step-3" title="Generated Itinerary">
+          <span class="step-circle">
+            <span class="step-num-text">3</span>
+            <span class="step-check-icon">✓</span>
+          </span>
+          <span class="step-label">You Travel</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Global Inline Error Banner (Hidden by default) -->
+    <div id="error-banner" class="error-banner" role="alert" aria-live="polite" style="display: none;">
+      <span class="error-icon">⚠️</span>
+      <span id="error-message" class="error-message">Please complete all required fields.</span>
+      <button type="button" class="error-close" id="error-close-btn" aria-label="Close message">&times;</button>
+    </div>
+
+    <!-- Form Sections Wrapper -->
+    <form id="trip-preferences-form" novalidate>
+
+      <!-- SECTION 01 — DESTINATION (Reveal Sequence 7) -->
+      <section class="pref-section reveal-seq reveal-seq-7" id="sec-destination">
+        <div class="section-label-group">
+          <span class="section-num">01 &mdash; DESTINATION</span>
+          <h2 class="section-heading">Where will your story take you?</h2>
+        </div>
+
+        <div class="input-card pref-card">
+          <label for="destination-input" class="input-label">CHOOSE YOUR DESTINATION</label>
+          <div class="search-input-wrapper">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input 
+              type="text" 
+              id="destination-input" 
+              class="styled-input" 
+              placeholder="Search for a city or destination..."
+              autocomplete="off"
+              required
+            />
+            <button type="button" id="clear-destination" class="clear-input-btn" aria-label="Clear destination input" style="display: none;">&times;</button>
+          </div>
+
+          <!-- Quick Suggestion Chips -->
+          <div class="suggestions-wrapper">
+            <span class="suggestions-title">POPULAR DESTINATIONS:</span>
+            <div class="suggestion-chips">
+              <button type="button" class="chip-suggestion" data-dest="Mostar, Bosnia">
+                <span class="chip-text">Mostar</span>
+                <span class="chip-check">✓</span>
+              </button>
+              <button type="button" class="chip-suggestion" data-dest="New Delhi, India">
+                <span class="chip-text">New Delhi</span>
+                <span class="chip-check">✓</span>
+              </button>
+              <button type="button" class="chip-suggestion" data-dest="Kyoto, Japan">
+                <span class="chip-text">Kyoto</span>
+                <span class="chip-check">✓</span>
+              </button>
+              <button type="button" class="chip-suggestion" data-dest="Florence, Italy">
+                <span class="chip-text">Florence</span>
+                <span class="chip-check">✓</span>
+              </button>
+              <button type="button" class="chip-suggestion" data-dest="Istanbul, Turkey">
+                <span class="chip-text">Istanbul</span>
+                <span class="chip-check">✓</span>
+              </button>
+              <button type="button" class="chip-suggestion" data-dest="Jaipur, India">
+                <span class="chip-text">Jaipur</span>
+                <span class="chip-check">✓</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 02 — YOUR JOURNEY (Reveal Sequence 8) -->
+      <section class="pref-section reveal-seq reveal-seq-8" id="sec-journey">
+        <div class="section-label-group">
+          <span class="section-num">02 &mdash; YOUR JOURNEY</span>
+          <h2 class="section-heading">Tell us about the journey.</h2>
+        </div>
+
+        <div class="grid-two-col">
+          
+          <!-- Control 1: Number of Days -->
+          <div class="journey-card pref-card">
+            <span class="control-label">HOW MANY DAYS?</span>
+            <div class="days-counter-control">
+              <button type="button" id="btn-decrement-days" class="counter-btn" aria-label="Decrease number of days">&minus;</button>
+              <div class="days-display-box">
+                <span id="days-count" class="days-number">3</span>
+                <span class="days-unit">DAYS</span>
+              </div>
+              <button type="button" id="btn-increment-days" class="counter-btn" aria-label="Increase number of days">&plus;</button>
+            </div>
+            
+            <!-- Quick Preset Days -->
+            <div class="days-presets">
+              <button type="button" class="preset-btn" data-days="2">Weekend (2d)</button>
+              <button type="button" class="preset-btn active" data-days="3">Standard (3d)</button>
+              <button type="button" class="preset-btn" data-days="7">Full Week (7d)</button>
+              <button type="button" class="preset-btn" data-days="14">Fortnight (14d)</button>
+            </div>
+          </div>
+
+          <!-- Control 2: Budget -->
+          <div class="journey-card pref-card">
+            <label for="budget-input" class="control-label">WHAT'S YOUR BUDGET?</label>
+            <div class="currency-input-wrapper">
+              <span class="currency-symbol">₹</span>
+              <input 
+                type="number" 
+                id="budget-input" 
+                class="styled-input currency-input" 
+                value="8000" 
+                min="500" 
+                step="500" 
+                placeholder="8000"
+                required
+              />
+            </div>
+            <p class="helper-text">Set an approximate budget for your trip.</p>
+
+            <!-- Quick Budget Presets -->
+            <div class="budget-presets">
+              <button type="button" class="preset-btn" data-budget="5000">₹5,000</button>
+              <button type="button" class="preset-btn active" data-budget="8000">₹8,000</button>
+              <button type="button" class="preset-btn" data-budget="15000">₹15,000</button>
+              <button type="button" class="preset-btn" data-budget="30000">₹30,000</button>
+              <button type="button" class="preset-btn" data-budget="50000">₹50,000</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION 03 — YOUR WAY -->
+      <section class="pref-section" id="sec-yourway">
+        <div class="section-label-group reveal-seq reveal-seq-9">
+          <span class="section-num">03 &mdash; YOUR WAY</span>
+          <h2 class="section-heading">What makes a perfect trip for you?</h2>
+        </div>
+
+        <!-- Subsection 1: Interests (Reveal Sequence 9) -->
+        <div class="interests-container pref-card reveal-seq reveal-seq-9">
+          <div class="sub-header">
+            <h3 class="sub-heading-title">SELECT INTERESTS</h3>
+            <span class="selection-status-badge" id="interests-count-badge">Required: Select at least 1</span>
+          </div>
+
+          <div class="interests-grid" id="interests-grid">
+            <button type="button" class="interest-chip" data-interest="History">
+              <span class="chip-icon">🏛️</span>
+              <span class="chip-label">History</span>
+              <span class="chip-checkmark">✓</span>
+            </button>
+            <button type="button" class="interest-chip" data-interest="Food">
+              <span class="chip-icon">🍷</span>
+              <span class="chip-label">Food</span>
+              <span class="chip-checkmark">✓</span>
+            </button>
+            <button type="button" class="interest-chip" data-interest="Nature">
+              <span class="chip-icon">🌿</span>
+              <span class="chip-label">Nature</span>
+              <span class="chip-checkmark">✓</span>
+            </button>
+            <button type="button" class="interest-chip" data-interest="Culture">
+              <span class="chip-icon">🎭</span>
+              <span class="chip-label">Culture</span>
+              <span class="chip-checkmark">✓</span>
+            </button>
+            <button type="button" class="interest-chip" data-interest="Shopping">
+              <span class="chip-icon">🛍️</span>
+              <span class="chip-label">Shopping</span>
+              <span class="chip-checkmark">✓</span>
+            </button>
+            <button type="button" class="interest-chip" data-interest="Art">
+              <span class="chip-icon">🎨</span>
+              <span class="chip-label">Art</span>
+              <span class="chip-checkmark">✓</span>
+            </button>
+            <button type="button" class="interest-chip" data-interest="Adventure">
+              <span class="chip-icon">⛰️</span>
+              <span class="chip-label">Adventure</span>
+              <span class="chip-checkmark">✓</span>
+            </button>
+            <button type="button" class="interest-chip" data-interest="Nightlife">
+              <span class="chip-icon">🌃</span>
+              <span class="chip-label">Nightlife</span>
+              <span class="chip-checkmark">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Subsection 2: Travel Style (Reveal Sequence 10) -->
+        <div class="travel-style-container reveal-seq reveal-seq-10">
+          <div class="sub-header">
+            <h3 class="sub-heading-title">TRAVEL STYLE</h3>
+            <span class="selection-status-badge">Select one pace</span>
+          </div>
+
+          <div class="style-cards-grid" id="style-cards-grid">
+            
+            <!-- RELAXED -->
+            <div class="style-card pref-card" data-style="Relaxed">
+              <div class="style-card-header">
+                <span class="style-radio-indicator"></span>
+                <span class="style-tag">UNHURRIED</span>
+              </div>
+              <h4 class="style-title">RELAXED</h4>
+              <p class="style-desc">"Slow mornings, fewer stops, more time to explore."</p>
+              <div class="style-footer">
+                <span>Pace: 1 &ndash; 2 sights / day</span>
+              </div>
+            </div>
+
+            <!-- BALANCED (Default Active) -->
+            <div class="style-card pref-card active" data-style="Balanced">
+              <div class="style-card-header">
+                <span class="style-radio-indicator"></span>
+                <span class="style-tag gold-badge">RECOMMENDED</span>
+              </div>
+              <h4 class="style-title">BALANCED</h4>
+              <p class="style-desc">"The best of both &mdash; explore without feeling rushed."</p>
+              <div class="style-footer">
+                <span>Pace: 3 &ndash; 4 sights / day</span>
+              </div>
+            </div>
+
+            <!-- PACKED -->
+            <div class="style-card pref-card" data-style="Packed">
+              <div class="style-card-header">
+                <span class="style-radio-indicator"></span>
+                <span class="style-tag">INTENSIVE</span>
+              </div>
+              <h4 class="style-title">PACKED</h4>
+              <p class="style-desc">"Make every moment count and see as much as possible."</p>
+              <div class="style-footer">
+                <span>Pace: 5+ sights / day</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Submit Action Area (Reveal Sequence 11) -->
+      <div class="submit-action-area reveal-seq reveal-seq-11">
+        <button type="submit" id="continue-btn" class="btn-primary btn-cta-large">
+          <span class="btn-label-text">CONTINUE TO DISCOVERY</span>
+          <span class="btn-arrow">&rarr;</span>
+        </button>
+        <p class="cta-note">Your preferences will be saved to curate your personalized itinerary.</p>
+      </div>
+
+    </form>
+  </main>
+
+  <!-- Journey Creation Transition Overlay (Cinematic sweeping line & fade) -->
+  <div id="journey-transition-overlay" class="journey-transition-overlay" style="display: none;" aria-hidden="true">
+    <div class="transition-route-container">
+      <svg class="transition-svg" viewBox="0 0 1000 400" fill="none">
+        <path class="transition-line" d="M 0 200 C 300 50, 700 350, 1000 200" stroke="#D6B56D" stroke-width="3" />
+      </svg>
+      <div class="transition-message-box">
+        <span class="transition-sparkle">✨</span>
+        <h3 class="transition-heading">CRAFTING YOUR JOURNEY</h3>
+        <p class="transition-dest-text">Curating experiences for <span id="trans-dest-name">New Delhi</span>...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Dialog for Successful Submission / Next Step Handshake -->
+  <div id="success-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card pref-card">
+      <div class="modal-icon">✨</div>
+      <h3 id="modal-title" class="modal-title">JOURNEY PREFERENCES SAVED</h3>
+      <p class="modal-desc">
+        Your travel story is set! Destination: <strong id="summary-dest" class="gold-text">New Delhi</strong> &bull; 
+        <span id="summary-days">3</span> Days &bull; 
+        Budget: <span id="summary-budget">₹8,000</span>
+      </p>
+      <div class="modal-details" id="modal-details-box">
+        <!-- Filled by JS -->
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="modal-edit-btn" class="btn-secondary">Edit Preferences</button>
+        <button type="button" id="modal-proceed-btn" class="btn-primary">Proceed to Discovery &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="site-logo" href="../index.html">
+          <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
+          <div class="logo-text">
+            <span class="logo-title" style="color: var(--color-text-primary);">Dastaan</span>
+            <span class="logo-tagline" style="color: var(--color-text-secondary);">STORIES &bull; IDEAS &bull; EMOTIONS</span>
+          </div>
+        </a>
+        <p class="footer-desc">Dastaan brings travel logs, maps, stays, and budgets into a single cinematic planning experience tailored to your journey.</p>
+      </div>
+      <div class="footer-links-group">
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="../index.html">Home / Story</a></li>
+            <li><a href="#">Plan My Trip</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Travel Journal</a></li>
+            <li><a href="#">Careers</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Dastaan. All rights reserved.</p>
+      <div class="footer-socials">
+        <a href="#" aria-label="Twitter">Twitter</a>
+        <a href="#" aria-label="Instagram">Instagram</a>
+        <a href="#" aria-label="GitHub">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
