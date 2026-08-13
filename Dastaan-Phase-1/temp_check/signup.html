@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dastaan | Login & Sign Up</title>
+  <meta name="description" content="Login or create your Dastaan travel planning account." />
+  <link rel="icon" href="images/logo.png" type="image/png" />
+  <link rel="stylesheet" href="css/signup.css" />
+  <style>
+    @font-face {
+      font-family: 'Ogg Medium';
+      src: url('https://dcym8fthxf5uu.cloudfront.net/fonts/247a073c-29f5-4a89-aa3a-741020f346fc/OggText-Medium.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+    }
+  </style>
+</head>
+<body>
+  <header class="account-header">
+    <a class="site-logo" href="index.html">
+      <img class="logo-icon" src="images/logo.png" alt="Dastaan Logo" width="44" height="44" />
+      <div class="logo-text">
+        <span class="logo-title">Dastaan</span>
+        <span class="logo-tagline">STORIES · IDEAS · EMOTIONS</span>
+      </div>
+    </a>
+  </header>
+
+  <main class="account-shell">
+    <div class="scene-ornaments" aria-hidden="true">
+      <span class="glow-pulse glow-left"></span>
+      <span class="glow-pulse glow-right"></span>
+    </div>
+    <section class="account-panel welcome-panel">
+      <span class="badge">Welcome to Dastaan</span>
+      <h1>Luxury travel planning begins here</h1>
+      <p>Sign in to preserve your bespoke itineraries, concierge notes, and curated journey inspirations across every destination.</p>
+      <div class="feature-list">
+        <div class="feature-item">
+          <strong>Signature itineraries</strong>
+          <p>Enjoy hand-crafted travel plans built around cultural richness, luxury stays, and unforgettable experiences.</p>
+        </div>
+        <div class="feature-item">
+          <strong>One seamless account</strong>
+          <p>Save preferred hotels, favorite routes, and personal travel notes for every chapter of your story.</p>
+        </div>
+        <div class="feature-item">
+          <strong>Exclusive access</strong>
+          <p>Unlock concierge-style guidance, early offers, and premium travel updates designed for refined explorers.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="account-panel form-panel">
+      <div class="account-toggle">
+        <input type="radio" id="login" name="accountTab" checked />
+        <label for="login">Login</label>
+        <input type="radio" id="signup" name="accountTab" />
+        <label for="signup">Sign Up</label>
+      </div>
+
+      <div class="forms-wrapper">
+        <div class="form-view login-view">
+          <h2>Welcome back</h2>
+          <p>Enter your mobile number and password to continue to your luxury travel dashboard.</p>
+          <form>
+            <label for="login-phone">Mobile number</label>
+            <input id="login-phone" type="tel" placeholder="Your mobile number" required />
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" placeholder="Your password" required />
+            <div class="form-footer">
+              <label class="checkbox-label">
+                <input type="checkbox" /> Remember me
+              </label>
+              <a href="#" class="text-link">Forgot password?</a>
+            </div>
+            <button type="submit" class="btn-action">Sign in securely</button>
+            <p class="form-subtext">Enter the number tied to your Dastaan account.</p>
+          </form>
+        </div>
+
+        <div class="form-view signup-view">
+          <h2>Create your account</h2>
+          <p>Let Dastaan store your preferences and curate your next grand journey.</p>
+          <form>
+            <label for="signup-name">Full name</label>
+            <input id="signup-name" type="text" placeholder="Your name here" required />
+            <label for="signup-email">E-mail</label>
+            <input id="signup-email" type="email" placeholder="E-mail address" required />
+            <label for="signup-phone">Mobile number</label>
+            <input id="signup-phone" type="tel" placeholder="Mobile number" required />
+            <label for="travel-style">Preferred travel style</label>
+            <select id="travel-style" required>
+              <option value="">Choose your journey</option>
+              <option value="cultural">Cultural discovery</option>
+              <option value="luxury">Luxury escapes</option>
+              <option value="adventure">Hidden adventure</option>
+              <option value="relaxation">Slow exploration</option>
+            </select>
+            <label for="signup-password">Create password</label>
+            <input id="signup-password" type="password" placeholder="Create a password" required />
+            <label for="signup-confirm">Confirm password</label>
+            <input id="signup-confirm" type="password" placeholder="Confirm password" required />
+            <button type="submit" class="btn-action">Create account</button>
+            <p class="form-subtext">Your details help us tailor the perfect travel story.</p>
+          </form>
+          <p class="account-note">By creating an account, you agree to Dastaan’s <a href="#">Privacy Policy</a> and traveler terms.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
