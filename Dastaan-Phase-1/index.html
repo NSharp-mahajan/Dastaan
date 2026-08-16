@@ -163,34 +163,44 @@
         </div>
       </section>
       
-      <section class="story-panel story-panel-bazaar" id="how-it-works" aria-label="How Dastaan Works">
-        <h2 style="font-size: 2.5rem; margin-bottom: 24px;">FROM "WHERE SHOULD I GO?"<br/>TO "HERE'S YOUR TRIP."</h2>
-        <div class="steps-grid" style="margin-top: 0;">
-          <div class="step">
-            <span class="step-num">01 — TELL US</span>
-            <ul>
+      <section class="story-panel story-panel-bazaar observe-panel" id="how-it-works" aria-label="How Dastaan Works">
+        <h2 class="intro-headline" style="font-size: clamp(2rem, 3.5vw, 3.5rem); margin-bottom: 48px; color: var(--paper);">FROM "WHERE SHOULD I GO?"<br/>TO "HERE'S YOUR TRIP."</h2>
+        
+        <div class="travel-cards-wrapper">
+          <svg class="travel-route-line" viewBox="0 0 1000 100" preserveAspectRatio="none">
+            <path class="route-path" d="M 100,50 Q 300,10 500,50 T 900,50" fill="none" stroke="rgba(214,181,109,0.25)" stroke-width="2" stroke-dasharray="8 8" />
+            <circle cx="100" cy="50" r="4" fill="rgba(214,181,109,0.6)" />
+            <circle cx="500" cy="50" r="4" fill="rgba(214,181,109,0.6)" />
+            <circle cx="900" cy="50" r="4" fill="rgba(214,181,109,0.6)" />
+          </svg>
+          
+          <div class="travel-card step-01">
+            <span class="step-num">01 &mdash; TELL US</span>
+            <ul class="step-list">
               <li>Destination</li>
               <li>Duration</li>
               <li>Budget</li>
             </ul>
-            <p>Give Dastaan the constraints that matter to you.</p>
+            <p class="step-desc">Give Dastaan the constraints that matter to you.</p>
           </div>
-          <div class="step">
-            <span class="step-num">02 — WE PLAN</span>
-            <ul>
+          
+          <div class="travel-card step-02">
+            <span class="step-num">02 &mdash; WE PLAN</span>
+            <ul class="step-list">
               <li>Places</li>
               <li>Routes</li>
               <li>Costs</li>
             </ul>
-            <p>Dastaan builds an itinerary around your time and budget.</p>
+            <p class="step-desc">Dastaan builds an itinerary around your time and budget.</p>
           </div>
-          <div class="step">
-            <span class="step-num">03 — YOU TRAVEL</span>
-            <ul>
+          
+          <div class="travel-card step-03">
+            <span class="step-num">03 &mdash; YOU TRAVEL</span>
+            <ul class="step-list">
               <li>One itinerary</li>
               <li>One plan</li>
             </ul>
-            <p>Stop researching. Start travelling.</p>
+            <p class="step-desc">Stop researching.<br/>Start travelling.</p>
           </div>
         </div>
       </section>
@@ -199,51 +209,80 @@
   </section>
 
   <!-- Flowing Sections Start Here -->
-  <section class="benefits-section observe-fade">
-    <div class="container">
-      <h2 class="section-title">BUILT AROUND YOUR TRIP.</h2>
-      <div class="benefits-grid">
-        <div class="benefit-card">
+  <section class="editorial-section observe-fade">
+    <div class="editorial-bg-pattern">
+      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <pattern id="topo" x="0" y="0" width="400" height="400" patternUnits="userSpaceOnUse">
+          <path d="M 0 100 Q 100 50, 200 100 T 400 100 M 0 200 Q 150 150, 250 250 T 400 200 M 0 300 Q 50 350, 150 300 T 400 300" fill="none" stroke="var(--primary)" stroke-width="0.5" stroke-opacity="0.05" />
+        </pattern>
+        <rect width="100%" height="100%" fill="url(#topo)" />
+      </svg>
+    </div>
+    <div class="container relative-z">
+      <div class="editorial-header">
+        <span class="eyebrow">WHAT DASTAAN OPTIMIZES</span>
+        <h2 class="editorial-title">BUILT AROUND<br/>WHAT MATTERS TO YOU.</h2>
+      </div>
+      
+      <div class="editorial-features">
+        <div class="editorial-feature">
+          <span class="feature-num">01</span>
           <h3>BUDGET-AWARE</h3>
           <p>Know what your trip is likely to cost before you go.</p>
+          <div class="hover-indicator"></div>
         </div>
-        <div class="benefit-card">
+        <div class="feature-divider"></div>
+        <div class="editorial-feature">
+          <span class="feature-num">02</span>
           <h3>TIME-AWARE</h3>
           <p>Spend less time travelling between places and more time experiencing them.</p>
+          <div class="hover-indicator"></div>
         </div>
-        <div class="benefit-card">
+        <div class="feature-divider"></div>
+        <div class="editorial-feature">
+          <span class="feature-num">03</span>
           <h3>PREFERENCE-AWARE</h3>
-          <p>Nature, food, adventure or culture — your itinerary adapts to you.</p>
+          <p>Nature, food, adventure or culture &mdash; your itinerary adapts to you.</p>
+          <div class="hover-indicator"></div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="replanning-section observe-fade">
-    <div class="container">
-      <div class="replanning-content">
-        <h2 class="section-title">PLANS CHANGE.<br/>YOUR ITINERARY SHOULD TOO.</h2>
+  <section class="replanning-demo-section observe-fade">
+    <div class="container replanning-container">
+      <div class="replanning-text">
+        <h2 class="section-title">PLANS CHANGE.<br/>YOUR ITINERARY<br/>SHOULD TOO.</h2>
         <p class="section-desc">Change your budget, time or preferences. Dastaan adapts the plan instead of making you start over.</p>
       </div>
-      <div class="replanning-demo">
-        <div class="demo-card before-state">
+      
+      <div class="replanning-interactive">
+        <div class="replan-card old-plan observe-anim">
           <span class="demo-label">YOUR TRIP</span>
           <div class="demo-metric">
             <span class="metric-label">Budget</span>
             <span class="metric-value">₹30,000</span>
           </div>
+          <div class="demo-details">
+            <span>5 days</span>
+            <span style="margin-left:16px;">Balanced</span>
+          </div>
         </div>
-        <div class="demo-arrow">&rarr;</div>
-        <div class="demo-card after-state">
+        
+        <div class="replan-arrow observe-anim">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        
+        <div class="replan-card new-plan observe-anim">
           <span class="demo-label active-label">DASTAAN REPLANS</span>
-          <ul class="replan-list">
-            <li>✓ Lower-cost activities</li>
-            <li>✓ Adjusted accommodation estimate</li>
-            <li>✓ Updated itinerary</li>
-            <li>✓ New total</li>
+          <ul class="replan-list-animated">
+            <li>Lower-cost activities &check;</li>
+            <li>Adjusted accommodation &check;</li>
+            <li>Updated itinerary &check;</li>
+            <li>New total</li>
           </ul>
           <div class="demo-metric active-metric">
-            <span class="metric-value">₹19,600</span>
+            <span class="metric-value final-price">₹19,600</span>
           </div>
         </div>
       </div>
