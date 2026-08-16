@@ -1,494 +1,260 @@
 /**
- * DASTAAN / TRIPFIT — PAGE 2 (TRIP PREFERENCES)
- * Vanilla JavaScript Implementation (Visual Polish & Motion Upgrade)
- * Handles input state, multi-select interests, single-select travel style,
- * vertical counter animations, progress bar tracking, cinematic transition,
- * localStorage persistence, and navigation.
+ * Dastaan Trip Planner (Page 2) Logic
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-  
-  // Trigger sequential entrance reveal animations on load
-  requestAnimationFrame(() => {
-    document.body.classList.add('page-loaded');
-  });
+const destinations = [
+  { id: 'mostar', name: 'Mostar', country: 'Bosnia', image: 'https://images.unsplash.com/photo-1600204739704-51a44c5b1616?auto=format&fit=crop&w=1800&q=80', defaultDur: 2, defaultBud: 5000 },
+  { id: 'new-delhi', name: 'New Delhi', country: 'India', image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=1800&q=80', defaultDur: 3, defaultBud: 8000 },
+  { id: 'kyoto', name: 'Kyoto', country: 'Japan', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1800&q=80', defaultDur: 5, defaultBud: 30000 },
+  { id: 'florence', name: 'Florence', country: 'Italy', image: 'https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=1800&q=80', defaultDur: 4, defaultBud: 25000 },
+  { id: 'istanbul', name: 'Istanbul', country: 'Turkey', image: 'https://images.unsplash.com/photo-1526080652727-5b77f74eacb2?auto=format&fit=crop&w=1800&q=80', defaultDur: 4, defaultBud: 15000 },
+  { id: 'jaipur', name: 'Jaipur', country: 'India', image: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1800&q=80', defaultDur: 3, defaultBud: 10000 },
+];
 
-  // ==========================================
-  // 1. STATE INITIALIZATION
-  // ==========================================
-  const state = {
-    destination: '',
-    days: 3,
-    budget: 8000,
-    interests: new Set(),
-    travelStyle: 'Balanced'
-  };
+const availableInterests = ['History', 'Food', 'Nature', 'Culture', 'Shopping', 'Art', 'Adventure', 'Nightlife'];
 
-  // ==========================================
-  // 2. DOM ELEMENT REFERENCES
-  // ==========================================
-  const form = document.getElementById('trip-preferences-form');
-  const mainContentArea = document.getElementById('main-content-area');
-  
-  // Destination elements
-  const destInput = document.getElementById('destination-input');
-  const clearDestBtn = document.getElementById('clear-destination');
-  const suggestionChips = document.querySelectorAll('.chip-suggestion');
-  
-  // Days elements
-  const daysDisplay = document.getElementById('days-count');
-  const btnDecrementDays = document.getElementById('btn-decrement-days');
-  const btnIncrementDays = document.getElementById('btn-increment-days');
-  const daysPresets = document.querySelectorAll('.days-presets .preset-btn');
-  
-  // Budget elements
-  const budgetInput = document.getElementById('budget-input');
-  const budgetPresets = document.querySelectorAll('.budget-presets .preset-btn');
-  
-  // Interests elements
-  const interestChips = document.querySelectorAll('.interest-chip');
-  const interestsBadge = document.getElementById('interests-count-badge');
-  
-  // Travel Style elements
-  const styleCards = document.querySelectorAll('.style-card');
-  
-  // Progress Bar elements
-  const step1 = document.getElementById('step-1');
-  const step2 = document.getElementById('step-2');
-  const progressFill1 = document.getElementById('progress-fill-1');
+// Default state
+let dastaanTrip = {
+  destination: null, // object ref
+  duration: 3,
+  budget: 8000,
+  interests: [],
+  travelStyle: 'Balanced'
+};
 
-  // Error Banner elements
-  const errorBanner = document.getElementById('error-banner');
-  const errorMessage = document.getElementById('error-message');
-  const errorCloseBtn = document.getElementById('error-close-btn');
+// DOM Elements
+const elSearch = document.getElementById('dest-search');
+const elDestTags = document.getElementById('dest-tags');
+const elBgImage = document.getElementById('dest-bg-image');
+const elDestPreview = document.getElementById('dest-preview');
+const elPreviewName = document.getElementById('preview-name');
+const elPreviewCountry = document.getElementById('preview-country');
+const elPreviewMeta = document.getElementById('preview-meta');
+const elPreviewDuration = document.getElementById('preview-duration');
+const elPreviewBudget = document.getElementById('preview-budget');
 
-  // Transition & Modal elements
-  const continueBtn = document.getElementById('continue-btn');
-  const journeyTransitionOverlay = document.getElementById('journey-transition-overlay');
-  const transDestName = document.getElementById('trans-dest-name');
-  const successModal = document.getElementById('success-modal');
-  const summaryDest = document.getElementById('summary-dest');
-  const summaryDays = document.getElementById('summary-days');
-  const summaryBudget = document.getElementById('summary-budget');
-  const modalDetailsBox = document.getElementById('modal-details-box');
-  const modalEditBtn = document.getElementById('modal-edit-btn');
-  const modalProceedBtn = document.getElementById('modal-proceed-btn');
+const elDurMinus = document.getElementById('btn-dur-minus');
+const elDurPlus = document.getElementById('btn-dur-plus');
+const elDurVal = document.getElementById('dur-val');
+const elDurPills = document.querySelectorAll('.duration-col .preset-pill');
 
-  // ==========================================
-  // 3. PROGRESS TRACKER ANIMATION
-  // ==========================================
-  function updateProgressTracker() {
-    const isDestValid = state.destination.trim().length > 0;
-    const isInterestsValid = state.interests.size > 0;
-    const isFormValid = isDestValid && isInterestsValid && state.days > 0 && state.budget > 0;
+const elBudgetInput = document.getElementById('budget-input');
+const elBudgetPills = document.querySelectorAll('.budget-col .preset-pill');
 
-    if (isFormValid) {
-      step1.classList.add('completed');
-      step2.classList.add('active');
-      if (progressFill1) progressFill1.style.width = '100%';
-    } else {
-      step1.classList.remove('completed');
-      step2.classList.remove('active');
-      if (progressFill1) {
-        const fillPercent = (isDestValid ? 50 : 0) + (isInterestsValid ? 30 : 0);
-        progressFill1.style.width = `${fillPercent}%`;
-      }
-    }
-  }
+const elInterestsGrid = document.getElementById('interests-grid');
+const elInterestsCount = document.getElementById('interests-count');
 
-  // ==========================================
-  // 4. RESTORE PREVIOUS STATE (LOCAL STORAGE)
-  // ==========================================
-  function restoreSavedPreferences() {
+const elStyleCards = document.querySelectorAll('.style-card');
+
+// Summary elements
+const sumDest = document.getElementById('sum-dest');
+const sumDur = document.getElementById('sum-dur');
+const sumBudget = document.getElementById('sum-budget');
+const sumInterests = document.getElementById('sum-interests');
+const sumStyle = document.getElementById('sum-style');
+
+const btnBuild = document.getElementById('btn-build');
+const validationMsg = document.getElementById('validation-msg');
+
+// Initialize
+function init() {
+  loadState();
+  renderDestTags();
+  renderInterests();
+  updateUI();
+  setupEventListeners();
+}
+
+function loadState() {
+  const saved = localStorage.getItem('dastaanTrip');
+  if (saved) {
     try {
-      const savedData = localStorage.getItem('tripPreferences');
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        if (parsed.destination) {
-          destInput.value = parsed.destination;
-          state.destination = parsed.destination;
-          toggleClearBtn();
-          updateSuggestionChipSelection(parsed.destination);
-        }
-        if (parsed.days && !isNaN(parsed.days)) {
-          updateDays(parseInt(parsed.days), false);
-        }
-        if (parsed.budget && !isNaN(parsed.budget)) {
-          updateBudget(parseInt(parsed.budget));
-        }
-        if (Array.isArray(parsed.interests) && parsed.interests.length > 0) {
-          state.interests.clear();
-          interestChips.forEach(chip => {
-            const interestName = chip.getAttribute('data-interest');
-            if (parsed.interests.includes(interestName)) {
-              chip.classList.add('active');
-              state.interests.add(interestName);
-            } else {
-              chip.classList.remove('active');
-            }
-          });
-          updateInterestsBadge();
-        }
-        if (parsed.travelStyle) {
-          selectTravelStyle(parsed.travelStyle);
-        }
+      const parsed = JSON.parse(saved);
+      if (parsed) {
+        dastaanTrip = { ...dastaanTrip, ...parsed };
       }
-    } catch (e) {
-      console.warn('Could not parse stored tripPreferences:', e);
-    }
-    updateProgressTracker();
+    } catch(e) { console.error('Error loading state', e); }
   }
+}
 
-  // ==========================================
-  // 5. DESTINATION INPUT & POPULAR CHIPS
-  // ==========================================
-  function toggleClearBtn() {
-    if (destInput.value.trim().length > 0) {
-      clearDestBtn.style.display = 'block';
-    } else {
-      clearDestBtn.style.display = 'none';
-    }
+function saveState() {
+  localStorage.setItem('dastaanTrip', JSON.stringify(dastaanTrip));
+  updateSummary();
+}
+
+function renderDestTags() {
+  elDestTags.innerHTML = '';
+  destinations.forEach(dest => {
+    const btn = document.createElement('button');
+    btn.className = `dest-tag ${dastaanTrip.destination?.id === dest.id ? 'active' : ''}`;
+    btn.textContent = dest.name;
+    btn.onclick = () => selectDestination(dest);
+    elDestTags.appendChild(btn);
+  });
+}
+
+function selectDestination(dest) {
+  dastaanTrip.destination = dest;
+  elSearch.value = dest.name;
+  
+  // Image crossfade effect
+  elBgImage.style.opacity = '0';
+  setTimeout(() => {
+    elBgImage.src = dest.image;
+    elBgImage.onload = () => { elBgImage.style.opacity = '1'; };
+  }, 400);
+
+  // Update preview card
+  elPreviewName.textContent = dest.name;
+  elPreviewCountry.textContent = dest.country;
+  elPreviewDuration.textContent = `~${dest.defaultDur} days`;
+  elPreviewBudget.textContent = `~?${dest.defaultBud}`;
+  elPreviewMeta.style.display = 'block';
+
+  renderDestTags();
+  saveState();
+  validationMsg.textContent = ''; // clear error
+}
+
+// Search functionality (simple case-insensitive match)
+elSearch.addEventListener('input', (e) => {
+  const val = e.target.value.toLowerCase();
+  const found = destinations.find(d => d.name.toLowerCase().includes(val));
+  if (found && val.length > 2) {
+    selectDestination(found);
   }
-
-  function updateSuggestionChipSelection(currentDest) {
-    suggestionChips.forEach(chip => {
-      const chipVal = chip.getAttribute('data-dest');
-      if (chipVal.toLowerCase() === currentDest.trim().toLowerCase()) {
-        chip.classList.add('selected');
-      } else {
-        chip.classList.remove('selected');
-      }
-    });
-  }
-
-  destInput.addEventListener('input', (e) => {
-    state.destination = e.target.value;
-    toggleClearBtn();
-    updateSuggestionChipSelection(e.target.value);
-    updateProgressTracker();
-    clearError();
-  });
-
-  clearDestBtn.addEventListener('click', () => {
-    destInput.value = '';
-    state.destination = '';
-    toggleClearBtn();
-    updateSuggestionChipSelection('');
-    updateProgressTracker();
-    destInput.focus();
-  });
-
-  // Suggestion chips handler
-  suggestionChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      const destValue = chip.getAttribute('data-dest');
-      destInput.value = destValue;
-      state.destination = destValue;
-      toggleClearBtn();
-      updateSuggestionChipSelection(destValue);
-      updateProgressTracker();
-      clearError();
-    });
-  });
-
-  // ==========================================
-  // 6. DAYS COUNTER & VERTICAL NUMBER ANIMATION
-  // ==========================================
-  function updateDays(newDays, animate = true) {
-    const clamped = Math.min(30, Math.max(1, newDays));
-    state.days = clamped;
-
-    if (animate) {
-      daysDisplay.classList.add('num-slide');
-      setTimeout(() => {
-        daysDisplay.textContent = clamped;
-        daysDisplay.classList.remove('num-slide');
-      }, 100);
-    } else {
-      daysDisplay.textContent = clamped;
-    }
-
-    // Update active preset button highlight
-    daysPresets.forEach(btn => {
-      const pDays = parseInt(btn.getAttribute('data-days'));
-      if (pDays === clamped) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    updateProgressTracker();
-  }
-
-  btnDecrementDays.addEventListener('click', () => {
-    updateDays(state.days - 1);
-  });
-
-  btnIncrementDays.addEventListener('click', () => {
-    updateDays(state.days + 1);
-  });
-
-  daysPresets.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const pDays = parseInt(btn.getAttribute('data-days'));
-      updateDays(pDays);
-    });
-  });
-
-  // ==========================================
-  // 7. BUDGET INPUT & PRESETS
-  // ==========================================
-  function updateBudget(newBudget) {
-    const validVal = isNaN(newBudget) || newBudget < 0 ? 0 : newBudget;
-    state.budget = validVal;
-    budgetInput.value = validVal;
-
-    budgetPresets.forEach(btn => {
-      const pBudget = parseInt(btn.getAttribute('data-budget'));
-      if (pBudget === validVal) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    updateProgressTracker();
-  }
-
-  budgetInput.addEventListener('input', (e) => {
-    const val = parseInt(e.target.value);
-    state.budget = isNaN(val) ? 0 : val;
-    clearError();
-    
-    budgetPresets.forEach(btn => {
-      const pBudget = parseInt(btn.getAttribute('data-budget'));
-      if (pBudget === state.budget) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    updateProgressTracker();
-  });
-
-  budgetPresets.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const pBudget = parseInt(btn.getAttribute('data-budget'));
-      updateBudget(pBudget);
-    });
-  });
-
-  // ==========================================
-  // 8. INTERESTS MULTI-SELECT CHIPS
-  // ==========================================
-  function updateInterestsBadge() {
-    const count = state.interests.size;
-    if (count === 0) {
-      interestsBadge.textContent = 'Required: Select at least 1';
-      interestsBadge.style.color = '#FAD0C4';
-      interestsBadge.style.background = 'rgba(200, 121, 85, 0.15)';
-    } else {
-      interestsBadge.textContent = `${count} Selected`;
-      interestsBadge.style.color = 'var(--accent-gold)';
-      interestsBadge.style.background = 'rgba(214, 181, 109, 0.12)';
-    }
-  }
-
-  interestChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      const interest = chip.getAttribute('data-interest');
-      if (state.interests.has(interest)) {
-        state.interests.delete(interest);
-        chip.classList.remove('active');
-      } else {
-        state.interests.add(interest);
-        chip.classList.add('active');
-      }
-      updateInterestsBadge();
-      updateProgressTracker();
-      clearError();
-    });
-  });
-
-  // ==========================================
-  // 9. TRAVEL STYLE SINGLE-SELECT CARDS
-  // ==========================================
-  function selectTravelStyle(selectedStyleName) {
-    state.travelStyle = selectedStyleName;
-    styleCards.forEach(card => {
-      const styleName = card.getAttribute('data-style');
-      if (styleName === selectedStyleName) {
-        card.classList.add('active');
-      } else {
-        card.classList.remove('active');
-      }
-    });
-  }
-
-  styleCards.forEach(card => {
-    card.addEventListener('click', () => {
-      const styleName = card.getAttribute('data-style');
-      selectTravelStyle(styleName);
-      clearError();
-    });
-  });
-
-  // ==========================================
-  // 10. ERROR HANDLING & VALIDATION
-  // ==========================================
-  function showError(msg, targetElement) {
-    errorMessage.textContent = msg;
-    errorBanner.style.display = 'flex';
-    
-    if (targetElement) {
-      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      if (targetElement.focus) targetElement.focus();
-    }
-  }
-
-  function clearError() {
-    errorBanner.style.display = 'none';
-  }
-
-  errorCloseBtn.addEventListener('click', clearError);
-
-  function validatePreferences() {
-    state.destination = destInput.value.trim();
-    
-    // 1. Destination check
-    if (!state.destination) {
-      showError('Please enter a destination to begin your journey.', destInput);
-      return false;
-    }
-
-    // 2. Days check
-    if (!state.days || state.days < 1 || state.days > 30) {
-      showError('Please set a valid duration between 1 and 30 days.', daysDisplay);
-      return false;
-    }
-
-    // 3. Budget check
-    if (state.budget <= 0 || isNaN(state.budget)) {
-      showError('Please set a valid approximate budget for your trip.', budgetInput);
-      return false;
-    }
-
-    // 4. Interests check (at least 1 required)
-    if (state.interests.size === 0) {
-      const interestsGrid = document.getElementById('interests-grid');
-      showError('Please select at least one interest that defines your journey.', interestsGrid);
-      return false;
-    }
-
-    // 5. Travel Style check
-    if (!state.travelStyle) {
-      const styleGrid = document.getElementById('style-cards-grid');
-      showError('Please choose your preferred travel pace.', styleGrid);
-      return false;
-    }
-
-    clearError();
-    return true;
-  }
-
-  // ==========================================
-  // 11. FORM SUBMISSION & CINEMATIC TRANSITION
-  // ==========================================
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    if (!validatePreferences()) {
-      return;
-    }
-
-    // Construct the structured JS object
-    const tripPreferences = {
-      destination: state.destination,
-      days: state.days,
-      budget: state.budget,
-      interests: Array.from(state.interests),
-      travelStyle: state.travelStyle,
-      updatedAt: new Date().toISOString()
-    };
-
-    // Save to localStorage
-    try {
-      localStorage.setItem('tripPreferences', JSON.stringify(tripPreferences));
-      console.log('Saved tripPreferences:', tripPreferences);
-    } catch (err) {
-      console.error('Error saving to localStorage:', err);
-    }
-
-    // Step 1: CTA compression
-    continueBtn.style.transform = 'scale(0.97)';
-    
-    // Step 2: Content page exit slide
-    mainContentArea.classList.add('page-exiting');
-
-    // Step 3: Show Journey Creation Overlay after 200ms
-    setTimeout(() => {
-      transDestName.textContent = state.destination;
-      journeyTransitionOverlay.style.display = 'flex';
-    }, 200);
-
-    // Step 4: Show Modal Summary after sweeping route line animation finishes
-    setTimeout(() => {
-      journeyTransitionOverlay.style.display = 'none';
-      mainContentArea.classList.remove('page-exiting');
-      continueBtn.style.transform = '';
-      displaySuccessModal(tripPreferences);
-    }, 1400);
-  });
-
-  // Modal display logic
-  function displaySuccessModal(prefs) {
-    summaryDest.textContent = prefs.destination;
-    summaryDays.textContent = prefs.days;
-    summaryBudget.textContent = `₹${prefs.budget.toLocaleString('en-IN')}`;
-    
-    modalDetailsBox.innerHTML = `
-      <div style="margin-bottom: 8px;"><strong>Interests:</strong> ${prefs.interests.join(', ')}</div>
-      <div><strong>Travel Style:</strong> ${prefs.travelStyle}</div>
-    `;
-    
-    successModal.style.display = 'flex';
-  }
-
-  modalEditBtn.addEventListener('click', () => {
-    successModal.style.display = 'none';
-  });
-
-  modalProceedBtn.addEventListener('click', () => {
-    // Navigate to Page 3 (Place Discovery)
-    window.location.href = '../page3/page3.html';
-  });
-
-  // ==========================================
-  // 12. EXPOSE PUBLIC HELPER METHOD
-  // ==========================================
-  window.getTripPreferences = function() {
-    try {
-      const data = localStorage.getItem('tripPreferences');
-      return data ? JSON.parse(data) : {
-        destination: state.destination,
-        days: state.days,
-        budget: state.budget,
-        interests: Array.from(state.interests),
-        travelStyle: state.travelStyle
-      };
-    } catch (e) {
-      return {
-        destination: state.destination,
-        days: state.days,
-        budget: state.budget,
-        interests: Array.from(state.interests),
-        travelStyle: state.travelStyle
-      };
-    }
-  };
-
-  // Restore any previously saved data on initial load
-  restoreSavedPreferences();
 });
+
+// Duration
+function setDuration(val) {
+  let num = parseInt(val);
+  if (num < 1) num = 1;
+  if (num > 60) num = 60;
+  dastaanTrip.duration = num;
+  elDurVal.textContent = num;
+  
+  elDurPills.forEach(p => p.classList.remove('active'));
+  const match = Array.from(elDurPills).find(p => p.dataset.dur == num);
+  if (match) match.classList.add('active');
+  
+  saveState();
+}
+elDurMinus.onclick = () => setDuration(dastaanTrip.duration - 1);
+elDurPlus.onclick = () => setDuration(dastaanTrip.duration + 1);
+elDurPills.forEach(pill => {
+  pill.onclick = () => setDuration(pill.dataset.dur);
+});
+
+// Budget
+function setBudget(val) {
+  let num = parseInt(val) || 0;
+  if (num < 1000) num = 1000;
+  dastaanTrip.budget = num;
+  elBudgetInput.value = num;
+  
+  elBudgetPills.forEach(p => p.classList.remove('active'));
+  const match = Array.from(elBudgetPills).find(p => p.dataset.budget == num);
+  if (match) match.classList.add('active');
+  
+  saveState();
+}
+elBudgetInput.onchange = (e) => setBudget(e.target.value);
+elBudgetPills.forEach(pill => {
+  pill.onclick = () => setBudget(pill.dataset.budget);
+});
+
+// Interests
+function renderInterests() {
+  elInterestsGrid.innerHTML = '';
+  availableInterests.forEach(interest => {
+    const isSelected = dastaanTrip.interests.includes(interest);
+    const div = document.createElement('div');
+    div.className = `interest-tile ${isSelected ? 'selected' : ''}`;
+    div.innerHTML = `<span>${interest}</span>`;
+    div.onclick = () => toggleInterest(interest, div);
+    elInterestsGrid.appendChild(div);
+  });
+  elInterestsCount.textContent = `${dastaanTrip.interests.length} SELECTED`;
+}
+function toggleInterest(interest, el) {
+  const idx = dastaanTrip.interests.indexOf(interest);
+  if (idx > -1) {
+    dastaanTrip.interests.splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    dastaanTrip.interests.push(interest);
+    el.classList.add('selected');
+  }
+  elInterestsCount.textContent = `${dastaanTrip.interests.length} SELECTED`;
+  saveState();
+}
+
+// Style
+elStyleCards.forEach(card => {
+  card.onclick = () => {
+    elStyleCards.forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    dastaanTrip.travelStyle = card.dataset.style;
+    saveState();
+  };
+});
+
+// Summary
+function updateSummary() {
+  if (dastaanTrip.destination) {
+    sumDest.textContent = `${dastaanTrip.destination.name}, ${dastaanTrip.destination.country}`;
+  } else {
+    sumDest.textContent = 'Not selected';
+  }
+  
+  sumDur.textContent = `${dastaanTrip.duration} Days`;
+  sumBudget.textContent = `?${dastaanTrip.budget.toLocaleString()}`;
+  
+  if (dastaanTrip.interests.length > 0) {
+    sumInterests.textContent = dastaanTrip.interests.join(' � ');
+  } else {
+    sumInterests.textContent = 'None';
+  }
+  
+  sumStyle.textContent = dastaanTrip.travelStyle;
+}
+
+// Initial UI Sync
+function updateUI() {
+  if (dastaanTrip.destination) selectDestination(dastaanTrip.destination);
+  setDuration(dastaanTrip.duration);
+  setBudget(dastaanTrip.budget);
+  
+  elStyleCards.forEach(c => {
+    if (c.dataset.style === dastaanTrip.travelStyle) {
+      c.classList.add('active');
+    } else {
+      c.classList.remove('active');
+    }
+  });
+  
+  updateSummary();
+}
+
+function setupEventListeners() {}
+
+// Validation and Submission
+btnBuild.onclick = () => {
+  if (!dastaanTrip.destination) {
+    validationMsg.textContent = "Please select a destination to continue.";
+    // smooth scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  
+  validationMsg.textContent = "";
+  btnBuild.textContent = "BUILDING...";
+  
+  // Simulate slight delay for premium feel
+  setTimeout(() => {
+    window.location.href = '../page3/page3.html';
+  }, 600);
+};
+
+// Boot
+document.addEventListener('DOMContentLoaded', init);

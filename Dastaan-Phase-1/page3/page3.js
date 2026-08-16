@@ -1,717 +1,277 @@
-/* ==========================================================================
-   DASTAAN — PAGE 3 (PLACE DISCOVERY) CORE SCRIPTS
-   PART 3 — YOUR STORY + FINAL TRANSITION + FOOTER
-   ========================================================================== */
+/**
+ * Dastaan Itinerary Page (Page 3) Logic
+ */
 
-// 01 — CURATED LANDMARKS PLACE DATA
-const places = [
-  {
-    id: "stari-most",
-    number: "01",
-    name: "Stari Most",
-    category: "Historic Landmark",
-    rating: 4.8,
-    duration: 45, // in minutes
-    cost: 0, // in EUR
-    location: "Dastaan Old Town",
-    image: "../images/image2.jpg",
-    description: "The stone bridge that became the defining symbol of Dastaan, rebuilt to its 16th-century Ottoman glory.",
-    compositionClass: "comp-stari-most",
-    revealDirection: "masked-vertical",
-    speed: 0.06
+// 1. STATE & DATA
+let dastaanTrip = null;
+
+const mockItineraries = {
+  'kyoto': {
+    name: 'Kyoto', country: 'Japan',
+    image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1800&q=80',
+    days: [
+      [
+        { time: '09:00', title: 'Fushimi Inari Shrine', desc: 'Beat the crowds and walk through the iconic thousands of vermilion torii gates.', cat: 'CULTURE' },
+        { time: '13:00', title: 'Nishiki Market', desc: 'Explore the "Kitchen of Kyoto" and sample local delicacies.', cat: 'FOOD' },
+        { time: '16:00', title: 'Gion District', desc: 'Evening stroll through the historic geisha district as the lanterns light up.', cat: 'HISTORY' }
+      ],
+      [
+        { time: '08:30', title: 'Arashiyama Bamboo Grove', desc: 'Walk through the towering green stalks in the early morning light.', cat: 'NATURE' },
+        { time: '12:00', title: 'Tenryu-ji Temple', desc: 'A UNESCO World Heritage site with a stunning Zen garden.', cat: 'CULTURE' },
+        { time: '15:30', title: 'Okochi Sanso Garden', desc: 'Former estate of the samurai film star with matcha and panoramic views.', cat: 'RELAX' }
+      ]
+    ]
   },
-  {
-    id: "old-bazaar",
-    number: "02",
-    name: "Old Bazaar",
-    category: "Cultural District",
-    rating: 4.7,
-    duration: 60,
-    cost: 0,
-    location: "Dastaan Old Town",
-    image: "../images/image3.jpg",
-    description: "A maze of stone lanes, craft shops and quiet corners where the old city's coppersmith heritage still feels alive.",
-    compositionClass: "comp-old-bazaar",
-    revealDirection: "masked-horizontal",
-    speed: 0.08
+  'new-delhi': {
+    name: 'New Delhi', country: 'India',
+    image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=1800&q=80',
+    days: [
+      [
+        { time: '09:00', title: 'Humayun�s Tomb', desc: 'Morning visit to the magnificent Mughal garden tomb.', cat: 'HISTORY' },
+        { time: '13:00', title: 'Chandni Chowk', desc: 'Dive into Old Delhi for street food and the spice market.', cat: 'FOOD' },
+        { time: '17:00', title: 'India Gate & Rajpath', desc: 'Evening walk along the ceremonial axis of New Delhi.', cat: 'CULTURE' }
+      ]
+    ]
   },
-  {
-    id: "koski-mosque",
-    number: "03",
-    name: "Koski Mehmed Pasha Mosque",
-    category: "Heritage Site",
-    rating: 4.7,
-    duration: 30,
-    cost: 2,
-    location: "Neretva Riverbank",
-    image: "../images/image4.jpg",
-    description: "A quiet historic landmark offering panoramic architectural vistas of the Old Bridge from its minaret overlooking the river.",
-    compositionClass: "comp-koski-mosque",
-    revealDirection: "masked-diagonal",
-    speed: 0.05
-  },
-  {
-    id: "blagaj-tekija",
-    number: "04",
-    name: "Blagaj Tekija",
-    category: "Spiritual Heritage",
-    rating: 4.8,
-    duration: 90,
-    cost: 3,
-    location: "Buna River Spring",
-    image: "https://images.unsplash.com/photo-1527004013197-933c4bb611b3?auto=format&fit=crop&w=1200&q=80",
-    description: "A mystical 15th-century Dervish monastery built into a towering cliff face at the source of the Buna River.",
-    compositionClass: "comp-blagaj-tekija",
-    revealDirection: "masked-vertical",
-    speed: 0.03
-  },
-  {
-    id: "kravica-waterfalls",
-    number: "05",
-    name: "Kravica Waterfalls",
-    category: "Natural Landmark",
-    rating: 4.9,
-    duration: 120,
-    cost: 10,
-    location: "Trebižat River",
-    image: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1200&q=80",
-    description: "A dramatic natural escape surrounded by limestone cliffs, cascading waterfalls and emerald pools.",
-    compositionClass: "comp-kravica",
-    revealDirection: "masked-horizontal",
-    speed: 0.07
-  },
-  {
-    id: "biscevic-house",
-    number: "06",
-    name: "Biscevic House",
-    category: "Historic House",
-    rating: 4.6,
-    duration: 45,
-    cost: 2,
-    location: "Dastaan Old Town",
-    image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80",
-    description: "A preserved Ottoman-era residence featuring detailed wooden lattice screens and quiet pebble-stone courtyards.",
-    compositionClass: "comp-biscevic",
-    revealDirection: "masked-diagonal",
-    speed: 0.06
-  },
-  {
-    id: "old-bridge-museum",
-    number: "07",
-    name: "Old Bridge Museum",
-    category: "History",
-    rating: 4.5,
-    duration: 30,
-    cost: 4,
-    location: "Tara Tower",
-    image: "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?auto=format&fit=crop&w=1200&q=80",
-    secondaryImage: "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=600&q=80",
-    description: "A compact museum exploring the archaeological excavation and reconstruction stories of Dastaan's iconic stone arch.",
-    compositionClass: "comp-bridge-museum",
-    revealDirection: "masked-vertical",
-    speed: 0.05
+  // Fallback for others
+  'default': {
+    name: 'Your Destination', country: 'World',
+    image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80',
+    days: [
+      [
+        { time: '10:00', title: 'City Center Exploration', desc: 'Get your bearings and see the main square.', cat: 'CULTURE' },
+        { time: '13:30', title: 'Local Cuisine Lunch', desc: 'Taste the authentic flavors of the region.', cat: 'FOOD' },
+        { time: '16:00', title: 'Museum or Gallery', desc: 'Dive into the local history and art.', cat: 'ART' }
+      ]
+    ]
   }
-];
+};
 
-// 02 — APPLICATION STATE
-const getLocalStorageItem = (key, fallback) => {
+const interestExplanations = {
+  'History': 'Historical sites, museums, and heritage walks have been prioritized in your daily schedule.',
+  'Food': 'We have allocated extra time for local markets, renowned restaurants, and culinary exploration.',
+  'Nature': 'Parks, scenic routes, and outdoor escapes have been woven into the itinerary.',
+  'Culture': 'Local experiences, temples, and cultural performances are heavily featured.',
+  'Shopping': 'Time has been carved out for local artisans, boutiques, and famous shopping districts.',
+  'Art': 'Galleries, street art districts, and design hubs are included in your route.',
+  'Adventure': 'More active and thrilling experiences have been selected for your days.',
+  'Nightlife': 'Evening activities, local bars, and night markets have been added.'
+};
+
+// 2. DOM ELEMENTS
+const elHeroBgImg = document.getElementById('hero-bg-img');
+const elHeroDestName = document.getElementById('hero-dest-name');
+const elHeroMeta = document.getElementById('hero-meta');
+const elHeroDesc = document.getElementById('hero-desc');
+const btnScrollDown = document.getElementById('btn-scroll-down');
+
+const elGlanceDur = document.getElementById('glance-duration');
+const elGlanceBud = document.getElementById('glance-budget');
+const elGlanceIntCount = document.getElementById('glance-interests-count');
+const elGlanceIntList = document.getElementById('glance-interests-list');
+const elGlanceStyle = document.getElementById('glance-style');
+
+const elItineraryTitle = document.getElementById('itinerary-title');
+const elDaySelector = document.getElementById('day-selector');
+const elTimelineContainer = document.getElementById('timeline-container');
+
+const statPlaces = document.getElementById('stat-places');
+const statMovement = document.getElementById('stat-movement');
+const statSaved = document.getElementById('stat-saved');
+
+const budgetTotal = document.getElementById('budget-total');
+const budgetBar = document.getElementById('budget-bar');
+const budgetLegend = document.getElementById('budget-legend');
+
+const elInterestsBreakdown = document.getElementById('interests-breakdown');
+const elFinalTags = document.getElementById('final-summary-tags');
+
+const btnSave = document.getElementById('btn-save');
+const btnEdit = document.getElementById('btn-edit');
+const btnReset = document.getElementById('btn-reset');
+
+// 3. INITIALIZATION
+function init() {
+  const saved = localStorage.getItem('dastaanTrip');
+  if (!saved) {
+    window.location.href = '../page2/page2.html';
+    return;
+  }
+  
   try {
-    const val = localStorage.getItem(key);
-    return val ? JSON.parse(val) : fallback;
-  } catch (e) {
-    console.warn(`Error parsing localStorage key "${key}":`, e);
-    return fallback;
-  }
-};
-
-const state = {
-  selectedPlaces: getLocalStorageItem('dastaanSelectedPlaces', getLocalStorageItem('selectedPlaces', [])),
-  preferences: getLocalStorageItem('tripPreferences', {
-    destination: "Dastaan, Bosnia",
-    days: 3,
-    interests: ["Culture", "History"],
-    travelStyle: "Walking"
-  })
-};
-
-// DOM Elements
-let discoveryRig, floatingBadge, badgeCount, storyPreviewScene;
-let navJourneyBtn, navCounter, footerJourneyLink;
-let drawerOverlay, drawerCloseBtn, drawerListContainer, drawerTotalTime, drawerTotalCost, drawerEditBtn;
-let transitionWipeOverlay;
-
-document.addEventListener('DOMContentLoaded', () => {
-  cacheDOM();
-  renderPlacesGrid();
-  setupRevealObserver();
-  setupScrollEffects();
-  setupSelectionHandlers();
-  setupDrawerHandlers();
-  setupNavigationTransition();
-  updateItineraryState();
-});
-
-// Cache DOM Elements
-function cacheDOM() {
-  discoveryRig = document.getElementById('discovery-rig');
-  floatingBadge = document.getElementById('floating-story-badge');
-  badgeCount = document.getElementById('badge-count');
-  storyPreviewScene = document.getElementById('story-preview-scene');
-  
-  // Navigation elements
-  navJourneyBtn = document.getElementById('nav-journey-btn');
-  navCounter = document.getElementById('nav-counter');
-  footerJourneyLink = document.getElementById('footer-journey-link');
-  
-  // Drawer elements
-  drawerOverlay = document.getElementById('journey-drawer-overlay');
-  drawerCloseBtn = document.getElementById('drawer-close-btn');
-  drawerListContainer = document.getElementById('drawer-list-container');
-  drawerTotalTime = document.getElementById('drawer-total-time');
-  drawerTotalCost = document.getElementById('drawer-total-cost');
-  drawerEditBtn = document.getElementById('drawer-edit-btn');
-  
-  // Transition elements
-  transitionWipeOverlay = document.getElementById('transition-wipe-overlay');
-}
-
-// 03 — DYNAMIC PLACE RENDERER
-function renderPlacesGrid() {
-  if (!discoveryRig) return;
-
-  discoveryRig.innerHTML = '';
-  
-  places.forEach((place) => {
-    const isSelected = state.selectedPlaces.includes(place.id);
-    
-    // Create section element
-    const section = document.createElement('section');
-    section.className = `section-place ${place.compositionClass} ${isSelected ? 'selected-place' : ''}`;
-    section.id = `place-${place.id}`;
-
-    // Handle secondary image layout if defined
-    let secondaryImageHTML = '';
-    if (place.secondaryImage) {
-      secondaryImageHTML = `
-        <div class="place-image-secondary-wrapper parallax-container" data-speed="0.08">
-          <div class="place-image-secondary-clip reveal-image masked-vertical">
-            <img src="${place.secondaryImage}" alt="${place.name} detail view" class="place-secondary-image" loading="lazy" />
-          </div>
-        </div>
-      `;
-    }
-
-    section.innerHTML = `
-      <div class="place-layout">
-        <!-- Asymmetric Number -->
-        <span class="place-number reveal-text">${place.number}</span>
-
-        <!-- Title Block -->
-        <h2 class="place-title reveal-text">
-          <span>${place.name.split(' ').slice(0, -1).join(' ')}</span><br/>
-          <span class="indent-title">${place.name.split(' ').slice(-1)}</span>
-        </h2>
-
-        <!-- Image Container with Custom masked reveal and speed tags -->
-        <div class="place-image-container parallax-container" data-speed="${place.speed}">
-          <div class="place-image-clip reveal-image ${place.revealDirection}">
-            <img src="${place.image}" alt="${place.name}" class="place-image" loading="lazy" />
-          </div>
-          ${secondaryImageHTML}
-        </div>
-
-        <!-- Place Text & Metadata Column -->
-        <div class="place-content-block">
-          <div class="place-metadata reveal-text">
-            <span class="meta-tag">${place.category}</span>
-            <span class="meta-divider"></span>
-            <span class="meta-stat">★ ${place.rating}</span>
-            <span class="meta-divider"></span>
-            <span class="meta-stat">${place.duration} MIN</span>
-            <span class="meta-divider"></span>
-            <span class="meta-stat">${place.cost === 0 ? 'FREE' : '€' + place.cost}</span>
-            <span class="meta-divider"></span>
-            <span class="meta-location">${place.location}</span>
-          </div>
-
-          <p class="place-description reveal-text">${place.description}</p>
-
-          <div class="place-actions reveal-text">
-            <button 
-              type="button" 
-              class="btn-story-select ${isSelected ? 'selected' : ''}" 
-              data-id="${place.id}" 
-              aria-pressed="${isSelected ? 'true' : 'false'}"
-              aria-label="Toggle ${place.name} in my story"
-            >
-              <span class="btn-icon">+</span> 
-              <span class="btn-label-text">${isSelected ? '✓ PART OF MY STORY' : '+ ADD TO MY STORY'}</span>
-            </button>
-          </div>
-        </div>
-
-      </div>
-    `;
-
-    discoveryRig.appendChild(section);
-  });
-}
-
-// 04 — INTERSECTION OBSERVER REVEALS (Fades and clip-masks)
-function setupRevealObserver() {
-  const targets = document.querySelectorAll('.reveal-text, .reveal-image');
-
-  // Fallback for browsers/environments where IntersectionObserver is missing or restricted
-  if (!window.IntersectionObserver) {
-    targets.forEach(target => target.classList.add('revealed'));
+    dastaanTrip = JSON.parse(saved);
+    if (!dastaanTrip.destination) throw new Error("No destination");
+  } catch(e) {
+    window.location.href = '../page2/page2.html';
     return;
   }
-
-  const options = {
-    root: null,
-    rootMargin: '0px 0px 200px 0px', // Reveal elements 200px before entering viewport
-    threshold: 0.01
-  };
-
-  const observer = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('revealed');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, options);
-
-  targets.forEach(target => observer.observe(target));
+  
+  renderAll();
+  setupEvents();
 }
 
-// 05 — SCROLL PHYSICS (Parallax / breathing scale loops)
-function setupScrollEffects() {
-  const scrollPrompt = document.querySelector('.scroll-prompt');
-  let ticking = false;
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function getItineraryData() {
+  const id = dastaanTrip.destination.id || 'default';
+  return mockItineraries[id] || mockItineraries['default'];
+}
 
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        updateScrollDynamics();
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }, { passive: true });
-
-  function updateScrollDynamics() {
-    const scrollY = window.scrollY;
-
-    // Toggle scroll prompts and floating badge visibility
-    if (scrollPrompt) {
-      if (scrollY > 120) {
-        scrollPrompt.classList.add('hide-prompt');
-      } else {
-        scrollPrompt.classList.remove('hide-prompt');
-      }
-    }
-
-    if (floatingBadge) {
-      if (scrollY > 300) {
-        floatingBadge.classList.add('badge-visible');
-      } else {
-        floatingBadge.classList.remove('badge-visible');
-      }
-    }
-
-    if (reduceMotion) return;
-
-    // Run parallax translation calculations
-    const containers = document.querySelectorAll('.parallax-container');
-    containers.forEach(container => {
-      const rect = container.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-
-      const img = container.querySelector('img');
-      if (!img) return;
-
-      const speed = parseFloat(container.getAttribute('data-speed')) || 0.05;
-      const centerDiff = (rect.top + rect.height / 2) - (window.innerHeight / 2);
-      
-      const yOffset = centerDiff * speed;
-      const scrollProgress = Math.abs(centerDiff) / (window.innerHeight / 2 + rect.height / 2);
-      const scaleVal = 1.02 + (scrollProgress * 0.02); // subtle breathe range: 1.02 -> 1.04
-
-      img.style.transform = `translate3d(0, ${yOffset.toFixed(2)}px, 0) scale(${scaleVal.toFixed(4)})`;
-    });
+// 4. RENDERING
+function renderAll() {
+  const data = getItineraryData();
+  
+  // Hero
+  elHeroBgImg.src = data.image || dastaanTrip.destination.image;
+  elHeroDestName.textContent = dastaanTrip.destination.name;
+  elHeroMeta.innerHTML = `${dastaanTrip.destination.country || data.country} &middot; ${dastaanTrip.duration} DAYS &middot; ?${dastaanTrip.budget.toLocaleString()}`;
+  
+  let descString = `A ${dastaanTrip.travelStyle.toLowerCase()} journey`;
+  if (dastaanTrip.interests.length > 0) {
+    descString += ` exploring ${dastaanTrip.interests.join(', ').toLowerCase()}`;
   }
+  descString += ` in ${dastaanTrip.destination.name}.`;
+  elHeroDesc.textContent = descString;
 
-  updateScrollDynamics();
-}
+  // Glance
+  elGlanceDur.textContent = `${dastaanTrip.duration} DAYS`;
+  elGlanceBud.textContent = `?${dastaanTrip.budget.toLocaleString()}`;
+  elGlanceIntCount.textContent = dastaanTrip.interests.length;
+  elGlanceIntList.textContent = dastaanTrip.interests.length > 0 ? dastaanTrip.interests.join(' � ') : 'None';
+  elGlanceStyle.textContent = dastaanTrip.travelStyle;
 
-// 06 — SELECTION STATE TOGGLES
-function setupSelectionHandlers() {
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-story-select');
-    if (!btn) return;
+  // Itinerary Header
+  elItineraryTitle.textContent = `YOUR JOURNEY THROUGH ${dastaanTrip.destination.name.toUpperCase()}`;
 
-    const id = btn.getAttribute('data-id');
-    togglePlaceSelection(id);
-  });
-}
+  // Build Day Selector
+  elDaySelector.innerHTML = '';
+  // Generate mock days up to duration
+  const daysToRender = Math.min(dastaanTrip.duration, 7); // Cap for demo
+  for(let i=1; i<=daysToRender; i++) {
+    const btn = document.createElement('button');
+    btn.className = `day-btn ${i===1 ? 'active':''}`;
+    btn.textContent = `DAY ${String(i).padStart(2, '0')}`;
+    btn.onclick = () => selectDay(i, data, btn);
+    elDaySelector.appendChild(btn);
+  }
+  
+  // Load Day 1
+  selectDay(1, data, elDaySelector.firstChild);
 
-function togglePlaceSelection(id) {
-  const index = state.selectedPlaces.indexOf(id);
-  const isSelected = index === -1;
-  const btn = document.querySelector(`.btn-story-select[data-id="${id}"]`);
-  const section = document.getElementById(`place-${id}`);
+  // Routing Stats (Mocked based on style/duration)
+  const multiplier = dastaanTrip.travelStyle === 'Packed' ? 1.5 : (dastaanTrip.travelStyle === 'Relaxed' ? 0.7 : 1);
+  statPlaces.textContent = Math.round(4 * multiplier * dastaanTrip.duration);
+  statMovement.textContent = `${Math.round(3.5 * multiplier * dastaanTrip.duration)} km`;
+  statSaved.textContent = `${Math.round(45 * multiplier)} min`;
 
-  if (isSelected) {
-    state.selectedPlaces.push(id);
-    if (btn) {
-      btn.classList.add('selected');
-      btn.setAttribute('aria-pressed', 'true');
-      btn.querySelector('.btn-label-text').textContent = '✓ PART OF MY STORY';
-    }
-    if (section) section.classList.add('selected-place');
+  // Budget
+  renderBudget();
+
+  // Interests
+  elInterestsBreakdown.innerHTML = '';
+  if (dastaanTrip.interests.length === 0) {
+    elInterestsBreakdown.innerHTML = '<p>No specific interests selected. We generated a balanced, general-purpose itinerary.</p>';
   } else {
-    state.selectedPlaces.splice(index, 1);
-    if (btn) {
-      btn.classList.remove('selected');
-      btn.setAttribute('aria-pressed', 'false');
-      btn.querySelector('.btn-label-text').textContent = '+ ADD TO MY STORY';
-    }
-    if (section) section.classList.remove('selected-place');
-  }
-
-  // Save Selection
-  localStorage.setItem('dastaanSelectedPlaces', JSON.stringify(state.selectedPlaces));
-  localStorage.setItem('selectedPlaces', JSON.stringify(state.selectedPlaces));
-
-  // Update Floating status pill & Story Preview Block & Drawer
-  updateItineraryState();
-}
-
-// 07 — MY JOURNEY OVERLAY DRAWER FUNCTIONALITY
-function setupDrawerHandlers() {
-  if (!drawerOverlay) return;
-
-  const openDrawer = () => {
-    renderDrawerItems();
-    drawerOverlay.classList.add('drawer-open');
-    drawerOverlay.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden'; // Lock background scroll
-  };
-
-  const closeDrawer = () => {
-    drawerOverlay.classList.remove('drawer-open');
-    drawerOverlay.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = ''; // Unlock background scroll
-  };
-
-  // Click events to open
-  if (navJourneyBtn) {
-    navJourneyBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      openDrawer();
+    dastaanTrip.interests.forEach(int => {
+      const div = document.createElement('div');
+      div.className = 'interest-block';
+      div.innerHTML = `<h4>${int}</h4><p>${interestExplanations[int] || 'Tailored to your preferences.'}</p>`;
+      elInterestsBreakdown.appendChild(div);
     });
   }
 
-  if (footerJourneyLink) {
-    footerJourneyLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      openDrawer();
-    });
-  }
-
-  if (floatingBadge) {
-    floatingBadge.addEventListener('click', () => {
-      openDrawer();
-    });
-    // Add visual click pointer events to badge
-    floatingBadge.style.pointerEvents = 'auto';
-    floatingBadge.style.cursor = 'pointer';
-  }
-
-  // Click events to close
-  if (drawerCloseBtn) {
-    drawerCloseBtn.addEventListener('click', closeDrawer);
-  }
-
-  const backdrop = document.getElementById('drawer-backdrop');
-  if (backdrop) {
-    backdrop.addEventListener('click', closeDrawer);
-  }
-
-  // Escape key close
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && drawerOverlay.classList.contains('drawer-open')) {
-      closeDrawer();
-    }
-  });
-
-  // Edit My Story button from within drawer
-  if (drawerEditBtn) {
-    drawerEditBtn.addEventListener('click', () => {
-      closeDrawer();
-      scrollToDiscovery();
-    });
-  }
-
-  // Handle removals directly from within the drawer
-  if (drawerListContainer) {
-    drawerListContainer.addEventListener('click', (e) => {
-      const removeBtn = e.target.closest('.drawer-item-remove-btn');
-      if (!removeBtn) return;
-      
-      const id = removeBtn.getAttribute('data-id');
-      togglePlaceSelection(id);
-      renderDrawerItems(); // re-render list items
-    });
-  }
+  // Final Summary Tags
+  elFinalTags.innerHTML = `
+    <span class="final-tag">${dastaanTrip.destination.name}</span>
+    <span class="final-tag">${dastaanTrip.duration} Days</span>
+    <span class="final-tag">?${dastaanTrip.budget.toLocaleString()}</span>
+    <span class="final-tag">${dastaanTrip.travelStyle} Pace</span>
+  `;
 }
 
-// Render dynamic items inside navigation drawer
-function renderDrawerItems() {
-  if (!drawerListContainer) return;
+function selectDay(dayNum, data, btnEl) {
+  // Update buttons
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
 
-  const count = state.selectedPlaces.length;
+  // Get data (loop mock days if duration > mock data length)
+  const sourceDays = data.days;
+  const dayData = sourceDays[(dayNum - 1) % sourceDays.length];
 
-  if (count === 0) {
-    drawerListContainer.innerHTML = `<p class="drawer-empty-msg">Your journey has no chapters selected yet.</p>`;
-    if (drawerTotalTime) drawerTotalTime.textContent = '00H 00M';
-    if (drawerTotalCost) drawerTotalCost.textContent = '€0';
-    return;
-  }
-
-  let listHTML = '';
-  let totalMins = 0;
-  let totalCost = 0;
-
-  state.selectedPlaces.forEach((id, idx) => {
-    const item = places.find(p => p.id === id);
-    if (item) {
-      totalMins += item.duration;
-      totalCost += item.cost;
-      listHTML += `
-        <div class="drawer-item">
-          <div class="drawer-item-title-block">
-            <span class="drawer-item-num">${String(idx + 1).padStart(2, '0')}</span>
-            <h4 class="drawer-item-name">${item.name}</h4>
-            <span class="drawer-item-cat">${item.category}</span>
-          </div>
-          <button type="button" class="drawer-item-remove-btn" data-id="${item.id}" aria-label="Remove ${item.name}">&times;</button>
-        </div>
-      `;
-    }
-  });
-
-  drawerListContainer.innerHTML = listHTML;
-
-  // Render totals inside drawer
-  const hours = Math.floor(totalMins / 60);
-  const mins = totalMins % 60;
-  if (drawerTotalTime) drawerTotalTime.textContent = `${String(hours).padStart(2, '0')}H ${String(mins).padStart(2, '0')}M`;
-  if (drawerTotalCost) drawerTotalCost.textContent = `€${totalCost}`;
-}
-
-// Smooth scroll utility back to discovery catalog
-function scrollToDiscovery() {
-  if (discoveryRig) {
-    discoveryRig.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
-// 08 — NAVIGATION TRANSITION & DATA HANDOFF TO PAGE 4
-function setupNavigationTransition() {
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-build-itinerary');
-    if (!btn) return;
-
-    e.preventDefault();
-
-    // Check selection size
-    if (state.selectedPlaces.length === 0) {
-      alert("Please select at least one landmark to build your story.");
-      return;
-    }
-
-    // Trigger visual overlay wipe transition
-    if (transitionWipeOverlay) {
-      // Close overlay drawer if open
-      if (drawerOverlay) {
-        drawerOverlay.classList.remove('drawer-open');
-      }
-      document.body.style.overflow = 'hidden';
-
-      transitionWipeOverlay.classList.add('wipe-active');
-
-      // Navigate after transition completes (600ms)
-      setTimeout(() => {
-        window.location.href = '../page4/page4.html';
-      }, 700);
-    } else {
-      window.location.href = '../page4/page4.html';
-    }
-  });
-}
-
-// 09 — UPDATE STATE (Floating badge, Navbar label, final visualization)
-function updateItineraryState() {
-  const count = state.selectedPlaces.length;
-  const countStr = String(count).padStart(2, '0');
-
-  // Update floating badge count
-  if (badgeCount) {
-    badgeCount.textContent = countStr;
-    if (count > 0) {
-      floatingBadge.classList.add('has-selections');
-    } else {
-      floatingBadge.classList.remove('has-selections');
-    }
-  }
-
-  // Update Navbar menu label counter
-  if (navCounter) {
-    navCounter.textContent = `· ${countStr}`;
-  }
-
-  // Calculate dynamic metrics
-  let totalMins = 0;
-  let totalCost = 0;
-
-  state.selectedPlaces.forEach(id => {
-    const item = places.find(p => p.id === id);
-    if (item) {
-      totalMins += item.duration;
-      totalCost += item.cost;
-    }
-  });
-
-  // Calculate duration string formatting
-  let timeStr = '00M';
-  if (totalMins > 0) {
-    const hours = Math.floor(totalMins / 60);
-    const mins = totalMins % 60;
-    if (hours > 0) {
-      timeStr = `${hours}H${mins > 0 ? ' ' + mins + 'M' : ''}`;
-    } else {
-      timeStr = `${mins} MIN`;
-    }
-  }
-  const costStr = `€${totalCost}`;
-
-  // Render Visual Scrapbook Preview Section (Scene 08 / Your Story Preview)
-  renderVisualPreview(count, countStr, timeStr, costStr);
-}
-
-// Renders the editorial collection nodes at the bottom of the page (Part 3 dynamic rendering)
-function renderVisualPreview(count, countStr, timeStr, costStr) {
-  if (!storyPreviewScene) return;
-
-  if (count === 0) {
-    storyPreviewScene.innerHTML = `
-      <span class="preview-subtitle reveal-text">YOUR STORY</span>
-      <h3 class="preview-title reveal-text">NOTHING HAS BEEN CHOSEN YET.</h3>
-      <p class="preview-empty-message reveal-text">Some journeys begin with a single place. Scroll back and select moments to build your story outline.</p>
-      
-      <div class="reveal-text">
-        <button type="button" class="btn-explore-back" id="btn-empty-explore-back">
-          EXPLORE PLACES &rarr;
-        </button>
-      </div>
-
-      <div class="preview-totals reveal-text">
-        <div class="preview-stat">
-          <span class="preview-stat-val">00</span>
-          <span class="preview-stat-label">PLACES</span>
-        </div>
-        <div class="preview-stat">
-          <span class="preview-stat-val">00H 00M</span>
-          <span class="preview-stat-label">EXPLORATION</span>
-        </div>
-        <div class="preview-stat">
-          <span class="preview-stat-val">€0</span>
-          <span class="preview-stat-label">ESTIMATED ENTRY</span>
-        </div>
+  elTimelineContainer.innerHTML = '';
+  
+  dayData.forEach((act, idx) => {
+    const item = document.createElement('div');
+    item.className = 'timeline-item';
+    item.style.animationDelay = `${idx * 0.1}s`;
+    
+    item.innerHTML = `
+      <div class="timeline-time">${act.time}</div>
+      <div class="timeline-content">
+        <h3>${act.title}</h3>
+        <p class="timeline-desc">${act.desc}</p>
+        <span class="timeline-cat">${act.cat}</span>
       </div>
     `;
-
-    // Bind scroll back action to empty state explore button
-    const emptyBackBtn = document.getElementById('btn-empty-explore-back');
-    if (emptyBackBtn) {
-      emptyBackBtn.addEventListener('click', () => {
-        scrollToDiscovery();
-      });
-    }
-
-    setupRevealObserver(); // Refresh intersection targets
-    return;
-  }
-
-  // Render dynamic scrapbook nodes
-  let scrapbookHTML = '';
-  state.selectedPlaces.forEach((id) => {
-    const item = places.find(p => p.id === id);
-    if (item) {
-      scrapbookHTML += `
-        <div class="scrapbook-item reveal-text" data-id="${item.id}">
-          <div class="scrapbook-item-image-wrapper">
-            <img src="${item.image}" alt="${item.name}" loading="lazy" />
-          </div>
-          <h4 class="scrapbook-item-title">${item.name}</h4>
-          <span class="scrapbook-item-meta">${item.category} &middot; ${item.location}</span>
-        </div>
-      `;
-    }
+    elTimelineContainer.appendChild(item);
   });
-
-  storyPreviewScene.innerHTML = `
-    <span class="preview-subtitle reveal-text">YOUR STORY</span>
-    <h3 class="preview-title reveal-text">THE PLACES<br/>YOU CHOSE.</h3>
-    <p class="preview-empty-message reveal-text">A journey is made from the moments you decide to keep.</p>
-    
-    <div class="scrapbook-grid">
-      ${scrapbookHTML}
-    </div>
-
-    <div class="preview-totals reveal-text">
-      <div class="preview-stat">
-        <span class="preview-stat-val">${countStr}</span>
-        <span class="preview-stat-label">PLACES</span>
-      </div>
-      <div class="preview-stat">
-        <span class="preview-stat-val">${timeStr}</span>
-        <span class="preview-stat-label">EXPLORATION</span>
-      </div>
-      <div class="preview-stat">
-        <span class="preview-stat-val">${costStr}</span>
-        <span class="preview-stat-label">ESTIMATED ENTRY</span>
-      </div>
-    </div>
-
-    <!-- Final Payoff CTA Block -->
-    <h3 class="story-ready-title reveal-text">
-      <span>YOUR STORY</span><br/>
-      <span class="indent-ready">IS READY.</span>
-    </h3>
-    <p class="story-ready-desc reveal-text">The places are chosen. Let Dastaan shape them into a journey.</p>
-    
-    <div class="story-payoff-actions reveal-text">
-      <button type="button" class="btn-primary btn-build-itinerary" aria-label="Build my itinerary and navigate to planner">
-        BUILD MY ITINERARY &rarr;
-      </button>
-      <button type="button" class="btn-story-edit-link" id="btn-story-edit-link" aria-label="Scroll back to discovery section">
-        EDIT MY STORY
-      </button>
-    </div>
-  `;
-
-  // Bind scroll back actions
-  const editLinkBtn = document.getElementById('btn-story-edit-link');
-  if (editLinkBtn) {
-    editLinkBtn.addEventListener('click', () => {
-      scrollToDiscovery();
-    });
-  }
-
-  // Trigger IntersectionObserver on newly injected elements
-  setupRevealObserver();
 }
+
+function renderBudget() {
+  budgetTotal.textContent = `?${dastaanTrip.budget.toLocaleString()}`;
+  
+  // Fake breakdown percentages
+  const breakdown = [
+    { name: 'Accommodation', pct: 40, color: '#D6B56D' },
+    { name: 'Food', pct: 25, color: '#C87955' },
+    { name: 'Transport', pct: 15, color: '#F4EFE3' },
+    { name: 'Activities', pct: 15, color: '#85968F' },
+    { name: 'Buffer', pct: 5, color: 'rgba(244,239,227,0.2)' }
+  ];
+
+  budgetBar.innerHTML = '';
+  budgetLegend.innerHTML = '';
+
+  breakdown.forEach(item => {
+    // Bar segment
+    const seg = document.createElement('div');
+    seg.className = 'budget-segment';
+    seg.style.width = `${item.pct}%`;
+    seg.style.backgroundColor = item.color;
+    budgetBar.appendChild(seg);
+    
+    // Legend
+    const val = Math.round(dastaanTrip.budget * (item.pct / 100));
+    const leg = document.createElement('div');
+    leg.className = 'legend-item';
+    leg.innerHTML = `
+      <div class="legend-color" style="background-color: ${item.color}"></div>
+      <span>${item.name} &middot; ?${val.toLocaleString()}</span>
+    `;
+    budgetLegend.appendChild(leg);
+  });
+}
+
+// 5. EVENTS
+function setupEvents() {
+  btnScrollDown.onclick = () => {
+    document.getElementById('glance-section').scrollIntoView({ behavior: 'smooth' });
+  };
+  
+  btnSave.onclick = () => {
+    localStorage.setItem('dastaanSavedJourney', JSON.stringify(dastaanTrip));
+    btnSave.textContent = "? SAVED TO MY JOURNEY";
+    btnSave.style.background = "var(--paper)";
+    btnSave.style.color = "var(--primary-deep)";
+  };
+
+  btnEdit.onclick = () => {
+    // dastaanTrip remains in localStorage, page2 will pick it up
+    window.location.href = '../page2/page2.html';
+  };
+
+  btnReset.onclick = () => {
+    localStorage.removeItem('dastaanTrip');
+    window.location.href = '../page2/page2.html';
+  };
+}
+
+document.addEventListener('DOMContentLoaded', init);

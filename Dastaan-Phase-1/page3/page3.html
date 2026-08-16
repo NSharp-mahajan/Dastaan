@@ -3,16 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dastaan | Places Worth Remembering</title>
-  <meta name="description" content="Embark on a cinematic exploration of Dastaan, Bosnia & Herzegovina, and discover historical landmarks that shape its story." />
+  <title>Dastaan — Your Journey</title>
   
-  <!-- Favicon -->
   <link rel="icon" href="../images/logo.png" type="image/png" />
-  
-  <!-- Google Fonts & Custom Ogg Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   
   <style>
     @font-face {
@@ -23,189 +16,174 @@
     }
   </style>
 
-  <!-- Page 3 Stylesheet -->
   <link rel="stylesheet" href="page3.css" />
-  
-  <!-- Deferred JavaScript -->
-  <script src="page3.js" defer></script>
 </head>
 <body>
 
-  <!-- Primary Minimalist Header / Navbar -->
-  <header class="site-header" aria-label="Primary navigation">
-    <a class="site-logo" href="../index.html">
-      <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
-      <div class="logo-text">
-        <span class="logo-title">Dastaan</span>
-        <span class="logo-tagline">STORIES &bull; IDEAS &bull; EMOTIONS</span>
-      </div>
+  <!-- Minimal Navbar -->
+  <header class="dastaan-nav">
+    <a href="../index.html" class="nav-logo">
+      <img src="../images/logo.png" alt="Dastaan" width="32" height="32" />
+      <span>DASTAAN</span>
     </a>
-    
-    <nav class="site-nav" aria-label="Main menu">
-      <a href="page3.html" class="nav-active">Explore</a>
-      <a href="page3/page3.html">My Journey</a>
-      <a href="page4/page4.html">Itinerary</a>
+    <div class="nav-links">
+      <a href="../index.html">Explore</a>
+      <a href="#">My Journey</a>
+      <a href="#" class="active">Itinerary</a>
       <a href="../index.html#how-it-works">How It Works</a>
-    </nav>
-    
-    <div class="header-actions">
-      <a href="#signin" class="nav-link">Sign In</a>
-      <a href="../page2/page2.html" class="btn-primary">Plan a Trip &rarr;</a>
+    </div>
+    <div class="nav-actions">
+      <a href="../signup.html" class="nav-btn-outline">Sign In</a>
+      <a href="../page2/page2.html" class="nav-btn-text">Plan a Trip</a>
     </div>
   </header>
 
-  <!-- Main Editorial Layout -->
-  <main class="editorial-container">
+  <!-- SECTION 1: HERO -->
+  <section class="itinerary-hero" id="hero-section">
+    <div class="hero-bg">
+      <img id="hero-bg-img" src="" alt="Destination" />
+      <div class="hero-overlay"></div>
+    </div>
+    <div class="container hero-content">
+      <span class="hero-eyebrow">YOUR PERSONALIZED JOURNEY</span>
+      <h1 id="hero-dest-name">DESTINATION</h1>
+      <div class="hero-meta" id="hero-meta">COUNTRY &middot; X DAYS &middot; ?X</div>
+      <p class="hero-desc" id="hero-desc">Curating your personalized travel experience.</p>
+      
+      <button type="button" class="btn-scroll-down" id="btn-scroll-down">
+        EXPLORE YOUR ITINERARY &darr;
+      </button>
+    </div>
+  </section>
 
-    <!-- SECTION 1: EDITORIAL OPENING -->
-    <section class="section-intro" aria-label="Introduction">
-      <div class="intro-grid">
-        
-        <!-- Left Column: Asymmetric Brand Statement -->
-        <div class="intro-headline-block">
-          <span class="label-discover reveal-text">DISCOVER</span>
-          <h1 class="intro-title reveal-text">
-            <span>PLACES</span><br/>
-            <span class="indent-1">WORTH</span><br/>
-            <span class="indent-2">REMEMBERING.</span>
-          </h1>
+  <!-- SECTION 2: TRIP AT A GLANCE -->
+  <section class="section-glance" id="glance-section">
+    <div class="container">
+      <h2 class="section-title">YOUR TRIP AT A GLANCE</h2>
+      
+      <div class="glance-grid">
+        <div class="glance-item">
+          <span class="glance-label">DURATION</span>
+          <span class="glance-val" id="glance-duration">-- DAYS</span>
         </div>
-
-        <!-- Right Column: Destination Context -->
-        <div class="intro-context-block reveal-text">
-          <span class="context-label">DESTINATION</span>
-          <h2 class="context-title">DASTAAN</h2>
-          <p class="context-subtitle">BOSNIA & HERZEGOVINA</p>
+        <div class="glance-item">
+          <span class="glance-label">BUDGET</span>
+          <span class="glance-val" id="glance-budget">?--</span>
         </div>
-
-      </div>
-
-      <!-- Large Cinematic Intro Image (Overlaps layout, occupies strong visual grid) -->
-      <div class="intro-hero-image-wrapper parallax-container" data-speed="0.05">
-        <div class="parallax-bg-glow"></div>
-        <div class="hero-image-clip reveal-image">
-          <img src="../images/image1.jpg" alt="Dastaan Cityscape Overview" class="hero-image" />
+        <div class="glance-item">
+          <span class="glance-label">INTERESTS</span>
+          <span class="glance-val" id="glance-interests-count">0</span>
+          <span class="glance-sub" id="glance-interests-list">--</span>
         </div>
-      </div>
-    </section>
-
-    <!-- DYNAMIC DISCOVERY RIG (Injected via page3.js) -->
-    <div id="discovery-rig"></div>
-
-    <!-- SECTION 3: YOUR STORY PREVIEW (Part 3 Cinematic Scrapbook) -->
-    <section class="section-story-preview" id="story-preview-scene" aria-label="Story preview">
-      <!-- Generated dynamically by JS -->
-    </section>
-
-  </main>
-
-  <!-- SITE FOOTER -->
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div class="footer-brand">
-        <a class="site-logo" href="../index.html">
-          <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
-          <div class="logo-text">
-            <span class="logo-title" style="color: var(--paper);">Dastaan</span>
-            <span class="logo-tagline" style="color: rgba(232, 220, 199, 0.65);">STORIES &bull; IDEAS &bull; EMOTIONS</span>
-          </div>
-        </a>
-        <p class="footer-desc">Dastaan brings travel logs, maps, stays, and budgets into a single cinematic planning experience tailored to your journey.</p>
-      </div>
-      <div class="footer-links-group">
-        <div class="footer-col">
-          <h4>Explore</h4>
-          <ul>
-            <li><a href="../index.html#cinema">Story</a></li>
-            <li><a href="page3.html">Explore Places</a></li>
-            <li><a href="../page2/page2.html">Plan a Trip</a></li>
-            <li><a href="#my-journey" id="footer-journey-link">My Journey</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Company</h4>
-          <ul>
-            <li><a href="#">About Us</a></li>
-            <li><a href="#">Travel Journal</a></li>
-            <li><a href="#">Careers</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Legal</h4>
-          <ul>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Cookie Policy</a></li>
-          </ul>
+        <div class="glance-item">
+          <span class="glance-label">TRAVEL STYLE</span>
+          <span class="glance-val" id="glance-style">--</span>
         </div>
       </div>
     </div>
-    <div class="container footer-bottom">
-      <p>&copy; 2026 Dastaan. All rights reserved.</p>
-      <div class="footer-socials">
-        <a href="#" aria-label="Twitter">Twitter</a>
-        <a href="#" aria-label="Instagram">Instagram</a>
-        <a href="#" aria-label="GitHub">GitHub</a>
+  </section>
+
+  <!-- SECTION 3: ITINERARY -->
+  <section class="section-itinerary">
+    <div class="container">
+      <div class="itinerary-header">
+        <span class="eyebrow">DAY BY DAY</span>
+        <h2 id="itinerary-title">YOUR JOURNEY THROUGH [DESTINATION]</h2>
+      </div>
+      
+      <!-- Day Selector -->
+      <div class="day-selector-wrap">
+        <div class="day-selector" id="day-selector">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      
+      <!-- Timeline Content -->
+      <div class="timeline-container" id="timeline-container">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: SMART ROUTING -->
+  <section class="section-routing">
+    <div class="container routing-grid">
+      <div class="routing-text">
+        <h2>WHY THIS ROUTE?</h2>
+        <p>Today's experiences are grouped logically to reduce unnecessary travel time, giving you more freedom to explore at your own pace.</p>
+      </div>
+      <div class="routing-stats">
+        <div class="stat-box">
+          <span class="stat-num" id="stat-places">0</span>
+          <span class="stat-label">PLACES</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num" id="stat-movement">-- km</span>
+          <span class="stat-label">ESTIMATED MOVEMENT</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num" id="stat-saved">-- min</span>
+          <span class="stat-label">TIME SAVED</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: BUDGET -->
+  <section class="section-budget">
+    <div class="container">
+      <h2 class="section-title">YOUR BUDGET</h2>
+      <div class="budget-total" id="budget-total">?--</div>
+      
+      <div class="budget-visual">
+        <div class="budget-bar" id="budget-bar">
+          <!-- Filled by JS -->
+        </div>
+        <div class="budget-legend" id="budget-legend">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: BUILT AROUND YOU -->
+  <section class="section-built-around">
+    <div class="container">
+      <h2 class="section-title">BUILT AROUND YOU</h2>
+      <div class="interests-breakdown" id="interests-breakdown">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: FINAL SUMMARY -->
+  <section class="section-final">
+    <div class="container text-center">
+      <h2>YOUR JOURNEY IS READY.</h2>
+      
+      <div class="final-summary-tags" id="final-summary-tags">
+        <!-- Filled by JS -->
+      </div>
+      
+      <div class="final-actions">
+        <button type="button" class="btn-primary" id="btn-save">SAVE MY JOURNEY</button>
+        <button type="button" class="btn-outline" id="btn-edit">EDIT PREFERENCES</button>
+        <button type="button" class="btn-text" id="btn-reset">START OVER</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="dastaan-footer">
+    <div class="container">
+      <div class="footer-logo">DASTAAN</div>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
       </div>
     </div>
   </footer>
 
-  <!-- Scroll Down Breathing Prompt -->
-  <div class="scroll-prompt">
-    <span class="prompt-arrow">&darr;</span>
-    <span class="prompt-text">SCROLL TO EXPLORE</span>
-  </div>
-
-  <!-- Floating Selected Story Counter -->
-  <div class="floating-story-badge" id="floating-story-badge" aria-label="Selected places count">
-    <span class="badge-label">YOUR STORY</span>
-    <span class="badge-count" id="badge-count">00</span>
-  </div>
-
-  <!-- MY JOURNEY OVERLAY DRAWER -->
-  <div class="journey-drawer-overlay" id="journey-drawer-overlay" aria-hidden="true">
-    <div class="drawer-backdrop" id="drawer-backdrop"></div>
-    <div class="journey-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
-      <button type="button" class="drawer-close-btn" id="drawer-close-btn" aria-label="Close story panel">&times;</button>
-      
-      <div class="drawer-header">
-        <span class="drawer-subtitle">YOUR JOURNEY</span>
-        <h2 id="drawer-title" class="drawer-title">Selected Chapters</h2>
-      </div>
-
-      <!-- Scrollable list of chosen places -->
-      <div class="drawer-list-container" id="drawer-list-container">
-        <!-- Rendered dynamically by JS -->
-      </div>
-
-      <!-- Dynamic statistics & Actions -->
-      <div class="drawer-footer">
-        <div class="drawer-summary-stats">
-          <div class="summary-stat-item">
-            <span class="stat-item-label">TOTAL TIME</span>
-            <span class="stat-item-val" id="drawer-total-time">0h 00m</span>
-          </div>
-          <div class="summary-stat-item">
-            <span class="stat-item-label">EST. ENTRY</span>
-            <span class="stat-item-val" id="drawer-total-cost">â‚¬0</span>
-          </div>
-        </div>
-        <div class="drawer-actions">
-          <button type="button" class="btn-drawer-edit" id="drawer-edit-btn">EDIT MY STORY</button>
-          <button type="button" class="btn-primary btn-full btn-build-itinerary">BUILD MY ITINERARY &rarr;</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Navigation Transition Wipe -->
-  <div class="transition-wipe-overlay" id="transition-wipe-overlay" aria-hidden="true">
-    <div class="transition-wipe-container">
-      <div class="transition-wipe-line"></div>
-      <h3 class="transition-wipe-title">DASTAAN</h3>
-      <p class="transition-wipe-subtitle">SHAPING YOUR JOURNEY...</p>
-    </div>
-  </div>
-
+  <script src="page3.js"></script>
 </body>
 </html>

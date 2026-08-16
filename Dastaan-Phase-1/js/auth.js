@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loginAt: new Date().toISOString()
     };
     sessionStorage.setItem('dastaan_session', JSON.stringify(session));
-    window.location.href = 'index.html'; // Redirect to home on success
+    window.location.href = 'page2/page2.html'; // Redirect to explore/plan page on success
   }
 
   // 5. Signup Logic
