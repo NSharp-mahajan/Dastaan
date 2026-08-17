@@ -11,32 +11,73 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginError = document.getElementById('login-error');
   const signupError = document.getElementById('signup-error');
 
-  // 1. Form Switching (with animation)
-  function switchView(hideView, showView) {
-    hideView.style.opacity = '0';
-    hideView.style.transform = 'translateY(16px)';
-    
-    setTimeout(() => {
-      hideView.classList.remove('active');
-      showView.classList.add('active');
-      
-      // small delay to allow display:block to apply before animating opacity
-      setTimeout(() => {
-        showView.style.opacity = '1';
-        showView.style.transform = 'translateY(0)';
-      }, 50);
-    }, 400); // Wait for transition
+  const splitLayout = document.querySelector('.split-layout');
+  let isTransitioning = false;
+
+  // Measure and set panel heights for mobile transition variables
+  function updateHeights() {
+    if (window.innerWidth <= 900) {
+      const visualCol = document.querySelector('.visual-column');
+      const authCol = document.querySelector('.auth-column');
+      if (visualCol && authCol) {
+        document.documentElement.style.setProperty('--visual-height', `${visualCol.offsetHeight}px`);
+        document.documentElement.style.setProperty('--auth-height', `${authCol.offsetHeight}px`);
+      }
+    }
   }
 
+  function triggerTransition(direction) {
+    isTransitioning = true;
+    const animClass = `curtain-animating-${direction}`;
+    splitLayout.classList.remove('curtain-animating-left', 'curtain-animating-right');
+    // Force reflow
+    void splitLayout.offsetWidth;
+    splitLayout.classList.add(animClass);
+    setTimeout(() => {
+      splitLayout.classList.remove(animClass);
+      isTransitioning = false;
+    }, 1200); // Matches keyframe duration
+  }
+
+  // Toggling states and classes
   btnGoToSignup.addEventListener('click', () => {
-    switchView(loginView, signupView);
+    if (isTransitioning) return;
+    triggerTransition('right');
+    
+    splitLayout.classList.add('signup-mode');
+    splitLayout.classList.remove('login-mode');
+    
+    // Toggle form active states to trigger delayed transition
+    loginView.classList.remove('active');
+    signupView.classList.add('active');
+    
     loginError.textContent = '';
+    
+    // Recalculate heights on view switch (since heights of login vs signup differ)
+    setTimeout(updateHeights, 50);
   });
 
   btnGoToLogin.addEventListener('click', () => {
-    switchView(signupView, loginView);
+    if (isTransitioning) return;
+    triggerTransition('left');
+    
+    splitLayout.classList.remove('signup-mode');
+    splitLayout.classList.add('login-mode');
+    
+    signupView.classList.remove('active');
+    loginView.classList.add('active');
+    
     signupError.textContent = '';
+    
+    // Recalculate heights on view switch
+    setTimeout(updateHeights, 50);
   });
+
+  // Attach event listeners for measuring heights
+  window.addEventListener('resize', updateHeights);
+  window.addEventListener('load', updateHeights);
+  // Run after DOM has settled
+  setTimeout(updateHeights, 100);
 
   // 2. Password Toggle
   togglePasswordBtns.forEach(btn => {

@@ -18,6 +18,12 @@
 </head>
 <body>
   <div class="split-layout">
+    <!-- Center Premium Divider -->
+    <div class="vertical-divider"></div>
+
+    <!-- Transition Curtain Overlay -->
+    <div class="transition-curtain"></div>
+
     <!-- LEFT: Visual Collage & Editorial -->
     <div class="visual-column">
       <a class="header-back" href="page2/page2.html">
@@ -29,11 +35,11 @@
 
       <div class="visual-content-wrapper">
         <div class="image-collage">
-          <div class="img-placeholder img-main">
-            <span>[ DESTINATION IMAGE ]</span>
+          <div class="journal-photo img-main">
+            <img src="images/image1.jpg" alt="Destination Image" />
           </div>
-          <div class="img-placeholder img-secondary">
-            <span>[ JOURNEY IMAGE ]</span>
+          <div class="journal-photo img-secondary">
+            <img src="images/image2.jpg" alt="Journey Image" />
           </div>
         </div>
 
@@ -91,12 +97,12 @@
                 <a href="#" class="forgot-link">FORGOT PASSWORD?</a>
               </div>
               <div class="form-error" id="login-error"></div>
-              <button type="submit" class="btn-primary">SIGN IN SECURELY &rarr;</button>
+              <button type="submit" class="btn-primary">SIGN IN SECURELY <span class="arrow">&rarr;</span></button>
             </form>
 
             <div class="auth-switch">
               <p>NEW TO DASTAAN?</p>
-              <button type="button" class="btn-switch" id="go-to-signup">CREATE YOUR ACCOUNT &rarr;</button>
+              <button type="button" class="btn-switch" id="go-to-signup">CREATE YOUR ACCOUNT <span class="arrow">&rarr;</span></button>
             </div>
           </div>
 
@@ -112,32 +118,36 @@
                 <label for="signup-name">FULL NAME</label>
                 <input type="text" id="signup-name" placeholder="Enter your full name" required />
               </div>
-              <div class="field-group">
-                <label for="signup-email">EMAIL</label>
-                <input type="email" id="signup-email" placeholder="Enter your email address" required />
-              </div>
-              <div class="field-group">
-                <label for="signup-mobile">MOBILE NUMBER</label>
-                <input type="tel" id="signup-mobile" placeholder="Enter your mobile number" required />
-              </div>
-              <div class="field-group">
-                <label for="signup-password">PASSWORD</label>
-                <div class="password-wrapper">
-                  <input type="password" id="signup-password" placeholder="Create a password" required minlength="6" />
-                  <button type="button" class="toggle-password" aria-label="Toggle password visibility">
-                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                  </button>
+              <div class="form-row">
+                <div class="field-group">
+                  <label for="signup-email">EMAIL</label>
+                  <input type="email" id="signup-email" placeholder="Enter your email address" required />
+                </div>
+                <div class="field-group">
+                  <label for="signup-mobile">MOBILE NUMBER</label>
+                  <input type="tel" id="signup-mobile" placeholder="Enter your mobile number" required />
                 </div>
               </div>
-              <div class="field-group">
-                <label for="signup-confirm">CONFIRM PASSWORD</label>
-                <div class="password-wrapper">
-                  <input type="password" id="signup-confirm" placeholder="Confirm your password" required minlength="6" />
-                  <button type="button" class="toggle-password" aria-label="Toggle password visibility">
-                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                  </button>
+              <div class="form-row">
+                <div class="field-group">
+                  <label for="signup-password">PASSWORD</label>
+                  <div class="password-wrapper">
+                    <input type="password" id="signup-password" placeholder="Create a password" required minlength="6" />
+                    <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+                      <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label for="signup-confirm">CONFIRM PASSWORD</label>
+                  <div class="password-wrapper">
+                    <input type="password" id="signup-confirm" placeholder="Confirm password" required minlength="6" />
+                    <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+                      <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                    </button>
+                  </div>
                 </div>
               </div>
               <div class="field-group">
@@ -153,12 +163,12 @@
                 </div>
               </div>
               <div class="form-error" id="signup-error"></div>
-              <button type="submit" class="btn-primary">CREATE ACCOUNT &rarr;</button>
+              <button type="submit" class="btn-primary">CREATE ACCOUNT <span class="arrow">&rarr;</span></button>
             </form>
 
             <div class="auth-switch">
               <p>ALREADY HAVE AN ACCOUNT?</p>
-              <button type="button" class="btn-switch" id="go-to-login">SIGN IN &rarr;</button>
+              <button type="button" class="btn-switch" id="go-to-login">SIGN IN <span class="arrow">&rarr;</span></button>
             </div>
           </div>
         </div>
