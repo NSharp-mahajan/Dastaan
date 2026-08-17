@@ -3,12 +3,13 @@
  */
 
 const destinations = [
-  { id: 'mostar', name: 'Mostar', country: 'Bosnia', image: 'https://images.unsplash.com/photo-1600204739704-51a44c5b1616?auto=format&fit=crop&w=1800&q=80', defaultDur: 2, defaultBud: 5000 },
-  { id: 'new-delhi', name: 'New Delhi', country: 'India', image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=1800&q=80', defaultDur: 3, defaultBud: 8000 },
+  { id: 'new-delhi', name: 'New Delhi', country: 'India', image: '../images/newdelhi/indiagate.jpg', defaultDur: 3, defaultBud: 8000 },
+  { id: 'jaipur', name: 'Jaipur', country: 'India', image: '../images/jaipur/amerfortandasheeshmahal.jpg', defaultDur: 3, defaultBud: 10000 },
+  { id: 'manali', name: 'Manali', country: 'India', image: '../images/manali/rohtangpass.jpg', defaultDur: 3, defaultBud: 9000 },
   { id: 'kyoto', name: 'Kyoto', country: 'Japan', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1800&q=80', defaultDur: 5, defaultBud: 30000 },
+  { id: 'mostar', name: 'Mostar', country: 'Bosnia', image: 'https://images.unsplash.com/photo-1600204739704-51a44c5b1616?auto=format&fit=crop&w=1800&q=80', defaultDur: 2, defaultBud: 5000 },
   { id: 'florence', name: 'Florence', country: 'Italy', image: 'https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=1800&q=80', defaultDur: 4, defaultBud: 25000 },
   { id: 'istanbul', name: 'Istanbul', country: 'Turkey', image: 'https://images.unsplash.com/photo-1526080652727-5b77f74eacb2?auto=format&fit=crop&w=1800&q=80', defaultDur: 4, defaultBud: 15000 },
-  { id: 'jaipur', name: 'Jaipur', country: 'India', image: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1800&q=80', defaultDur: 3, defaultBud: 10000 },
 ];
 
 const availableInterests = ['History', 'Food', 'Nature', 'Culture', 'Shopping', 'Art', 'Adventure', 'Nightlife'];
@@ -211,7 +212,7 @@ function updateSummary() {
   sumBudget.textContent = `?${dastaanTrip.budget.toLocaleString()}`;
   
   if (dastaanTrip.interests.length > 0) {
-    sumInterests.textContent = dastaanTrip.interests.join(' · ');
+    sumInterests.textContent = dastaanTrip.interests.join('  ');
   } else {
     sumInterests.textContent = 'None';
   }

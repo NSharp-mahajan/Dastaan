@@ -114,8 +114,18 @@ body, html {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 30%;
   transition: opacity 0.8s ease, transform 6s ease-out;
-  transform: scale(1.05);
+  transform: scale(1.02);
+}
+.destination-bg img[src*="indiagate"] {
+  object-position: center 20% !important;
+}
+.destination-bg img[src*="amerfort"] {
+  object-position: center 35% !important;
+}
+.destination-bg img[src*="rohtang"] {
+  object-position: center 40% !important;
 }
 .destination-bg img.active {
   transform: scale(1);

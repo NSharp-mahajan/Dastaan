@@ -3,9 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dastaan — Your Journey</title>
+  <title>Dastaan | Your Personalized Journey</title>
+  <meta name="description" content="A cinematic, personalized travel journal experience curated by Dastaan." />
   
+  <!-- Favicon -->
   <link rel="icon" href="../images/logo.png" type="image/png" />
+  
+  <!-- Google Fonts & Custom Ogg Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   
   <style>
     @font-face {
@@ -16,168 +23,292 @@
     }
   </style>
 
+  <!-- Page 3 Stylesheet -->
   <link rel="stylesheet" href="page3.css" />
 </head>
-<body>
+<body class="itinerary-body">
 
-  <!-- Minimal Navbar -->
+  <!-- Navigation Header -->
   <header class="dastaan-nav">
     <a href="../index.html" class="nav-logo">
-      <img src="../images/logo.png" alt="Dastaan" width="32" height="32" />
-      <span>DASTAAN</span>
+      <img src="../images/logo.png" alt="Dastaan" width="36" height="36" />
+      <span class="logo-text">DASTAAN</span>
     </a>
-    <div class="nav-links">
+    <nav class="nav-links" aria-label="Main Navigation">
       <a href="../index.html">Explore</a>
-      <a href="#">My Journey</a>
-      <a href="#" class="active">Itinerary</a>
+      <a href="page3.html" class="active">My Journey</a>
       <a href="../index.html#how-it-works">How It Works</a>
-    </div>
+    </nav>
     <div class="nav-actions">
       <a href="../signup.html" class="nav-btn-outline">Sign In</a>
-      <a href="../page2/page2.html" class="nav-btn-text">Plan a Trip</a>
+      <a href="../page2/page2.html" class="nav-btn-primary">Plan a Trip &rarr;</a>
     </div>
   </header>
 
-  <!-- SECTION 1: HERO -->
-  <section class="itinerary-hero" id="hero-section">
-    <div class="hero-bg">
-      <img id="hero-bg-img" src="" alt="Destination" />
-      <div class="hero-overlay"></div>
-    </div>
-    <div class="container hero-content">
-      <span class="hero-eyebrow">YOUR PERSONALIZED JOURNEY</span>
-      <h1 id="hero-dest-name">DESTINATION</h1>
-      <div class="hero-meta" id="hero-meta">COUNTRY &middot; X DAYS &middot; ?X</div>
-      <p class="hero-desc" id="hero-desc">Curating your personalized travel experience.</p>
-      
-      <button type="button" class="btn-scroll-down" id="btn-scroll-down">
-        EXPLORE YOUR ITINERARY &darr;
-      </button>
-    </div>
-  </section>
+  <main>
+    <!-- SECTION 1: CINEMATIC HERO (80vh) -->
+    <section class="hero-section" id="hero-section">
+      <div class="hero-image-container image-placeholder" id="hero-image-wrap">
+        <img id="hero-bg-img" src="" alt="Destination" class="hero-img-element" />
+        <div class="placeholder-overlay">
+          <span class="placeholder-badge" id="hero-placeholder-badge">[ DESTINATION IMAGE ]</span>
+        </div>
+        <div class="hero-gradient-overlay"></div>
+      </div>
 
-  <!-- SECTION 2: TRIP AT A GLANCE -->
-  <section class="section-glance" id="glance-section">
-    <div class="container">
-      <h2 class="section-title">YOUR TRIP AT A GLANCE</h2>
-      
-      <div class="glance-grid">
-        <div class="glance-item">
-          <span class="glance-label">DURATION</span>
-          <span class="glance-val" id="glance-duration">-- DAYS</span>
-        </div>
-        <div class="glance-item">
-          <span class="glance-label">BUDGET</span>
-          <span class="glance-val" id="glance-budget">?--</span>
-        </div>
-        <div class="glance-item">
-          <span class="glance-label">INTERESTS</span>
-          <span class="glance-val" id="glance-interests-count">0</span>
-          <span class="glance-sub" id="glance-interests-list">--</span>
-        </div>
-        <div class="glance-item">
-          <span class="glance-label">TRAVEL STYLE</span>
-          <span class="glance-val" id="glance-style">--</span>
-        </div>
-      </div>
-    </div>
-  </section>
+      <div class="hero-content-layer">
+        <span class="hero-eyebrow reveal-on-scroll">YOUR PERSONALIZED JOURNEY</span>
+        <h1 class="hero-title reveal-on-scroll" id="hero-dest-name">DESTINATION</h1>
+        <div class="hero-meta reveal-on-scroll" id="hero-meta">COUNTRY &bull; 0 DAYS &bull; &#8377;0</div>
+        <p class="hero-tagline reveal-on-scroll" id="hero-desc">"A balanced journey through culture, food, and hidden escapes."</p>
 
-  <!-- SECTION 3: ITINERARY -->
-  <section class="section-itinerary">
-    <div class="container">
-      <div class="itinerary-header">
-        <span class="eyebrow">DAY BY DAY</span>
-        <h2 id="itinerary-title">YOUR JOURNEY THROUGH [DESTINATION]</h2>
+        <button type="button" class="btn-scroll-down reveal-on-scroll" id="btn-scroll-down" aria-label="Scroll to trip details">
+          <span>EXPLORE YOUR JOURNEY</span>
+          <span class="scroll-arrow">&darr;</span>
+        </button>
       </div>
-      
-      <!-- Day Selector -->
-      <div class="day-selector-wrap">
-        <div class="day-selector" id="day-selector">
-          <!-- Populated by JS -->
-        </div>
-      </div>
-      
-      <!-- Timeline Content -->
-      <div class="timeline-container" id="timeline-container">
-        <!-- Populated by JS -->
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- SECTION 4: SMART ROUTING -->
-  <section class="section-routing">
-    <div class="container routing-grid">
-      <div class="routing-text">
-        <h2>WHY THIS ROUTE?</h2>
-        <p>Today's experiences are grouped logically to reduce unnecessary travel time, giving you more freedom to explore at your own pace.</p>
-      </div>
-      <div class="routing-stats">
-        <div class="stat-box">
-          <span class="stat-num" id="stat-places">0</span>
-          <span class="stat-label">PLACES</span>
+    <!-- SECTION 2: TRIP AT A GLANCE (Warm Ivory Editorial) -->
+    <section class="section-glance reveal-on-scroll" id="glance-section">
+      <div class="container">
+        <div class="section-header-editorial">
+          <span class="section-eyebrow">THE DETAILS</span>
+          <h2 class="section-title-serif">YOUR TRIP AT A GLANCE</h2>
         </div>
-        <div class="stat-box">
-          <span class="stat-num" id="stat-movement">-- km</span>
-          <span class="stat-label">ESTIMATED MOVEMENT</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-num" id="stat-saved">-- min</span>
-          <span class="stat-label">TIME SAVED</span>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- SECTION 5: BUDGET -->
-  <section class="section-budget">
-    <div class="container">
-      <h2 class="section-title">YOUR BUDGET</h2>
-      <div class="budget-total" id="budget-total">?--</div>
-      
-      <div class="budget-visual">
-        <div class="budget-bar" id="budget-bar">
-          <!-- Filled by JS -->
+        <div class="glance-editorial-grid">
+          <div class="glance-col">
+            <span class="glance-num" id="glance-duration">05</span>
+            <span class="glance-label">DAYS</span>
+          </div>
+          <div class="glance-divider"></div>
+          <div class="glance-col">
+            <span class="glance-num" id="glance-budget">&#8377;8,000</span>
+            <span class="glance-label">BUDGET</span>
+          </div>
+          <div class="glance-divider"></div>
+          <div class="glance-col">
+            <span class="glance-num" id="glance-interests-count">03</span>
+            <span class="glance-label">INTERESTS</span>
+          </div>
+          <div class="glance-divider"></div>
+          <div class="glance-col">
+            <span class="glance-num" id="glance-style">BALANCED</span>
+            <span class="glance-label">STYLE</span>
+          </div>
         </div>
-        <div class="budget-legend" id="budget-legend">
-          <!-- Filled by JS -->
+
+        <div class="glance-interests-bar" id="glance-interests-list">
+          FOOD &bull; NATURE &bull; CULTURE
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- SECTION 6: BUILT AROUND YOU -->
-  <section class="section-built-around">
-    <div class="container">
-      <h2 class="section-title">BUILT AROUND YOU</h2>
-      <div class="interests-breakdown" id="interests-breakdown">
-        <!-- Filled by JS -->
-      </div>
-    </div>
-  </section>
+    <!-- SECTION 3: ITINERARY INTRO & TRAVEL JOURNAL (Dark Forest Green) -->
+    <section class="section-itinerary reveal-on-scroll" id="itinerary-section">
+      <div class="container">
+        <!-- Intro Banner -->
+        <div class="itinerary-intro">
+          <span class="section-eyebrow gold-eyebrow">DAY BY DAY</span>
+          <h2 class="itinerary-heading-serif" id="itinerary-title">YOUR JOURNEY THROUGH DESTINATION</h2>
+          <p class="itinerary-subtitle">"Every day is arranged around your pace, interests and budget."</p>
+          <div class="gold-line-accent"></div>
+        </div>
 
-  <!-- SECTION 7: FINAL SUMMARY -->
-  <section class="section-final">
-    <div class="container text-center">
-      <h2>YOUR JOURNEY IS READY.</h2>
-      
-      <div class="final-summary-tags" id="final-summary-tags">
-        <!-- Filled by JS -->
+        <!-- Premium Day Selector -->
+        <div class="day-selector-sticky-wrap">
+          <nav class="day-selector" id="day-selector" aria-label="Day selection">
+            <!-- Populated dynamically by JS -->
+          </nav>
+        </div>
+
+        <!-- Travel Journal Day Title Header -->
+        <div class="day-journal-header" id="day-journal-header">
+          <div class="journal-day-badge" id="journal-day-num">DAY 01</div>
+          <h3 class="journal-day-title" id="journal-day-title">ARRIVAL &amp; OLD DESTINATION</h3>
+        </div>
+
+        <!-- Timeline / Travel Journal Content -->
+        <div class="travel-journal-container" id="timeline-container">
+          <!-- Populated dynamically by JS -->
+        </div>
       </div>
-      
-      <div class="final-actions">
-        <button type="button" class="btn-primary" id="btn-save">SAVE MY JOURNEY</button>
-        <button type="button" class="btn-outline" id="btn-edit">EDIT PREFERENCES</button>
-        <button type="button" class="btn-text" id="btn-reset">START OVER</button>
+    </section>
+
+    <!-- SECTION 4: ROUTE VISUALIZATION (Very Dark Green) -->
+    <section class="section-routing reveal-on-scroll" id="routing-section">
+      <div class="container">
+        <div class="routing-header">
+          <span class="section-eyebrow gold-eyebrow">INTELLIGENT SEQUENCING</span>
+          <h2 class="section-title-serif gold-title">WHY THIS ROUTE?</h2>
+          <p class="routing-desc">
+            Today's experiences are grouped logically to reduce unnecessary travel time, giving you more freedom to explore at your own pace.
+          </p>
+        </div>
+
+        <!-- SVG Route Canvas Container -->
+        <div class="route-visualization-wrapper">
+          <div class="route-svg-canvas" id="route-svg-canvas">
+            <!-- SVG rendered dynamically by JS -->
+          </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="routing-stats-bar">
+          <div class="route-stat-item">
+            <span class="route-stat-num" id="stat-places">12</span>
+            <span class="route-stat-label">PLACES</span>
+          </div>
+          <div class="route-stat-divider"></div>
+          <div class="route-stat-item">
+            <span class="route-stat-num" id="stat-movement">11 KM</span>
+            <span class="route-stat-label">ESTIMATED MOVEMENT</span>
+          </div>
+          <div class="route-stat-divider"></div>
+          <div class="route-stat-item">
+            <span class="route-stat-num" id="stat-saved">45 MIN</span>
+            <span class="route-stat-label">TIME SAVED</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: BUDGET SECTION (Deep Forest Green) -->
+    <section class="section-budget reveal-on-scroll" id="budget-section">
+      <div class="container">
+        <div class="budget-header">
+          <span class="section-eyebrow gold-eyebrow">TRANSPARENT COST ALLOCATION</span>
+          <h2 class="section-title-serif gold-title">YOUR BUDGET</h2>
+          <div class="budget-total-hero" id="budget-total">&#8377;8,000</div>
+        </div>
+
+        <div class="budget-card-container">
+          <!-- Animated Segmented Bar -->
+          <div class="budget-bar-outer">
+            <div class="budget-bar" id="budget-bar">
+              <!-- Segments rendered dynamically by JS -->
+            </div>
+            <!-- Tooltip -->
+            <div class="budget-tooltip" id="budget-tooltip"></div>
+          </div>
+
+          <!-- Breakdown Grid -->
+          <div class="budget-grid" id="budget-grid">
+            <!-- Items rendered dynamically by JS -->
+          </div>
+
+          <!-- Pace Insight -->
+          <div class="budget-insight-box" id="budget-insight-box">
+            <span class="insight-label">YOUR PACE</span>
+            <p class="insight-text" id="budget-insight-text">
+              "Your balanced travel style keeps the itinerary comfortable while staying within your selected budget."
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: BUILT AROUND YOU (Warm Ivory) -->
+    <section class="section-built-around reveal-on-scroll" id="built-around-section">
+      <div class="container">
+        <div class="section-header-editorial">
+          <span class="section-eyebrow">TAILORED EXPERIENCE</span>
+          <h2 class="section-title-serif">BUILT AROUND YOU</h2>
+          <p class="section-subtitle-dark">YOUR INTERESTS SHAPED THIS JOURNEY.</p>
+        </div>
+
+        <!-- Dynamic Interest Panels (Renders only selected interests) -->
+        <div class="interests-panels-grid" id="interests-breakdown">
+          <!-- Populated dynamically by JS -->
+        </div>
+
+        <!-- Personalization Badge Banner -->
+        <div class="personalization-badge-banner">
+          <div class="badge-header-label">PLANNED FOR YOUR PACE</div>
+          <div class="badge-tags-row" id="personalization-badges">
+            <!-- Tags rendered dynamically by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7: FINAL CINEMATIC CTA SECTION (Dark Closing) -->
+    <section class="section-final reveal-on-scroll" id="final-section">
+      <div class="final-bg-placeholder image-placeholder">
+        <img id="final-bg-img" src="" alt="Destination Backdrop" class="final-img-element" />
+        <div class="placeholder-overlay">
+          <span class="placeholder-badge" id="final-placeholder-badge">[ DESTINATION BACKDROP ]</span>
+        </div>
+        <div class="final-dark-overlay"></div>
+      </div>
+
+      <div class="container final-content-layer">
+        <span class="section-eyebrow gold-eyebrow">YOUR JOURNEY IS READY</span>
+        <h2 class="final-heading-serif">ALL THAT'S LEFT IS TO GO.</h2>
+        
+        <div class="final-dest-summary" id="final-dest-summary">
+          KYOTO &bull; 5 DAYS &bull; &#8377;8,000
+        </div>
+
+        <!-- CTA Buttons Hierarchy -->
+        <div class="final-actions-wrapper">
+          <button type="button" class="btn-primary-gold" id="btn-save">
+            <span>SAVE MY JOURNEY &rarr;</span>
+          </button>
+          <button type="button" class="btn-secondary-outline" id="btn-edit">
+            EDIT PREFERENCES
+          </button>
+          <button type="button" class="btn-tertiary-link" id="btn-reset">
+            START OVER
+          </button>
+        </div>
+
+        <!-- Save Confirmation Toast Container (No Alert) -->
+        <div class="save-toast-banner" id="save-toast" aria-live="polite">
+          <div class="toast-icon">&#10003;</div>
+          <div class="toast-text">
+            <strong>JOURNEY SAVED</strong>
+            <span id="toast-sub">Your itinerary is saved to your account.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Lightbox Modal for Full Image View -->
+  <div class="lightbox-modal" id="lightbox-modal" role="dialog" aria-hidden="true" aria-label="Place image viewer">
+    <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
+    <div class="lightbox-container">
+      <button type="button" class="lightbox-close-btn" id="lightbox-close" aria-label="Close image viewer">&times;</button>
+      <div class="lightbox-media-wrap">
+        <img id="lightbox-img" src="" alt="Place View" class="lightbox-img" />
+        <div class="lightbox-placeholder-box" id="lightbox-placeholder">
+          <span class="placeholder-badge" id="lightbox-placeholder-text">[ PLACE IMAGE ]</span>
+        </div>
+      </div>
+      <div class="lightbox-info-panel">
+        <div class="lightbox-meta">
+          <span class="lightbox-cat-tag" id="lightbox-cat">CATEGORY</span>
+          <span class="lightbox-dest-badge" id="lightbox-dest-badge">DESTINATION</span>
+        </div>
+        <h3 class="lightbox-title" id="lightbox-title">Place Title</h3>
+        <p class="lightbox-desc" id="lightbox-desc">Description of place...</p>
       </div>
     </div>
-  </section>
+  </div>
 
   <!-- Footer -->
   <footer class="dastaan-footer">
-    <div class="container">
-      <div class="footer-logo">DASTAAN</div>
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <img src="../images/logo.png" alt="Dastaan Logo" width="28" height="28" />
+        <span class="footer-logo">DASTAAN</span>
+      </div>
+      <p class="footer-tagline">Stories &bull; Ideas &bull; Emotions</p>
       <div class="footer-links">
+        <a href="../index.html">Home</a>
+        <a href="../page2/page2.html">Plan Trip</a>
         <a href="#">Privacy Policy</a>
         <a href="#">Terms of Service</a>
       </div>

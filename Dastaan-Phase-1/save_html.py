@@ -1,0 +1,1 @@
+﻿with open('page3/page3.html', 'w', encoding='utf-8') as f: f.write(open('page3/page3.html', 'r', encoding='latin1').read().replace(chr(0x97), '--'))
