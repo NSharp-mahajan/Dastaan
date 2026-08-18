@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dastaan — Discover</title>
+  
+  <link rel="icon" href="../images/logo.png" type="image/png" />
+  
+  <style>
+    @font-face {
+      font-family: 'Ogg Medium';
+      src: url('https://dcym8fthxf5uu.cloudfront.net/fonts/247a073c-29f5-4a89-aa3a-741020f346fc/OggText-Medium.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+    }
+  </style>
+
+  <link rel="stylesheet" href="discover.css" />
+</head>
+<body>
+
+  <!-- Minimal Navbar -->
+  <header class="dastaan-nav">
+    <a href="../index.html" class="nav-logo">
+      <img src="../images/logo.png" alt="Dastaan" width="32" height="32" />
+      <span>DASTAAN</span>
+    </a>
+    <div class="nav-links">
+      <a href="../index.html">Explore</a>
+      <a href="#" class="active">Discover</a>
+      <a href="../page3/page3.html">Itinerary</a>
+      <a href="../index.html#how-it-works">How It Works</a>
+    </div>
+    <div class="nav-actions">
+      <a href="../signup.html" class="nav-btn-outline">Sign In</a>
+      <a href="../page2/page2.html" class="nav-btn-text">Plan a Trip</a>
+    </div>
+  </header>
+
+  <!-- SECTION 1: HERO -->
+  <section class="discover-hero">
+    <div class="container hero-content">
+      <span class="hero-eyebrow">DASTAAN &middot; DISCOVER</span>
+      <h1>DON'T KNOW WHERE TO GO?</h1>
+      <p class="hero-subtext">Your time. Your budget. Your interests.<br>We'll find the places that fit your story.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 2: DISCOVERY FILTERS -->
+  <section class="discover-filters">
+    <div class="container">
+      <div class="filter-header">
+        <h2>FIND YOUR NEXT DESTINATION</h2>
+      </div>
+
+      <div class="filters-grid">
+        
+        <!-- A. AVAILABLE TIME -->
+        <div class="filter-group fade-in-up">
+          <span class="filter-title">HOW MUCH TIME DO YOU HAVE?</span>
+          <div class="options-row" id="time-options">
+            <button class="filter-option" data-time="2-3">2&ndash;3 DAYS</button>
+            <button class="filter-option" data-time="4-5">4&ndash;5 DAYS</button>
+            <button class="filter-option" data-time="6-7">6&ndash;7 DAYS</button>
+            <button class="filter-option" data-time="8+">8+ DAYS</button>
+          </div>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- B. BUDGET -->
+        <div class="filter-group fade-in-up" style="animation-delay: 0.1s;">
+          <span class="filter-title">WHAT'S YOUR BUDGET?</span>
+          <div class="options-row" id="budget-options">
+            <button class="filter-option" data-budget="10000">UNDER ?10K</button>
+            <button class="filter-option" data-budget="20000">?10K&ndash;?20K</button>
+            <button class="filter-option" data-budget="40000">?20K&ndash;?40K</button>
+            <button class="filter-option" data-budget="40001">?40K+</button>
+          </div>
+          <div class="numeric-budget-wrapper">
+            <span class="currency">?</span>
+            <input type="number" id="budget-numeric" placeholder="Enter custom amount..." />
+          </div>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- C. INTERESTS -->
+        <div class="filter-group fade-in-up" style="animation-delay: 0.2s;">
+          <div class="title-with-count">
+            <span class="filter-title">WHAT DO YOU WANT TO EXPERIENCE?</span>
+            <span class="selection-count" id="interests-count">0 SELECTED</span>
+          </div>
+          <div class="interests-grid" id="interests-options">
+            <button class="interest-tile" data-interest="Food">Food</button>
+            <button class="interest-tile" data-interest="Nature">Nature</button>
+            <button class="interest-tile" data-interest="Culture">Culture</button>
+            <button class="interest-tile" data-interest="History">History</button>
+            <button class="interest-tile" data-interest="Adventure">Adventure</button>
+            <button class="interest-tile" data-interest="Shopping">Shopping</button>
+            <button class="interest-tile" data-interest="Art">Art</button>
+            <button class="interest-tile" data-interest="Nightlife">Nightlife</button>
+          </div>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- D. TRAVEL STYLE -->
+        <div class="filter-group fade-in-up" style="animation-delay: 0.3s;">
+          <span class="filter-title">HOW DO YOU LIKE TO TRAVEL?</span>
+          <div class="style-cards-row" id="style-options">
+            <button class="style-card" data-style="Relaxed">
+              <h3>RELAXED</h3>
+              <p>"Slow mornings, fewer stops."</p>
+            </button>
+            <button class="style-card active" data-style="Balanced">
+              <h3>BALANCED</h3>
+              <p>"See the best without rushing."</p>
+            </button>
+            <button class="style-card" data-style="Packed">
+              <h3>PACKED</h3>
+              <p>"Make every moment count."</p>
+            </button>
+          </div>
+        </div>
+
+      </div> <!-- /.filters-grid -->
+
+      <div class="filter-action fade-in-up" style="animation-delay: 0.4s;">
+        <div id="validation-msg" class="validation-msg"></div>
+        <button class="btn-primary-large" id="btn-find-destinations">
+          FIND MY DESTINATIONS &rarr;
+        </button>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- SECTION 3: RESULTS -->
+  <section class="discover-results" id="results-section" style="display: none;">
+    <div class="container">
+      
+      <div class="results-header">
+        <h2>DESTINATIONS FOR YOUR JOURNEY</h2>
+        <p>We found places that fit your time, budget and interests.</p>
+        
+        <div class="results-tools">
+          <span id="results-count" class="results-count">0 destinations found</span>
+          <div class="sort-wrapper">
+            <span>SORT BY:</span>
+            <select id="sort-select">
+              <option value="match">Best Match</option>
+              <option value="budget">Lowest Budget</option>
+              <option value="duration">Shortest Trip</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="empty-state" class="empty-state" style="display: none;">
+        <h3>WE COULDN'T FIND A PERFECT MATCH</h3>
+        <p>Try widening your budget or changing your travel dates.</p>
+        <div class="empty-actions">
+          <button class="btn-outline" id="btn-adjust-prefs">ADJUST PREFERENCES</button>
+          <button class="btn-primary" id="btn-show-closest">SHOW CLOSEST MATCHES</button>
+        </div>
+      </div>
+
+      <!-- Result rendering target -->
+      <div id="results-container" class="results-container">
+        <!-- JS injects featured card and secondary cards here -->
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="dastaan-footer">
+    <div class="container">
+      <div class="footer-logo">DASTAAN</div>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="discover.js"></script>
+</body>
+</html>
