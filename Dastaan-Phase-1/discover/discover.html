@@ -40,100 +40,184 @@
 
   <!-- SECTION 1: HERO -->
   <section class="discover-hero">
+    <div class="hero-bg">
+      <div class="image-placeholder">CINEMATIC LANDSCAPE IMAGE</div>
+      <img src="../images/discover-hero.jpg" alt="" class="hero-img" onerror="this.style.display='none';" />
+      <div class="hero-overlay"></div>
+    </div>
     <div class="container hero-content">
       <span class="hero-eyebrow">DASTAAN &middot; DISCOVER</span>
-      <h1>DON'T KNOW WHERE TO GO?</h1>
-      <p class="hero-subtext">Your time. Your budget. Your interests.<br>We'll find the places that fit your story.</p>
+      <h1>DON'T KNOW<br>WHERE TO GO?</h1>
+      <p class="hero-subtext">Tell us how you want to travel.<br>We'll narrow the world down to places that fit your story.</p>
+    </div>
+    <div class="hero-scroll-indicator">
+      <span>BUILD YOUR TRIP</span>
+      <div class="scroll-line"></div>
     </div>
   </section>
 
-  <!-- SECTION 2: DISCOVERY FILTERS -->
-  <section class="discover-filters">
-    <div class="container">
-      <div class="filter-header">
-        <h2>FIND YOUR NEXT DESTINATION</h2>
+  <!-- MAIN DISCOVERY BUILDER -->
+  <section class="discover-builder-section">
+    <div class="container builder-container">
+      
+      <div class="builder-intro">
+        <h2>BUILD YOUR TRIP</h2>
+        <p>A few choices are all we need.</p>
+        
+        <div class="progress-indicator">
+          <span class="step" id="step-01">01 &mdash; TIME</span>
+          <span class="step" id="step-02">02 &mdash; BUDGET</span>
+          <span class="step" id="step-03">03 &mdash; EXPERIENCE</span>
+          <span class="step" id="step-04">04 &mdash; PACE</span>
+        </div>
       </div>
 
-      <div class="filters-grid">
+      <div class="builder-form">
         
-        <!-- A. AVAILABLE TIME -->
-        <div class="filter-group fade-in-up">
-          <span class="filter-title">HOW MUCH TIME DO YOU HAVE?</span>
-          <div class="options-row" id="time-options">
-            <button class="filter-option" data-time="2-3">2&ndash;3 DAYS</button>
-            <button class="filter-option" data-time="4-5">4&ndash;5 DAYS</button>
-            <button class="filter-option" data-time="6-7">6&ndash;7 DAYS</button>
-            <button class="filter-option" data-time="8+">8+ DAYS</button>
+        <!-- SECTION 01: TIME -->
+        <div class="form-section fade-in-up" id="sec-01">
+          <span class="section-label">01 / TIME</span>
+          <h3 class="section-heading">HOW MUCH TIME DO YOU HAVE?</h3>
+          <p class="section-subtext">Choose the length of your escape.</p>
+          
+          <div class="options-grid" id="time-options">
+            <button class="select-card" data-time="2-3">
+              <span class="card-title">2&ndash;3 DAYS</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="select-card" data-time="4-6">
+              <span class="card-title">4&ndash;6 DAYS</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="select-card" data-time="6-7">
+              <span class="card-title">6&ndash;7 DAYS</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="select-card" data-time="8+">
+              <span class="card-title">8+ DAYS</span>
+              <div class="active-indicator"></div>
+            </button>
           </div>
         </div>
 
-        <div class="filter-divider"></div>
-
-        <!-- B. BUDGET -->
-        <div class="filter-group fade-in-up" style="animation-delay: 0.1s;">
-          <span class="filter-title">WHAT'S YOUR BUDGET?</span>
-          <div class="options-row" id="budget-options">
-            <button class="filter-option" data-budget="10000">UNDER ?10K</button>
-            <button class="filter-option" data-budget="20000">?10K&ndash;?20K</button>
-            <button class="filter-option" data-budget="40000">?20K&ndash;?40K</button>
-            <button class="filter-option" data-budget="40001">?40K+</button>
+        <!-- SECTION 02: BUDGET -->
+        <div class="form-section fade-in-up" id="sec-02" style="animation-delay: 0.1s;">
+          <span class="section-label">02 / BUDGET</span>
+          <h3 class="section-heading">WHAT ARE YOU COMFORTABLE SPENDING?</h3>
+          
+          <div class="options-grid" id="budget-options">
+            <button class="select-card" data-budget="10000">
+              <span class="card-title">UNDER ?10K</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="select-card" data-budget="20000">
+              <span class="card-title">?10K&ndash;?20K</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="select-card" data-budget="40000">
+              <span class="card-title">?20K&ndash;?40K</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="select-card" data-budget="40001">
+              <span class="card-title">?40K+</span>
+              <div class="active-indicator"></div>
+            </button>
           </div>
-          <div class="numeric-budget-wrapper">
-            <span class="currency">?</span>
-            <input type="number" id="budget-numeric" placeholder="Enter custom amount..." />
+          
+          <div class="custom-budget-input">
+            <span class="custom-label">CUSTOM AMOUNT</span>
+            <div class="input-wrapper">
+              <span class="currency">?</span>
+              <input type="number" id="budget-numeric" placeholder="Enter custom amount..." />
+            </div>
           </div>
         </div>
 
-        <div class="filter-divider"></div>
-
-        <!-- C. INTERESTS -->
-        <div class="filter-group fade-in-up" style="animation-delay: 0.2s;">
+        <!-- SECTION 03: EXPERIENCE -->
+        <div class="form-section fade-in-up" id="sec-03" style="animation-delay: 0.2s;">
+          <span class="section-label">03 / EXPERIENCE</span>
           <div class="title-with-count">
-            <span class="filter-title">WHAT DO YOU WANT TO EXPERIENCE?</span>
+            <h3 class="section-heading">WHAT DO YOU WANT TO EXPERIENCE?</h3>
             <span class="selection-count" id="interests-count">0 SELECTED</span>
           </div>
-          <div class="interests-grid" id="interests-options">
-            <button class="interest-tile" data-interest="Food">Food</button>
-            <button class="interest-tile" data-interest="Nature">Nature</button>
-            <button class="interest-tile" data-interest="Culture">Culture</button>
-            <button class="interest-tile" data-interest="History">History</button>
-            <button class="interest-tile" data-interest="Adventure">Adventure</button>
-            <button class="interest-tile" data-interest="Shopping">Shopping</button>
-            <button class="interest-tile" data-interest="Art">Art</button>
-            <button class="interest-tile" data-interest="Nightlife">Nightlife</button>
+          
+          <div class="experience-grid" id="interests-options">
+            <button class="exp-card" data-interest="Food"><span class="exp-title">Food</span><div class="exp-bg food-bg"></div></button>
+            <button class="exp-card" data-interest="Nature"><span class="exp-title">Nature</span><div class="exp-bg nature-bg"></div></button>
+            <button class="exp-card" data-interest="Culture"><span class="exp-title">Culture</span><div class="exp-bg culture-bg"></div></button>
+            <button class="exp-card" data-interest="History"><span class="exp-title">History</span><div class="exp-bg history-bg"></div></button>
+            <button class="exp-card" data-interest="Adventure"><span class="exp-title">Adventure</span><div class="exp-bg adventure-bg"></div></button>
+            <button class="exp-card" data-interest="Shopping"><span class="exp-title">Shopping</span><div class="exp-bg shopping-bg"></div></button>
+            <button class="exp-card" data-interest="Art"><span class="exp-title">Art</span><div class="exp-bg art-bg"></div></button>
+            <button class="exp-card" data-interest="Nightlife"><span class="exp-title">Nightlife</span><div class="exp-bg nightlife-bg"></div></button>
           </div>
         </div>
 
-        <div class="filter-divider"></div>
-
-        <!-- D. TRAVEL STYLE -->
-        <div class="filter-group fade-in-up" style="animation-delay: 0.3s;">
-          <span class="filter-title">HOW DO YOU LIKE TO TRAVEL?</span>
-          <div class="style-cards-row" id="style-options">
-            <button class="style-card" data-style="Relaxed">
-              <h3>RELAXED</h3>
-              <p>"Slow mornings, fewer stops."</p>
+        <!-- SECTION 04: PACE -->
+        <div class="form-section fade-in-up" id="sec-04" style="animation-delay: 0.3s;">
+          <span class="section-label">04 / PACE</span>
+          <h3 class="section-heading">HOW DO YOU LIKE TO TRAVEL?</h3>
+          
+          <div class="pace-list" id="style-options">
+            <button class="pace-card" data-style="Relaxed">
+              <div class="pace-content">
+                <h4>RELAXED</h4>
+                <p>"Slow mornings, fewer stops."</p>
+              </div>
+              <div class="active-indicator"></div>
             </button>
-            <button class="style-card active" data-style="Balanced">
-              <h3>BALANCED</h3>
-              <p>"See the best without rushing."</p>
+            <button class="pace-card active" data-style="Balanced">
+              <div class="pace-content">
+                <h4>BALANCED</h4>
+                <p>"See the best without rushing."</p>
+              </div>
+              <div class="active-indicator"></div>
             </button>
-            <button class="style-card" data-style="Packed">
-              <h3>PACKED</h3>
-              <p>"Make every moment count."</p>
+            <button class="pace-card" data-style="Packed">
+              <div class="pace-content">
+                <h4>PACKED</h4>
+                <p>"Make every moment count."</p>
+              </div>
+              <div class="active-indicator"></div>
             </button>
           </div>
         </div>
 
-      </div> <!-- /.filters-grid -->
+        <!-- SELECTION SUMMARY (STICKY) -->
+        <div class="selection-summary-card">
+          <span class="summary-title">YOUR TRIP PROFILE</span>
+          <div class="summary-details">
+            <div class="sum-item"><span class="sum-label">TIME</span><span class="sum-val" id="sum-time">NOT SELECTED</span></div>
+            <div class="sum-item"><span class="sum-label">BUDGET</span><span class="sum-val" id="sum-budget">NOT SELECTED</span></div>
+            <div class="sum-item"><span class="sum-label">EXPERIENCE</span><span class="sum-val" id="sum-exp">NOT SELECTED</span></div>
+            <div class="sum-item"><span class="sum-label">PACE</span><span class="sum-val" id="sum-pace">BALANCED</span></div>
+          </div>
+        </div>
 
-      <div class="filter-action fade-in-up" style="animation-delay: 0.4s;">
-        <div id="validation-msg" class="validation-msg"></div>
-        <button class="btn-primary-large" id="btn-find-destinations">
-          FIND MY DESTINATIONS &rarr;
-        </button>
+        <!-- PRIMARY CTA -->
+        <div class="form-action fade-in-up" style="animation-delay: 0.4s;">
+          <div id="validation-msg" class="validation-msg"></div>
+          <button class="btn-primary-large" id="btn-find-destinations">
+            FIND MY DESTINATIONS &rarr;
+          </button>
+        </div>
+
+      </div> <!-- /.builder-form -->
+    </div>
+  </section>
+
+  <!-- TRUST SECTION -->
+  <section class="trust-section">
+    <div class="container text-center">
+      <h2>NOT SURE WHERE TO START?</h2>
+      <p>"You don't need a destination in mind.<br>Tell us what kind of trip you want, and we'll do the narrowing down."</p>
+      <div class="trust-features">
+        <span>YOUR TIME</span>
+        <span class="dot">&middot;</span>
+        <span>YOUR BUDGET</span>
+        <span class="dot">&middot;</span>
+        <span>YOUR WAY TO TRAVEL</span>
       </div>
-      
     </div>
   </section>
 

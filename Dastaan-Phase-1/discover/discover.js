@@ -97,7 +97,7 @@ function setupEvents() {
     btn.onclick = () => {
       elTimeOptions.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      state.durationRange = btn.dataset.time;
+      state.durationRange = btn.dataset.time; updateSummary();
     };
   });
 
@@ -106,18 +106,16 @@ function setupEvents() {
     btn.onclick = () => {
       elBudgetOptions.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      state.budgetChoice = parseInt(btn.dataset.budget);
-      elBudgetNumeric.value = ''; // clear numeric if preset clicked
+      state.budgetChoice = parseInt(btn.dataset.budget); elBudgetNumeric.value = ''; updateSummary(); // clear numeric if preset clicked
     };
   });
 
   // Budget Numeric Input
   elBudgetNumeric.oninput = (e) => {
     if (e.target.value) {
-      state.budgetChoice = parseInt(e.target.value);
-      elBudgetOptions.forEach(b => b.classList.remove('active'));
+      state.budgetChoice = parseInt(e.target.value); elBudgetOptions.forEach(b => b.classList.remove('active')); updateSummary();
     } else {
-      state.budgetChoice = null; // revert if cleared
+      state.budgetChoice = null; updateSummary();
     }
   };
 
@@ -132,7 +130,7 @@ function setupEvents() {
         state.interests.push(intVal);
         tile.classList.add('active');
       }
-      elInterestsCount.textContent = `${state.interests.length} SELECTED`;
+      elInterestsCount.textContent = \${state.interests.length} SELECTED\`; updateSummary();
     };
   });
 
@@ -141,12 +139,15 @@ function setupEvents() {
     card.onclick = () => {
       elStyleCards.forEach(c => c.classList.remove('active'));
       card.classList.add('active');
-      state.travelStyle = card.dataset.style;
+      state.travelStyle = card.dataset.style; updateSummary();
     };
   });
 
   // Find Action
   btnFind.onclick = handleFindDestinations;
+  
+  // Initial summary render
+  updateSummary();
 
   // Sorting
   sortSelect.onchange = (e) => {
@@ -164,6 +165,14 @@ function setupEvents() {
   };
 }
 
+
+// --- SUMMARY UPDATE LOGIC ---
+function updateSummary() {
+  document.getElementById('sum-time').textContent = state.durationRange || "NOT SELECTED";
+  document.getElementById('sum-budget').textContent = state.budgetChoice ? '?' + state.budgetChoice.toLocaleString() : "NOT SELECTED";
+  document.getElementById('sum-exp').textContent = state.interests.length > 0 ? state.interests.join(' · ').toUpperCase() : "NOT SELECTED";
+  document.getElementById('sum-pace').textContent = state.travelStyle ? state.travelStyle.toUpperCase() : "NOT SELECTED";
+}
 
 // --- 5. MATCHING LOGIC ---
 function calculateMatch(dest, prefs) {
@@ -407,3 +416,4 @@ window.planTrip = function(id) {
 
 // Boot
 document.addEventListener('DOMContentLoaded', setupEvents);
+
