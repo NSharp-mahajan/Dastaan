@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dastaan � Discover</title>
+  <title>Dastaan — Discover</title>
   
   <link rel="icon" href="../images/logo.png" type="image/png" />
   
@@ -17,223 +17,357 @@
   </style>
 
   <link rel="stylesheet" href="discover.css" />
+  <link rel="stylesheet" href="../css/navigation.css" />
+  <script src="../js/navigation.js" defer></script>
 </head>
 <body>
 
-  <!-- Minimal Navbar -->
-  <header class="dastaan-nav">
-    <a href="../index.html" class="nav-logo">
-      <img src="../images/logo.png" alt="Dastaan" width="32" height="32" />
-      <span>DASTAAN</span>
+  <!-- STICKY HEADER -->
+  <header class="site-header fixed-nav" aria-label="Primary navigation">
+    <a class="site-logo" href="../index.html">
+      <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
+      <div class="logo-text">
+        <span class="logo-title">Dastaan</span>
+        <span class="logo-tagline">STORIES &bull; IDEAS &bull; EMOTIONS</span>
+      </div>
     </a>
-    <div class="nav-links">
+    <button class="mobile-menu-toggle" aria-label="Toggle menu">
+      <span class="hamburger"></span>
+    </button>
+    <nav class="site-nav" aria-label="Main menu">
       <a href="../index.html">Explore</a>
-      <a href="#" class="active">Discover</a>
-      <a href="../page3/page3.html">Itinerary</a>
+      <a href="../discover/discover.html" class="active">Discover</a>
+      <a href="../page3/page3.html">My Journey</a>
       <a href="../index.html#how-it-works">How It Works</a>
-    </div>
-    <div class="nav-actions">
-      <a href="../signup.html" class="nav-btn-outline">Sign In</a>
-      <a href="../page2/page2.html" class="nav-btn-text">Plan a Trip</a>
+    </nav>
+    <div class="header-actions">
+      <a href="../signup.html" class="nav-link">Sign In</a>
+      <a href="../page2/page2.html" class="btn-primary">Plan a Trip &rarr;</a>
     </div>
   </header>
 
-  <!-- SECTION 1: HERO -->
+  <!-- SECTION 1: CINEMATIC HERO -->
   <section class="discover-hero">
     <div class="hero-bg">
       <div class="image-placeholder">CINEMATIC LANDSCAPE IMAGE</div>
-      <img src="../images/discover-hero.jpg" alt="" class="hero-img" onerror="this.style.display='none';" />
+      <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1800&q=80" alt="Cinematic Travel Background" class="hero-img" />
       <div class="hero-overlay"></div>
     </div>
     <div class="container hero-content">
       <span class="hero-eyebrow">DASTAAN &middot; DISCOVER</span>
-      <h1>DON'T KNOW<br>WHERE TO GO?</h1>
+      <h1>WHERE WILL<br>YOUR STORY<br>TAKE YOU?</h1>
       <p class="hero-subtext">Tell us how you want to travel.<br>We'll narrow the world down to places that fit your story.</p>
     </div>
-    <div class="hero-scroll-indicator">
-      <span>BUILD YOUR TRIP</span>
-      <div class="scroll-line"></div>
-    </div>
+    <button class="hero-scroll-indicator" onclick="document.getElementById('sec-01').scrollIntoView({behavior: 'smooth'})" aria-label="Scroll to Builder">
+      <span>BEGIN YOUR JOURNEY</span>
+      <div class="scroll-arrow">&darr;</div>
+    </button>
   </section>
 
-  <!-- MAIN DISCOVERY BUILDER -->
-  <section class="discover-builder-section">
-    <div class="container builder-container">
+  <!-- MAIN DISCOVERY BUILDER (Light Editorial Background) -->
+  <section class="discover-journey-section">
+    <div class="container journey-container">
       
-      <div class="builder-intro">
-        <h2>BUILD YOUR TRIP</h2>
-        <p>A few choices are all we need.</p>
-        
-        <div class="progress-indicator">
-          <span class="step" id="step-01">01 &mdash; TIME</span>
-          <span class="step" id="step-02">02 &mdash; BUDGET</span>
-          <span class="step" id="step-03">03 &mdash; EXPERIENCE</span>
-          <span class="step" id="step-04">04 &mdash; PACE</span>
+      <!-- STICKY CHAPTER NAVIGATION -->
+      <aside class="journey-sidebar" aria-label="Journey Progress">
+        <div class="progress-indicator-sticky">
+          <div class="progress-line-track">
+            <div class="progress-line-fill" id="progress-line-fill"></div>
+          </div>
+          <div class="progress-steps">
+            <button class="step active" id="step-01" data-target="sec-01">
+              <span class="step-num">01</span>
+              <span class="step-name">TIME</span>
+            </button>
+            <button class="step" id="step-02" data-target="sec-02">
+              <span class="step-num">02</span>
+              <span class="step-name">BUDGET</span>
+            </button>
+            <button class="step" id="step-03" data-target="sec-03">
+              <span class="step-num">03</span>
+              <span class="step-name">EXPERIENCE</span>
+            </button>
+            <button class="step" id="step-04" data-target="sec-04">
+              <span class="step-num">04</span>
+              <span class="step-name">PACE</span>
+            </button>
+          </div>
         </div>
-      </div>
+      </aside>
 
-      <div class="builder-form">
+      <!-- CHAPTER CONTENT FLOW -->
+      <div class="journey-content-flow">
         
         <!-- SECTION 01: TIME -->
-        <div class="form-section fade-in-up" id="sec-01">
-          <span class="section-label">01 / TIME</span>
-          <h3 class="section-heading">HOW MUCH TIME DO YOU HAVE?</h3>
-          <p class="section-subtext">Choose the length of your escape.</p>
+        <div class="form-section reveal-on-scroll" id="sec-01">
+          <span class="section-label">01 &middot; TIME</span>
+          <h2 class="section-heading">HOW LONG IS YOUR ESCAPE?</h2>
+          <p class="section-subtext">Choose the length of your journey.</p>
           
           <div class="options-grid" id="time-options">
             <button class="select-card" data-time="2-3">
-              <span class="card-title">2&ndash;3 DAYS</span>
+              <span class="card-title">02&ndash;03 DAYS</span>
+              <span class="card-desc">A short escape.</span>
               <div class="active-indicator"></div>
             </button>
             <button class="select-card" data-time="4-6">
-              <span class="card-title">4&ndash;6 DAYS</span>
+              <span class="card-title">04&ndash;06 DAYS</span>
+              <span class="card-desc">Time to settle in.</span>
               <div class="active-indicator"></div>
             </button>
             <button class="select-card" data-time="6-7">
-              <span class="card-title">6&ndash;7 DAYS</span>
+              <span class="card-title">06&ndash;07 DAYS</span>
+              <span class="card-desc">A deeper journey.</span>
               <div class="active-indicator"></div>
             </button>
             <button class="select-card" data-time="8+">
-              <span class="card-title">8+ DAYS</span>
+              <span class="card-title">08+ DAYS</span>
+              <span class="card-desc">Take your time.</span>
               <div class="active-indicator"></div>
             </button>
           </div>
         </div>
 
+        <div class="journey-divider">
+          <div class="divider-line"></div>
+          <div class="divider-dot"></div>
+          <div class="divider-line"></div>
+        </div>
+
         <!-- SECTION 02: BUDGET -->
-        <div class="form-section fade-in-up" id="sec-02" style="animation-delay: 0.1s;">
-          <span class="section-label">02 / BUDGET</span>
-          <h3 class="section-heading">WHAT ARE YOU COMFORTABLE SPENDING?</h3>
+        <div class="form-section reveal-on-scroll" id="sec-02">
+          <span class="section-label">02 &middot; BUDGET</span>
+          <h2 class="section-heading">WHAT FEELS RIGHT FOR YOUR BUDGET?</h2>
+          <p class="section-subtext">Select a range or enter a custom amount.</p>
           
           <div class="options-grid" id="budget-options">
             <button class="select-card" data-budget="10000">
-              <span class="card-title">UNDER ?10K</span>
+              <span class="card-title">UNDER ₹10K</span>
+              <span class="card-desc">Budget friendly.</span>
               <div class="active-indicator"></div>
             </button>
             <button class="select-card" data-budget="20000">
-              <span class="card-title">?10K&ndash;?20K</span>
+              <span class="card-title">₹10K &ndash; ₹20K</span>
+              <span class="card-desc">Comfortable escape.</span>
               <div class="active-indicator"></div>
             </button>
             <button class="select-card" data-budget="40000">
-              <span class="card-title">?20K&ndash;?40K</span>
+              <span class="card-title">₹20K &ndash; ₹40K</span>
+              <span class="card-desc">Premium adventure.</span>
               <div class="active-indicator"></div>
             </button>
             <button class="select-card" data-budget="40001">
-              <span class="card-title">?40K+</span>
+              <span class="card-title">₹40K+</span>
+              <span class="card-desc">Ultimate luxury.</span>
               <div class="active-indicator"></div>
             </button>
           </div>
           
-          <div class="custom-budget-input">
+          <div class="custom-budget-container">
             <span class="custom-label">CUSTOM AMOUNT</span>
             <div class="input-wrapper">
-              <span class="currency">?</span>
-              <input type="number" id="budget-numeric" placeholder="Enter custom amount..." />
+              <span class="currency">₹</span>
+              <input type="number" id="budget-numeric" placeholder="Enter custom amount..." aria-label="Custom budget amount" />
             </div>
           </div>
         </div>
 
+        <div class="journey-divider">
+          <div class="divider-line"></div>
+          <div class="divider-dot"></div>
+          <div class="divider-line"></div>
+        </div>
+
         <!-- SECTION 03: EXPERIENCE -->
-        <div class="form-section fade-in-up" id="sec-03" style="animation-delay: 0.2s;">
-          <span class="section-label">03 / EXPERIENCE</span>
+        <div class="form-section reveal-on-scroll" id="sec-03">
+          <span class="section-label">03 &middot; EXPERIENCE</span>
           <div class="title-with-count">
-            <h3 class="section-heading">WHAT DO YOU WANT TO EXPERIENCE?</h3>
+            <h2 class="section-heading">WHAT DO YOU WANT TO EXPERIENCE?</h2>
             <span class="selection-count" id="interests-count">0 SELECTED</span>
           </div>
+          <p class="section-subtext">Choose what you want your journey to feel like.</p>
           
           <div class="experience-grid" id="interests-options">
-            <button class="exp-card" data-interest="Food"><span class="exp-title">Food</span><div class="exp-bg food-bg"></div></button>
-            <button class="exp-card" data-interest="Nature"><span class="exp-title">Nature</span><div class="exp-bg nature-bg"></div></button>
-            <button class="exp-card" data-interest="Culture"><span class="exp-title">Culture</span><div class="exp-bg culture-bg"></div></button>
-            <button class="exp-card" data-interest="History"><span class="exp-title">History</span><div class="exp-bg history-bg"></div></button>
-            <button class="exp-card" data-interest="Adventure"><span class="exp-title">Adventure</span><div class="exp-bg adventure-bg"></div></button>
-            <button class="exp-card" data-interest="Shopping"><span class="exp-title">Shopping</span><div class="exp-bg shopping-bg"></div></button>
-            <button class="exp-card" data-interest="Art"><span class="exp-title">Art</span><div class="exp-bg art-bg"></div></button>
-            <button class="exp-card" data-interest="Nightlife"><span class="exp-title">Nightlife</span><div class="exp-bg nightlife-bg"></div></button>
+            <button class="exp-card" data-interest="Food">
+              <div class="exp-card-header">
+                <span class="exp-icon">🍽️</span>
+                <span class="exp-title">FOOD</span>
+              </div>
+              <span class="exp-desc">Local flavors and hidden tables.</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="exp-card" data-interest="Nature">
+              <div class="exp-card-header">
+                <span class="exp-icon">🌲</span>
+                <span class="exp-title">NATURE</span>
+              </div>
+              <span class="exp-desc">Mountains, rivers and open skies.</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="exp-card" data-interest="Culture">
+              <div class="exp-card-header">
+                <span class="exp-icon">🎭</span>
+                <span class="exp-title">CULTURE</span>
+              </div>
+              <span class="exp-desc">Places shaped by people and tradition.</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="exp-card" data-interest="History">
+              <div class="exp-card-header">
+                <span class="exp-icon">🏛️</span>
+                <span class="exp-title">HISTORY</span>
+              </div>
+              <span class="exp-desc">Stories written into old streets.</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="exp-card" data-interest="Adventure">
+              <div class="exp-card-header">
+                <span class="exp-icon">🧗</span>
+                <span class="exp-title">ADVENTURE</span>
+              </div>
+              <span class="exp-desc">Thrill and path less traveled.</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="exp-card" data-interest="Shopping">
+              <div class="exp-card-header">
+                <span class="exp-icon">🛍️</span>
+                <span class="exp-title">SHOPPING</span>
+              </div>
+              <span class="exp-desc">Markets and local treasures.</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="exp-card" data-interest="Art">
+              <div class="exp-card-header">
+                <span class="exp-icon">🎨</span>
+                <span class="exp-title">ART</span>
+              </div>
+              <span class="exp-desc">Galleries and local expressions.</span>
+              <div class="active-indicator"></div>
+            </button>
+            <button class="exp-card" data-interest="Nightlife">
+              <div class="exp-card-header">
+                <span class="exp-icon">🍷</span>
+                <span class="exp-title">NIGHTLIFE</span>
+              </div>
+              <span class="exp-desc">Vibrant nights and city lights.</span>
+              <div class="active-indicator"></div>
+            </button>
           </div>
+        </div>
+
+        <div class="journey-divider">
+          <div class="divider-line"></div>
+          <div class="divider-dot"></div>
+          <div class="divider-line"></div>
         </div>
 
         <!-- SECTION 04: PACE -->
-        <div class="form-section fade-in-up" id="sec-04" style="animation-delay: 0.3s;">
-          <span class="section-label">04 / PACE</span>
-          <h3 class="section-heading">HOW DO YOU LIKE TO TRAVEL?</h3>
+        <div class="form-section reveal-on-scroll" id="sec-04">
+          <span class="section-label">04 &middot; PACE</span>
+          <h2 class="section-heading">HOW DO YOU LIKE TO TRAVEL?</h2>
+          <p class="section-subtext">Choose a pace that suits your style.</p>
           
-          <div class="pace-list" id="style-options">
+          <div class="pace-grid" id="style-options">
             <button class="pace-card" data-style="Relaxed">
-              <div class="pace-content">
+              <div class="pace-card-header">
                 <h4>RELAXED</h4>
-                <p>"Slow mornings, fewer stops."</p>
+                <div class="active-indicator"></div>
               </div>
-              <div class="active-indicator"></div>
+              <p>"Slow mornings, fewer stops."</p>
             </button>
             <button class="pace-card active" data-style="Balanced">
-              <div class="pace-content">
+              <div class="pace-card-header">
                 <h4>BALANCED</h4>
-                <p>"See the best without rushing."</p>
+                <div class="active-indicator"></div>
               </div>
-              <div class="active-indicator"></div>
+              <p>"See the best without rushing."</p>
             </button>
             <button class="pace-card" data-style="Packed">
-              <div class="pace-content">
+              <div class="pace-card-header">
                 <h4>PACKED</h4>
-                <p>"Make every moment count."</p>
+                <div class="active-indicator"></div>
               </div>
-              <div class="active-indicator"></div>
+              <p>"Make every moment count."</p>
             </button>
           </div>
         </div>
 
-        <!-- SELECTION SUMMARY (STICKY) -->
-        <div class="selection-summary-card">
-          <span class="summary-title">YOUR TRIP PROFILE</span>
-          <div class="summary-details">
-            <div class="sum-item"><span class="sum-label">TIME</span><span class="sum-val" id="sum-time">NOT SELECTED</span></div>
-            <div class="sum-item"><span class="sum-label">BUDGET</span><span class="sum-val" id="sum-budget">NOT SELECTED</span></div>
-            <div class="sum-item"><span class="sum-label">EXPERIENCE</span><span class="sum-val" id="sum-exp">NOT SELECTED</span></div>
-            <div class="sum-item"><span class="sum-label">PACE</span><span class="sum-val" id="sum-pace">BALANCED</span></div>
+        <div class="journey-divider">
+          <div class="divider-line"></div>
+          <div class="divider-dot"></div>
+          <div class="divider-line"></div>
+        </div>
+
+        <!-- TRAVEL PROFILE SUMMARY -->
+        <div class="travel-profile-section reveal-on-scroll">
+          <span class="section-label">YOUR TRAVEL PROFILE</span>
+          <h2 class="section-heading">NOW WE KNOW HOW YOU LIKE TO TRAVEL.</h2>
+          <p class="section-subtext">Review your preferences before discovering your next destination.</p>
+          
+          <div class="profile-card">
+            <div class="profile-grid">
+              <div class="profile-item">
+                <span class="profile-label">TIME</span>
+                <span class="profile-val" id="sum-time">NOT SELECTED</span>
+              </div>
+              <div class="profile-item">
+                <span class="profile-label">BUDGET</span>
+                <span class="profile-val" id="sum-budget">NOT SELECTED</span>
+              </div>
+              <div class="profile-item">
+                <span class="profile-label">EXPERIENCE</span>
+                <span class="profile-val" id="sum-exp">NOT SELECTED</span>
+              </div>
+              <div class="profile-item">
+                <span class="profile-label">PACE</span>
+                <span class="profile-val" id="sum-pace">BALANCED</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRIMARY ACTION CTA -->
+          <div class="cta-container">
+            <div id="validation-msg" class="validation-msg" style="display: none;"></div>
+            <button class="btn-discover-primary" id="btn-find-destinations">
+              DISCOVER MY DESTINATIONS &rarr;
+            </button>
           </div>
         </div>
 
-        <!-- PRIMARY CTA -->
-        <div class="form-action fade-in-up" style="animation-delay: 0.4s;">
-          <div id="validation-msg" class="validation-msg"></div>
-          <button class="btn-primary-large" id="btn-find-destinations">
-            FIND MY DESTINATIONS &rarr;
-          </button>
-        </div>
-
-      </div> <!-- /.builder-form -->
-    </div>
+      </div> <!-- /.journey-content-flow -->
+    </div> <!-- /.journey-container -->
   </section>
 
-  <!-- TRUST SECTION -->
+  <!-- CINEMATIC SEARCH LOADER SCREEN -->
+  <div class="cinematic-loader" id="cinematic-loader" style="display: none;">
+    <div class="loader-content">
+      <div class="loader-spinner"></div>
+      <div class="loader-message" id="loader-message">UNDERSTANDING YOUR JOURNEY...</div>
+    </div>
+  </div>
+
+  <!-- TRUST/GUIDE ME SECTION (NOT SURE WHERE TO START) -->
   <section class="trust-section">
     <div class="container text-center">
       <h2>NOT SURE WHERE TO START?</h2>
-      <p>"You don't need a destination in mind.<br>Tell us what kind of trip you want, and we'll do the narrowing down."</p>
-      <div class="trust-features">
-        <span>YOUR TIME</span>
-        <span class="dot">&middot;</span>
-        <span>YOUR BUDGET</span>
-        <span class="dot">&middot;</span>
-        <span>YOUR WAY TO TRAVEL</span>
-      </div>
+      <p class="trust-desc">You don't need a destination in mind.<br>Tell us what kind of journey you want, and we'll narrow the world down.</p>
+      <button class="btn-guide-me" id="btn-guide-me">LET DASTAAN GUIDE YOU &rarr;</button>
     </div>
   </section>
 
-  <!-- SECTION 3: RESULTS -->
+  <!-- RESULTS SECTION -->
   <section class="discover-results" id="results-section" style="display: none;">
     <div class="container">
       
       <div class="results-header">
-        <h2>DESTINATIONS FOR YOUR JOURNEY</h2>
-        <p>We found places that fit your time, budget and interests.</p>
+        <span class="results-eyebrow">YOUR NEXT CHAPTER</span>
+        <h2>PLACES THAT FIT THE WAY YOU WANT TO TRAVEL</h2>
         
         <div class="results-tools">
           <span id="results-count" class="results-count">0 destinations found</span>
           <div class="sort-wrapper">
             <span>SORT BY:</span>
-            <select id="sort-select">
+            <select id="sort-select" aria-label="Sort destinations">
               <option value="match">Best Match</option>
               <option value="budget">Lowest Budget</option>
               <option value="duration">Shortest Trip</option>
@@ -242,30 +376,71 @@
         </div>
       </div>
 
+      <!-- Empty State -->
       <div id="empty-state" class="empty-state" style="display: none;">
         <h3>WE COULDN'T FIND A PERFECT MATCH</h3>
-        <p>Try widening your budget or changing your travel dates.</p>
+        <p>Try widening your budget or changing your duration preferences.</p>
         <div class="empty-actions">
           <button class="btn-outline" id="btn-adjust-prefs">ADJUST PREFERENCES</button>
           <button class="btn-primary" id="btn-show-closest">SHOW CLOSEST MATCHES</button>
         </div>
       </div>
 
-      <!-- Result rendering target -->
+      <!-- Result rendering target (dynamic asymmetric layouts) -->
       <div id="results-container" class="results-container">
-        <!-- JS injects featured card and secondary cards here -->
+        <!-- Javascript dynamically injects featured card and secondary grid elements here -->
       </div>
       
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="dastaan-footer">
-    <div class="container">
-      <div class="footer-logo">DASTAAN</div>
-      <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="site-logo" href="../index.html">
+          <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
+          <div class="logo-text">
+            <span class="logo-title" style="color: var(--nav-paper);">Dastaan</span>
+            <span class="logo-tagline" style="color: rgba(232, 220, 199, 0.65);">STORIES &bull; IDEAS &bull; EMOTIONS</span>
+          </div>
+        </a>
+        <p class="footer-desc">Dastaan brings travel logs, maps, stays, and budgets into a single cinematic planning experience tailored to your journey.</p>
+      </div>
+      <div class="footer-links-group">
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="../index.html">Explore</a></li>
+            <li><a href="../discover/discover.html">Discover</a></li>
+            <li><a href="../page3/page3.html">My Journey</a></li>
+            <li><a href="../page2/page2.html">Plan a Trip</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Travel Journal</a></li>
+            <li><a href="#">Careers</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Dastaan. All rights reserved.</p>
+      <div class="footer-socials">
+        <a href="#" aria-label="Twitter">Twitter</a>
+        <a href="#" aria-label="Instagram">Instagram</a>
+        <a href="#" aria-label="GitHub">GitHub</a>
       </div>
     </div>
   </footer>

@@ -25,23 +25,31 @@
 
   <!-- Page 3 Stylesheet -->
   <link rel="stylesheet" href="page3.css" />
+  <link rel="stylesheet" href="../css/navigation.css" />
+  <script src="../js/navigation.js" defer></script>
 </head>
 <body class="itinerary-body">
 
-  <!-- Navigation Header -->
-  <header class="dastaan-nav">
-    <a href="../index.html" class="nav-logo">
-      <img src="../images/logo.png" alt="Dastaan" width="36" height="36" />
-      <span class="logo-text">DASTAAN</span>
+  <header class="site-header fixed-nav" aria-label="Primary navigation">
+    <a class="site-logo" href="../index.html">
+      <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
+      <div class="logo-text">
+        <span class="logo-title">Dastaan</span>
+        <span class="logo-tagline">STORIES &bull; IDEAS &bull; EMOTIONS</span>
+      </div>
     </a>
-    <nav class="nav-links" aria-label="Main Navigation">
+    <button class="mobile-menu-toggle" aria-label="Toggle menu">
+      <span class="hamburger"></span>
+    </button>
+    <nav class="site-nav" aria-label="Main menu">
       <a href="../index.html">Explore</a>
-      <a href="page3.html" class="active">My Journey</a>
+      <a href="../discover/discover.html">Discover</a>
+      <a href="../page3/page3.html" class="active">My Journey</a>
       <a href="../index.html#how-it-works">How It Works</a>
     </nav>
-    <div class="nav-actions">
-      <a href="../signup.html" class="nav-btn-outline">Sign In</a>
-      <a href="../page2/page2.html" class="nav-btn-primary">Plan a Trip &rarr;</a>
+    <div class="header-actions">
+      <a href="../signup.html" class="nav-link">Sign In</a>
+      <a href="../page2/page2.html" class="btn-primary">Plan a Trip &rarr;</a>
     </div>
   </header>
 
@@ -298,19 +306,52 @@
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="dastaan-footer">
-    <div class="container footer-content">
+  <footer class="site-footer">
+    <div class="container footer-grid">
       <div class="footer-brand">
-        <img src="../images/logo.png" alt="Dastaan Logo" width="28" height="28" />
-        <span class="footer-logo">DASTAAN</span>
+        <a class="site-logo" href="../index.html">
+          <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
+          <div class="logo-text">
+            <span class="logo-title" style="color: var(--paper);">Dastaan</span>
+            <span class="logo-tagline" style="color: rgba(232, 220, 199, 0.65);">STORIES &bull; IDEAS &bull; EMOTIONS</span>
+          </div>
+        </a>
+        <p class="footer-desc">Dastaan brings travel logs, maps, stays, and budgets into a single cinematic planning experience tailored to your journey.</p>
       </div>
-      <p class="footer-tagline">Stories &bull; Ideas &bull; Emotions</p>
-      <div class="footer-links">
-        <a href="../index.html">Home</a>
-        <a href="../page2/page2.html">Plan Trip</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
+      <div class="footer-links-group">
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="../index.html">Explore</a></li>
+            <li><a href="../discover/discover.html">Discover</a></li>
+            <li><a href="../page3/page3.html">My Journey</a></li>
+            <li><a href="../page2/page2.html">Plan a Trip</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Travel Journal</a></li>
+            <li><a href="#">Careers</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Dastaan. All rights reserved.</p>
+      <div class="footer-socials">
+        <a href="#" aria-label="Twitter">Twitter</a>
+        <a href="#" aria-label="Instagram">Instagram</a>
+        <a href="#" aria-label="GitHub">GitHub</a>
       </div>
     </div>
   </footer>

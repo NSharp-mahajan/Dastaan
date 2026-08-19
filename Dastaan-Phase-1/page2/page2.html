@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dastaan — Tell Us About Your Journey</title>
+  <title>Dastaan Â— Tell Us About Your Journey</title>
   <meta name="description" content="Configure your trip preferences with Dastaan. Tell us your destination, days, budget, interests, and travel pace." />
   
   <link rel="icon" href="../images/logo.png" type="image/png" />
@@ -18,22 +18,31 @@
   </style>
 
   <link rel="stylesheet" href="page2.css" />
+  <link rel="stylesheet" href="../css/navigation.css" />
+  <script src="../js/navigation.js" defer></script>
 </head>
 <body>
 
-  <!-- Minimal Navbar -->
-  <header class="dastaan-nav">
-    <a href="../index.html" class="nav-logo">
-      <img src="../images/logo.png" alt="Dastaan" width="32" height="32" />
-      <span>DASTAAN</span>
+  <header class="site-header" aria-label="Primary navigation">
+    <a class="site-logo" href="../index.html">
+      <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
+      <div class="logo-text">
+        <span class="logo-title">Dastaan</span>
+        <span class="logo-tagline">STORIES &bull; IDEAS &bull; EMOTIONS</span>
+      </div>
     </a>
-    <div class="nav-links">
+    <button class="mobile-menu-toggle" aria-label="Toggle menu">
+      <span class="hamburger"></span>
+    </button>
+    <nav class="site-nav" aria-label="Main menu">
       <a href="../index.html">Explore</a>
-      <a href="../discover/discover.html">Discover</a>`n      <a href="../discover/discover.html">Discover</a>
-      <a href="../page3/page3.html">Itinerary</a>
-    </div>
-    <div class="nav-actions">
-      <a href="../signup.html" class="nav-btn-outline">Sign In</a>
+      <a href="../discover/discover.html">Discover</a>
+      <a href="../page3/page3.html">My Journey</a>
+      <a href="../index.html#how-it-works">How It Works</a>
+    </nav>
+    <div class="header-actions">
+      <a href="../signup.html" class="nav-link">Sign In</a>
+      <a href="../page2/page2.html" class="btn-primary active">Plan a Trip &rarr;</a>
     </div>
   </header>
 
@@ -169,12 +178,12 @@
         <div class="style-card" data-style="Relaxed">
           <h3>RELAXED</h3>
           <p>"Slow mornings, fewer stops, more time to explore."</p>
-          <span class="style-meta">2–3 sights/day</span>
+          <span class="style-meta">2Â–3 sights/day</span>
         </div>
         <div class="style-card active" data-style="Balanced">
           <h3>BALANCED</h3>
           <p>"See the best of the city without rushing."</p>
-          <span class="style-meta">3–4 sights/day</span>
+          <span class="style-meta">3Â–4 sights/day</span>
         </div>
         <div class="style-card" data-style="Packed">
           <h3>PACKED</h3>
@@ -227,12 +236,52 @@
   </section>
 
   <!-- Footer -->
-  <footer class="dastaan-footer">
-    <div class="container">
-      <div class="footer-logo">DASTAAN</div>
-      <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="site-logo" href="../index.html">
+          <img class="logo-icon" src="../images/logo.png" alt="Dastaan Logo" width="44" height="44" />
+          <div class="logo-text">
+            <span class="logo-title" style="color: var(--paper);">Dastaan</span>
+            <span class="logo-tagline" style="color: rgba(232, 220, 199, 0.65);">STORIES &bull; IDEAS &bull; EMOTIONS</span>
+          </div>
+        </a>
+        <p class="footer-desc">Dastaan brings travel logs, maps, stays, and budgets into a single cinematic planning experience tailored to your journey.</p>
+      </div>
+      <div class="footer-links-group">
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="../index.html">Explore</a></li>
+            <li><a href="../discover/discover.html">Discover</a></li>
+            <li><a href="../page3/page3.html">My Journey</a></li>
+            <li><a href="../page2/page2.html">Plan a Trip</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Travel Journal</a></li>
+            <li><a href="#">Careers</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Dastaan. All rights reserved.</p>
+      <div class="footer-socials">
+        <a href="#" aria-label="Twitter">Twitter</a>
+        <a href="#" aria-label="Instagram">Instagram</a>
+        <a href="#" aria-label="GitHub">GitHub</a>
       </div>
     </div>
   </footer>
