@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loginAt: new Date().toISOString()
     };
     sessionStorage.setItem('dastaan_session', JSON.stringify(session));
-    window.location.href = 'page2/page2.html'; // Redirect to explore/plan page on success
+    localStorage.setItem('dastaanUser', JSON.stringify({name: user.fullName || user.email.split('@')[0]})); window.location.href = 'page2/page2.html'; // Redirect to explore/plan page on success
   }
 
   // 5. Signup Logic
