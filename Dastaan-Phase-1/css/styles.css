@@ -155,6 +155,8 @@ button { border:0; font:inherit; }
 
 .story-panel { z-index:10; left:50%; top:45%; width: min(900px, calc(100vw - 42px)); text-align:center; pointer-events:none; transform: translate3d(-50%, -50%, 0); will-change: transform, opacity; }
 .story-panel h2 { margin:0; color:var(--paper); font-family: 'Ogg Medium', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight:500; line-height:1; text-shadow: 0 16px 38px var(--shadow); }
+.story-panel p,
+.intro-description { margin: 0 auto; max-width: 640px; color: #ffffff; font-size: clamp(1rem, 1.2vw, 1.15rem); line-height: 1.55; font-weight: 400; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7); opacity: 0.95; }
 .story-panel-bridge { top:55%; opacity: var(--panel2-opacity); transform: translate3d(-50%, var(--panel2-y), 0); }
 .story-panel-bazaar { top:45%; opacity: var(--panel3-opacity); transform: translate3d(-50%, var(--panel3-y), 0); width: min(1000px, calc(100vw - 40px)); }
 
