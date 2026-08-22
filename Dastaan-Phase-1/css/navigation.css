@@ -162,6 +162,36 @@
   align-items: center;
   gap: 24px;
 }
+.user-profile-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--nav-paper);
+  padding: 0 10px;
+}
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--nav-gold);
+  color: var(--nav-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-family: var(--font-sans, Inter, sans-serif);
+}
+.user-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+.logout-button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
 
 /* Button style overrides for inside header to ensure they look uniform */
 .site-header .btn-primary {
@@ -305,6 +335,15 @@
     display: flex;
   }
   .header-actions {
+    display: flex;
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-top: 8px;
+  }
+  .site-header:not(.menu-open) .header-actions {
     display: none;
   }
   

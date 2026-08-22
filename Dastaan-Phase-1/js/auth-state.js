@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const userData = JSON.parse(user);
             const navRightLists = document.querySelectorAll('.header-actions, .nav-actions');
+            const homeLink = document.querySelector('.site-logo')?.getAttribute('href') || 'index.html';
             
             navRightLists.forEach(navRight => {
                 // Remove the sign-in button
@@ -14,14 +15,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Check if profile already exists to prevent duplicates
                 if (!navRight.querySelector('.user-profile-nav')) {
                     const profileHTML = `
-                        <div class="user-profile-nav" style="display: flex; align-items: center; gap: 8px; color: var(--paper); cursor: pointer; padding: 0 10px;">
-                            <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--gold); color: var(--primary-deep); display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: var(--font-sans);">
-                                ${userData.name.charAt(0).toUpperCase()}
-                            </div>
-                            <span style="font-weight: 500; font-size: 0.9rem;">${userData.name}</span>
+                        <div class="user-profile-nav">
+                            <div class="user-avatar" aria-hidden="true"></div>
+                            <span class="user-name"></span>
                         </div>
+                        <a class="nav-link home-link" href="${homeLink}">Home</a>
+                        <button type="button" class="nav-link logout-button">Log out</button>
                     `;
                     navRight.insertAdjacentHTML('afterbegin', profileHTML);
+
+                    const profile = navRight.querySelector('.user-profile-nav');
+                    const userName = profile.querySelector('.user-name');
+                    userName.textContent = userData.name;
+                    profile.querySelector('.user-avatar').textContent = userData.name.charAt(0).toUpperCase();
+
+                    navRight.querySelector('.logout-button').addEventListener('click', () => {
+                        localStorage.removeItem('dastaanUser');
+                        sessionStorage.removeItem('dastaan_session');
+                        window.location.href = homeLink;
+                    });
                 }
             });
         } catch (e) {
