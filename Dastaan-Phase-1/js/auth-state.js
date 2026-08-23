@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     navRight.querySelector('.logout-button').addEventListener('click', () => {
                         localStorage.removeItem('dastaanUser');
                         sessionStorage.removeItem('dastaan_session');
-                        window.location.href = homeLink;
+                        window.location.href = homeLink; 
                     });
                 }
             });
