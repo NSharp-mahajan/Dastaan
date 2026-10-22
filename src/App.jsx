@@ -7,6 +7,7 @@ import ItineraryPage from './pages/ItineraryPage';
 import AuthPage from './pages/AuthPage';
 import NotFoundPage from './pages/NotFoundPage';
 import DevApiStatus from './components/DevApiStatus';
+import { initAuthListener } from './utils/auth';
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -26,6 +27,14 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  // Restore Firebase Auth session and keep MongoDB profile synchronized
+  useEffect(() => {
+    const unsubscribe = initAuthListener();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   return (
     <>
       <ScrollToTop />

@@ -11,6 +11,7 @@
     "server:dev": "npm run dev --prefix server"
   },
   "dependencies": {
+    "firebase": "^13.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.3.0"

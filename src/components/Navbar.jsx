@@ -38,8 +38,8 @@ export default function Navbar({ isFixed = true }) {
     return () => document.removeEventListener('click', handleOutsideClick);
   }, [menuOpen]);
 
-  const handleLogout = () => {
-    clearSession();
+  const handleLogout = async () => {
+    await clearSession();
     setUser(null);
     navigate('/');
   };

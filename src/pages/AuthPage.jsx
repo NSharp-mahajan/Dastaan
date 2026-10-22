@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { hashPassword, getUsers, setUsers, createSession } from '../utils/auth';
+import {
+  loginWithEmail,
+  signupWithEmail,
+  loginWithGoogle,
+  sendPasswordReset,
+  getFriendlyAuthErrorMessage
+} from '../utils/auth';
 import '../styles/signup.css';
 
 export default function AuthPage() {
@@ -14,6 +20,8 @@ export default function AuthPage() {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [loginMsg, setLoginMsg] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Signup form state
   const [signupName, setSignupName] = useState('');
@@ -25,6 +33,10 @@ export default function AuthPage() {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showSignupConfirm, setShowSignupConfirm] = useState(false);
   const [signupError, setSignupError] = useState('');
+  const [signupMsg, setSignupMsg] = useState('');
+  const [isSigningUp, setIsSigningUp] = useState(false);
+
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const navigate = useNavigate();
   const splitLayoutRef = useRef(null);
@@ -56,7 +68,9 @@ export default function AuthPage() {
     setAnimClass(`curtain-animating-${direction}`);
     setIsSignup(toSignup);
     setLoginError('');
+    setLoginMsg('');
     setSignupError('');
+    setSignupMsg('');
 
     setTimeout(() => {
       setAnimClass('');
@@ -67,65 +81,115 @@ export default function AuthPage() {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoginError('');
+    setLoginMsg('');
 
-    const identifier = loginEmail.trim().toLowerCase();
+    const email = loginEmail.trim();
     const pass = loginPassword;
 
-    const users = getUsers();
-    const user = users.find(u => u.email === identifier || u.mobile === identifier);
-
-    if (!user) {
-      setLoginError('No account found with that email or mobile number.');
+    if (!email) {
+      setLoginError('Please enter your email address.');
+      return;
+    }
+    if (!pass) {
+      setLoginError('Please enter your password.');
       return;
     }
 
-    const hash = await hashPassword(pass);
-    if (user.passwordHash !== hash) {
-      setLoginError('Incorrect password.');
-      return;
+    setIsLoggingIn(true);
+    try {
+      await loginWithEmail(email, pass);
+      navigate('/plan');
+    } catch (err) {
+      setLoginError(getFriendlyAuthErrorMessage(err));
+    } finally {
+      setIsLoggingIn(false);
     }
-
-    createSession(user);
-    navigate('/plan');
   };
 
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
     setSignupError('');
+    setSignupMsg('');
 
     const name = signupName.trim();
-    const email = signupEmail.trim().toLowerCase();
+    const email = signupEmail.trim();
     const mobile = signupMobile.trim();
     const pass = signupPassword;
     const confirm = signupConfirm;
     const style = signupStyle;
+
+    if (!name) {
+      setSignupError('Please enter your full name.');
+      return;
+    }
+
+    if (!email) {
+      setSignupError('Please enter a valid email address.');
+      return;
+    }
+
+    if (pass.length < 6) {
+      setSignupError('Password must be at least 6 characters.');
+      return;
+    }
 
     if (pass !== confirm) {
       setSignupError('Passwords do not match.');
       return;
     }
 
-    const users = getUsers();
-    if (users.some(u => u.email === email)) {
-      setSignupError('An account with this email already exists.');
+    setIsSigningUp(true);
+    try {
+      await signupWithEmail(email, pass, {
+        name,
+        mobile,
+        travelStyle: style || 'Balanced'
+      });
+      navigate('/plan');
+    } catch (err) {
+      setSignupError(getFriendlyAuthErrorMessage(err));
+    } finally {
+      setIsSigningUp(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoginError('');
+    setSignupError('');
+    setIsGoogleLoading(true);
+
+    try {
+      await loginWithGoogle();
+      navigate('/plan');
+    } catch (err) {
+      const msg = getFriendlyAuthErrorMessage(err);
+      if (isSignup) {
+        setSignupError(msg);
+      } else {
+        setLoginError(msg);
+      }
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    setLoginMsg('');
+
+    const email = loginEmail.trim();
+    if (!email) {
+      setLoginError('Please enter your email in the field above to reset your password.');
       return;
     }
 
-    const passwordHash = await hashPassword(pass);
-    const newUser = {
-      id: 'usr_' + Date.now().toString(36) + Math.random().toString(36).substr(2),
-      fullName: name,
-      email: email,
-      mobile: mobile,
-      passwordHash: passwordHash,
-      travelStyle: style,
-      createdAt: new Date().toISOString()
-    };
-
-    users.push(newUser);
-    setUsers(users);
-    createSession(newUser);
-    navigate('/plan');
+    try {
+      await sendPasswordReset(email);
+      setLoginMsg(`A password reset link has been sent to ${email}. Check your inbox.`);
+    } catch (err) {
+      setLoginError(getFriendlyAuthErrorMessage(err));
+    }
   };
 
   return (
@@ -191,14 +255,15 @@ export default function AuthPage() {
 
               <form id="login-form" className="dastaan-form" onSubmit={handleLoginSubmit}>
                 <div className="field-group">
-                  <label htmlFor="login-email">EMAIL OR MOBILE NUMBER</label>
+                  <label htmlFor="login-email">EMAIL ADDRESS</label>
                   <input
-                    type="text"
+                    type="email"
                     id="login-email"
-                    placeholder="Your email or mobile"
+                    placeholder="name@example.com"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
+                    autoComplete="email"
                   />
                 </div>
                 <div className="field-group">
@@ -211,6 +276,7 @@ export default function AuthPage() {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       required
+                      autoComplete="current-password"
                     />
                     <button
                       type="button"
@@ -242,11 +308,39 @@ export default function AuthPage() {
                     />
                     <span className="checkbox-text">REMEMBER ME</span>
                   </label>
-                  <a href="#forgot" className="forgot-link">FORGOT PASSWORD?</a>
+                  <a href="#forgot" className="forgot-link" onClick={handleForgotPassword}>FORGOT PASSWORD?</a>
                 </div>
                 {loginError && <div className="form-error" id="login-error">{loginError}</div>}
-                <button type="submit" className="btn-primary">
-                  SIGN IN SECURELY <span className="arrow">&rarr;</span>
+                {loginMsg && <div style={{ color: '#D6B56D', fontSize: '0.85rem' }}>{loginMsg}</div>}
+                <button type="submit" className="btn-primary" disabled={isLoggingIn || isGoogleLoading}>
+                  {isLoggingIn ? 'SIGNING IN...' : 'SIGN IN SECURELY'} <span className="arrow">&rarr;</span>
+                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', margin: '4px 0', gap: '10px' }}>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(214, 181, 109, 0.2)' }} />
+                  <span style={{ fontSize: '0.65rem', color: 'var(--muted)', letterSpacing: '1.5px' }}>OR</span>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(214, 181, 109, 0.2)' }} />
+                </div>
+
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoggingIn || isGoogleLoading}
+                  style={{
+                    height: '46px',
+                    borderColor: 'rgba(214, 181, 109, 0.2)',
+                    fontSize: '0.75rem',
+                    letterSpacing: '1.5px'
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
+                    <path fill="#EA4335" d="M12 5c1.57 0 2.98.54 4.1 1.6l3.07-3.07C17.31 1.8 14.86 1 12 1 7.6 1 3.8 3.5 2 7.15l3.75 2.91C6.65 7.1 9.09 5 12 5z"/>
+                    <path fill="#4285F4" d="M23.5 12.3c0-.83-.07-1.63-.2-2.3H12v4.6h6.48c-.28 1.48-1.12 2.73-2.38 3.58l3.7 2.87c2.16-2 3.7-4.95 3.7-8.75z"/>
+                    <path fill="#FBBC05" d="M5.75 14.06c-.24-.72-.38-1.49-.38-2.3s.14-1.58.38-2.3L2 6.55C1.27 8 1 9.6 1 11.26c0 1.66.27 3.26 1 4.71l3.75-2.91z"/>
+                    <path fill="#34A853" d="M12 23c3.24 0 5.96-1.07 7.95-2.91l-3.7-2.87c-1.08.72-2.46 1.18-4.25 1.18-2.91 0-5.35-2.1-6.25-5.06L2 16.25C3.8 19.9 7.6 23 12 23z"/>
+                  </svg>
+                  {isGoogleLoading ? 'CONNECTING...' : 'CONTINUE WITH GOOGLE'}
                 </button>
               </form>
 
@@ -280,6 +374,7 @@ export default function AuthPage() {
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
                     required
+                    autoComplete="name"
                   />
                 </div>
                 <div className="form-row">
@@ -292,6 +387,7 @@ export default function AuthPage() {
                       value={signupEmail}
                       onChange={(e) => setSignupEmail(e.target.value)}
                       required
+                      autoComplete="email"
                     />
                   </div>
                   <div className="field-group">
@@ -302,7 +398,7 @@ export default function AuthPage() {
                       placeholder="Enter your mobile number"
                       value={signupMobile}
                       onChange={(e) => setSignupMobile(e.target.value)}
-                      required
+                      autoComplete="tel"
                     />
                   </div>
                 </div>
@@ -313,11 +409,12 @@ export default function AuthPage() {
                       <input
                         type={showSignupPassword ? 'text' : 'password'}
                         id="signup-password"
-                        placeholder="Create a password"
+                        placeholder="Create a password (min. 6 characters)"
                         value={signupPassword}
                         onChange={(e) => setSignupPassword(e.target.value)}
                         required
                         minLength={6}
+                        autoComplete="new-password"
                       />
                       <button
                         type="button"
@@ -350,6 +447,7 @@ export default function AuthPage() {
                         onChange={(e) => setSignupConfirm(e.target.value)}
                         required
                         minLength={6}
+                        autoComplete="new-password"
                       />
                       <button
                         type="button"
@@ -392,8 +490,36 @@ export default function AuthPage() {
                   </div>
                 </div>
                 {signupError && <div className="form-error" id="signup-error">{signupError}</div>}
-                <button type="submit" className="btn-primary">
-                  CREATE ACCOUNT <span className="arrow">&rarr;</span>
+                {signupMsg && <div style={{ color: '#D6B56D', fontSize: '0.85rem' }}>{signupMsg}</div>}
+                <button type="submit" className="btn-primary" disabled={isSigningUp || isGoogleLoading}>
+                  {isSigningUp ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT'} <span className="arrow">&rarr;</span>
+                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', margin: '4px 0', gap: '10px' }}>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(214, 181, 109, 0.2)' }} />
+                  <span style={{ fontSize: '0.65rem', color: 'var(--muted)', letterSpacing: '1.5px' }}>OR</span>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(214, 181, 109, 0.2)' }} />
+                </div>
+
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleGoogleSignIn}
+                  disabled={isSigningUp || isGoogleLoading}
+                  style={{
+                    height: '46px',
+                    borderColor: 'rgba(214, 181, 109, 0.2)',
+                    fontSize: '0.75rem',
+                    letterSpacing: '1.5px'
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
+                    <path fill="#EA4335" d="M12 5c1.57 0 2.98.54 4.1 1.6l3.07-3.07C17.31 1.8 14.86 1 12 1 7.6 1 3.8 3.5 2 7.15l3.75 2.91C6.65 7.1 9.09 5 12 5z"/>
+                    <path fill="#4285F4" d="M23.5 12.3c0-.83-.07-1.63-.2-2.3H12v4.6h6.48c-.28 1.48-1.12 2.73-2.38 3.58l3.7 2.87c2.16-2 3.7-4.95 3.7-8.75z"/>
+                    <path fill="#FBBC05" d="M5.75 14.06c-.24-.72-.38-1.49-.38-2.3s.14-1.58.38-2.3L2 6.55C1.27 8 1 9.6 1 11.26c0 1.66.27 3.26 1 4.71l3.75-2.91z"/>
+                    <path fill="#34A853" d="M12 23c3.24 0 5.96-1.07 7.95-2.91l-3.7-2.87c-1.08.72-2.46 1.18-4.25 1.18-2.91 0-5.35-2.1-6.25-5.06L2 16.25C3.8 19.9 7.6 23 12 23z"/>
+                  </svg>
+                  {isGoogleLoading ? 'CONNECTING...' : 'CONTINUE WITH GOOGLE'}
                 </button>
               </form>
 

@@ -2,6 +2,12 @@ import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema(
   {
+    firebaseUid: {
+      type: String,
+      required: [true, 'Firebase UID is required'],
+      unique: true,
+      trim: true
+    },
     name: {
       type: String,
       required: [true, 'Please provide your full name'],
@@ -19,14 +25,32 @@ const userSchema = new mongoose.Schema(
         'Please provide a valid email address'
       ]
     },
+    photoURL: {
+      type: String,
+      trim: true,
+      default: null
+    },
+    phoneNumber: {
+      type: String,
+      trim: true,
+      default: null
+    },
     mobile: {
       type: String,
-      trim: true
+      trim: true,
+      default: null
     },
-    passwordHash: {
+    role: {
       type: String,
-      required: [true, 'Password hash is required'],
-      minlength: [32, 'Password hash must be valid']
+      enum: {
+        values: ['user', 'admin'],
+        message: '{VALUE} is not a valid user role'
+      },
+      default: 'user'
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false
     },
     travelStyle: {
       type: String,
@@ -42,15 +66,13 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Prevent accidental leaking of password hash in JSON responses
+// Prevent accidental leaking of internal or legacy fields in JSON responses
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
+  delete obj.__v;
   delete obj.passwordHash;
   return obj;
 };
-
-// Index on email for fast lookups
-userSchema.index({ email: 1 });
 
 const User = mongoose.model('User', userSchema);
 
