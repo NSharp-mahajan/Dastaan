@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { discoverDestinations } from '../data/destinations';
 import { availableInterests, interestDescriptions } from '../data/interests';
 import { calculateMatch, getFitLabel } from '../utils/scoring';
+import apiClient from '../services/api';
 import '../styles/navigation.css';
 import '../styles/discover.css';
 
@@ -28,6 +29,10 @@ export default function DiscoverPage() {
   const [loaderMessage, setLoaderMessage] = useState('UNDERSTANDING YOUR JOURNEY...');
   const [validationMsg, setValidationMsg] = useState('');
   const [savedDestinations, setSavedDestinations] = useState([]);
+  const [savedLoading, setSavedLoading] = useState(true);
+  const [savedAction, setSavedAction] = useState(null);
+  const [savedError, setSavedError] = useState('');
+  const [savedAuthRequired, setSavedAuthRequired] = useState(false);
   const [activeStep, setActiveStep] = useState('sec-01');
 
   const sec1Ref = useRef(null);
@@ -35,8 +40,39 @@ export default function DiscoverPage() {
   const sec3Ref = useRef(null);
   const sec4Ref = useRef(null);
   const resultsRef = useRef(null);
+  const savedLoadRequestRef = useRef(0);
 
-  // Load saved Discover state and saved destinations
+  const loadSavedDestinations = useCallback(async () => {
+    const requestId = ++savedLoadRequestRef.current;
+    setSavedLoading(true);
+    setSavedDestinations([]);
+    setSavedError('');
+    setSavedAuthRequired(false);
+
+    const response = await apiClient.getSavedDestinations();
+    if (requestId !== savedLoadRequestRef.current) return;
+
+    if (!response.success) {
+      setSavedAuthRequired(response.status === 401);
+      setSavedError(response.status === 401
+        ? 'Sign in to load and save destinations.'
+        : response.error || 'Could not load saved destinations. Please try again.');
+      setSavedLoading(false);
+      return;
+    }
+
+    const savedRecords = response.data?.data;
+    if (!Array.isArray(savedRecords)) {
+      setSavedError('The saved destinations response was not in the expected format.');
+      setSavedLoading(false);
+      return;
+    }
+
+    setSavedDestinations(savedRecords.map(destination => destination.destinationId).filter(Boolean));
+    setSavedLoading(false);
+  }, []);
+
+  // Load saved Discover preferences and authenticated saved destinations
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -58,13 +94,13 @@ export default function DiscoverPage() {
       }
     }
 
-    const savedDests = localStorage.getItem('dastaanSaved');
-    if (savedDests) {
-      try {
-        setSavedDestinations(JSON.parse(savedDests));
-      } catch {}
-    }
-  }, []);
+    loadSavedDestinations();
+    window.addEventListener('dastaan-auth-change', loadSavedDestinations);
+    return () => {
+      savedLoadRequestRef.current += 1;
+      window.removeEventListener('dastaan-auth-change', loadSavedDestinations);
+    };
+  }, [loadSavedDestinations]);
 
   // Save state helper
   const persistState = (updated) => {
@@ -208,15 +244,43 @@ export default function DiscoverPage() {
     }, 1000);
   };
 
-  const toggleSave = (id) => {
-    let updated;
-    if (savedDestinations.includes(id)) {
-      updated = savedDestinations.filter(s => s !== id);
+  const toggleSave = async (dest) => {
+    if (savedAction) return;
+
+    const isSaved = savedDestinations.includes(dest.id);
+    const actionType = isSaved ? 'remove' : 'save';
+    setSavedAction({ id: dest.id, type: actionType });
+    setSavedError('');
+    setSavedAuthRequired(false);
+
+    const response = isSaved
+      ? await apiClient.removeSavedDestination(dest.id)
+      : await apiClient.saveDestination({
+          destinationId: dest.id,
+          destinationName: dest.name,
+          country: dest.country
+        });
+
+    if (response.success) {
+      setSavedDestinations(current => isSaved
+        ? current.filter(id => id !== dest.id)
+        : current.includes(dest.id) ? current : [...current, dest.id]);
+    } else if (response.status === 409 && !isSaved) {
+      // The backend confirms this ID is already saved (for example, after a stale load).
+      setSavedDestinations(current => current.includes(dest.id) ? current : [...current, dest.id]);
+      setSavedError('This destination is already saved.');
+    } else if (response.status === 404 && isSaved) {
+      // Reconcile stale UI state if the record was removed elsewhere.
+      setSavedDestinations(current => current.filter(id => id !== dest.id));
     } else {
-      updated = [...savedDestinations, id];
+      setSavedAuthRequired(response.status === 401);
+      setSavedError(response.status === 401
+        ? 'Your sign-in is required to save destinations. Please sign in and try again.'
+        : response.error || `Could not ${isSaved ? 'remove' : 'save'} this destination. Please try again.`);
+      if (response.status === 401) setSavedDestinations([]);
     }
-    setSavedDestinations(updated);
-    localStorage.setItem('dastaanSaved', JSON.stringify(updated));
+
+    setSavedAction(null);
   };
 
   const handlePlanThisJourney = (dest) => {
@@ -587,6 +651,18 @@ export default function DiscoverPage() {
               <span className="results-eyebrow">YOUR NEXT CHAPTER</span>
               <h2>PLACES THAT FIT THE WAY YOU WANT TO TRAVEL</h2>
 
+              {savedLoading && <p className="saved-destinations-status" role="status">Loading your saved destinations...</p>}
+              {savedError && (
+                <div className="saved-destinations-status" role={savedAuthRequired ? 'alert' : 'status'}>
+                  <span>{savedError}</span>{' '}
+                  {savedAuthRequired ? (
+                    <button type="button" className="btn-outline" onClick={() => navigate('/login')}>SIGN IN</button>
+                  ) : (
+                    <button type="button" className="btn-outline" onClick={loadSavedDestinations} disabled={savedLoading}>RETRY</button>
+                  )}
+                </div>
+              )}
+
               <div className="results-tools">
                 <span id="results-count" className="results-count">
                   {filteredResults.length} destination{filteredResults.length !== 1 ? 's' : ''} found
@@ -672,9 +748,12 @@ export default function DiscoverPage() {
                         <button
                           type="button"
                           className={`btn-outline save-btn ${savedDestinations.includes(featured.id) ? 'saved' : ''}`}
-                          onClick={() => toggleSave(featured.id)}
+                          onClick={() => toggleSave(featured)}
+                          disabled={savedLoading || savedAction !== null}
                         >
-                          {savedDestinations.includes(featured.id) ? '\u2713 SAVED' : 'SAVE JOURNEY'}
+                          {savedAction?.id === featured.id
+                            ? savedAction.type === 'remove' ? 'REMOVING...' : 'SAVING...'
+                            : savedDestinations.includes(featured.id) ? '\u2713 SAVED' : 'SAVE JOURNEY'}
                         </button>
                       </div>
                     </div>
@@ -729,9 +808,12 @@ export default function DiscoverPage() {
                             <button
                               type="button"
                               className={`btn-outline save-btn ${savedDestinations.includes(dest.id) ? 'saved' : ''}`}
-                              onClick={() => toggleSave(dest.id)}
+                              onClick={() => toggleSave(dest)}
+                              disabled={savedLoading || savedAction !== null}
                             >
-                              {savedDestinations.includes(dest.id) ? '\u2713 SAVED' : 'SAVE JOURNEY'}
+                              {savedAction?.id === dest.id
+                                ? savedAction.type === 'remove' ? 'REMOVING...' : 'SAVING...'
+                                : savedDestinations.includes(dest.id) ? '\u2713 SAVED' : 'SAVE JOURNEY'}
                             </button>
                           </div>
                         </div>

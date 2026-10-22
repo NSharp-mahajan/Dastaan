@@ -250,6 +250,9 @@ export function getFriendlyAuthErrorMessage(error) {
   const code = error.code || '';
 
   switch (code) {
+    case 'auth/api-key-not-valid':
+    case 'auth/invalid-api-key':
+      return 'Firebase rejected this Web API key. In Firebase Console, open the project for this Web App, copy its apiKey from Project settings > General > Your apps, update VITE_FIREBASE_API_KEY in the root .env, and restart Vite.';
     case 'auth/email-already-in-use':
       return 'An account with this email address already exists. Please sign in instead.';
     case 'auth/configuration-not-found':

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { generateItinerary, destinationTemplates } from '../src/utils/itineraryGenerator.js';
 import { signToken, verifyToken, hashPassword, comparePassword } from '../src/utils/token.js';
 import Trip from '../src/models/Trip.js';
+import SavedDestination from '../src/models/SavedDestination.js';
 import User from '../src/models/User.js';
 import {
   createTrip,
@@ -12,6 +13,11 @@ import {
   deleteTrip
 } from '../src/controllers/tripController.js';
 import { authenticateUser, optionalAuth } from '../src/middleware/auth.js';
+import {
+  getSavedDestinations,
+  saveDestination,
+  removeSavedDestination
+} from '../src/controllers/savedDestinationController.js';
 
 // Mock Response Helper for unit/integration testing
 function createMockRes() {
@@ -326,6 +332,113 @@ test('--- Validation & Security Tests: Trip Controller ---', async (t) => {
       assert.ok(resB.body.message.includes('Access denied'));
     } finally {
       Trip.findById = originalFindById;
+    }
+  });
+});
+
+test('--- Saved Destination Controller ---', async (t) => {
+  const userA = '507f1f77bcf86cd799439011';
+  const userB = '507f191e810c19729de860ea';
+
+  await t.test('lists only the authenticated user’s saved destinations', async () => {
+    const expected = [{ destinationId: 'kyoto', user: userA }];
+    const originalFind = SavedDestination.find;
+    let query;
+    SavedDestination.find = (filter) => {
+      query = filter;
+      return { sort: async () => expected };
+    };
+    try {
+      const res = createMockRes();
+      await getSavedDestinations({ user: { _id: userA } }, res, () => {});
+      assert.deepEqual(query, { user: userA });
+      assert.equal(res.statusCode, 200);
+      assert.equal(res.body.count, 1);
+      assert.deepEqual(res.body.data, expected);
+    } finally {
+      SavedDestination.find = originalFind;
+    }
+  });
+
+  await t.test('saves destination metadata under the authenticated user', async () => {
+    const originalCreate = SavedDestination.create;
+    SavedDestination.create = async (doc) => doc;
+    try {
+      const res = createMockRes();
+      await saveDestination({
+        user: { _id: userA },
+        body: { destinationId: ' kyoto ', destinationName: ' Kyoto ', country: ' Japan ', user: userB }
+      }, res, () => {});
+      assert.equal(res.statusCode, 201);
+      assert.deepEqual(res.body.data, {
+        user: userA,
+        destinationId: 'kyoto',
+        destinationName: 'Kyoto',
+        country: 'Japan'
+      });
+    } finally {
+      SavedDestination.create = originalCreate;
+    }
+  });
+
+  await t.test('returns conflict for a duplicate save', async () => {
+    const originalCreate = SavedDestination.create;
+    SavedDestination.create = async () => { throw Object.assign(new Error('duplicate'), { code: 11000 }); };
+    try {
+      const res = createMockRes();
+      await saveDestination({ user: { _id: userA }, body: { destinationId: 'kyoto' } }, res, () => {});
+      assert.equal(res.statusCode, 409);
+      assert.match(res.body.message, /already saved/i);
+    } finally {
+      SavedDestination.create = originalCreate;
+    }
+  });
+
+  await t.test('rejects unauthenticated list, save, and remove operations', async () => {
+    const operations = [
+      (res) => getSavedDestinations({ user: null }, res, () => {}),
+      (res) => saveDestination({ user: null, body: { destinationId: 'kyoto' } }, res, () => {}),
+      (res) => removeSavedDestination({ user: null, params: { destinationId: 'kyoto' } }, res, () => {})
+    ];
+    for (const operation of operations) {
+      const res = createMockRes();
+      await operation(res);
+      assert.equal(res.statusCode, 401);
+    }
+  });
+
+  await t.test('removes a saved destination owned by the authenticated user', async () => {
+    const originalFindOneAndDelete = SavedDestination.findOneAndDelete;
+    let query;
+    SavedDestination.findOneAndDelete = async (filter) => {
+      query = filter;
+      return { destinationId: 'kyoto', user: userA };
+    };
+    try {
+      const res = createMockRes();
+      await removeSavedDestination({ user: { _id: userA }, params: { destinationId: 'kyoto' } }, res, () => {});
+      assert.deepEqual(query, { user: userA, destinationId: 'kyoto' });
+      assert.equal(res.statusCode, 200);
+      assert.equal(res.body.success, true);
+    } finally {
+      SavedDestination.findOneAndDelete = originalFindOneAndDelete;
+    }
+  });
+
+  await t.test('cannot remove another user’s saved destination', async () => {
+    const originalFindOneAndDelete = SavedDestination.findOneAndDelete;
+    let query;
+    SavedDestination.findOneAndDelete = async (filter) => {
+      query = filter;
+      return null;
+    };
+    try {
+      const res = createMockRes();
+      await removeSavedDestination({ user: { _id: userB }, params: { destinationId: 'kyoto' } }, res, () => {});
+      assert.deepEqual(query, { user: userB, destinationId: 'kyoto' });
+      assert.equal(res.statusCode, 404);
+    } finally {
+      SavedDestination.findOneAndDelete = originalFindOneAndDelete;
     }
   });
 });

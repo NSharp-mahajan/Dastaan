@@ -96,6 +96,11 @@ export const apiClient = {
   updateTrip: (id, tripData) => request(`trips/${id}`, { method: 'PUT', body: JSON.stringify(tripData) }),
   deleteTrip: (id) => request(`trips/${id}`, { method: 'DELETE' }),
 
+  // Saved Destination API Methods
+  getSavedDestinations: () => request('destinations/saved', { method: 'GET' }),
+  saveDestination: (destination) => request('destinations/save', { method: 'POST', body: JSON.stringify(destination) }),
+  removeSavedDestination: (destinationId) => request(`destinations/${encodeURIComponent(destinationId)}`, { method: 'DELETE' }),
+
   // Auth API Methods
   login: (credentials) => request('auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   signup: (userData) => request('auth/signup', { method: 'POST', body: JSON.stringify(userData) }),

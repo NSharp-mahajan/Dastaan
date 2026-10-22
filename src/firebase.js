@@ -19,12 +19,27 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Singleton initialization to prevent duplicate Firebase apps in Vite HMR
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+const requiredConfig = [
+  firebaseConfig.apiKey,
+  firebaseConfig.authDomain,
+  firebaseConfig.projectId,
+  firebaseConfig.appId
+];
+export const firebaseConfigError = requiredConfig.some(value =>
+  !value || value.startsWith('your_') || value.startsWith('replace_with_')
+)
+  ? 'Firebase Web configuration is missing or still contains example values.'
+  : '';
 
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ prompt: 'select_account' });
+// Singleton initialization to prevent duplicate Firebase apps in Vite HMR.
+// Never initialize Auth with the example/missing config: it throws before React can render.
+const app = firebaseConfigError
+  ? null
+  : getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+export const auth = app ? getAuth(app) : null;
+
+export const googleProvider = app ? new GoogleAuthProvider() : null;
+googleProvider?.setCustomParameters({ prompt: 'select_account' });
 
 export {
   signInWithEmailAndPassword,
