@@ -1,124 +1,222 @@
 import mongoose from 'mongoose';
-import { verifyToken } from '../utils/token.js';
+import { auth, hasServiceAccountCredential } from '../config/firebase.js';
 import User from '../models/User.js';
+import { verifyToken } from '../utils/token.js';
 
 /**
- * Middleware: Strictly requires authentication.
- * Rejects requests without a valid Bearer token with 401 Unauthorized.
+ * Authentication middleware that verifies the Firebase ID token in the Authorization header.
+ * Attaches verified user identity to req.user, req.mongoUser, and req.userId.
+ * Supports legacy mock/fallback tokens for existing developer tests.
  */
-export async function authenticateUser(req, res, next) {
+export const verifyAuth = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      code: 'AUTH_REQUIRED',
+      message: 'Authentication required. Please provide a valid Bearer token in the Authorization header.'
+    });
+  }
+
+  const token = authHeader.substring(7).trim();
+
+  if (!token || token === 'null' || token === 'undefined') {
+    return res.status(401).json({
+      success: false,
+      code: 'AUTH_EMPTY_TOKEN',
+      message: 'Authentication required. Missing or empty Bearer token.'
+    });
+  }
+
+  // 1. Primary: Verify Firebase ID Token
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required. Please provide a valid Bearer token in the Authorization header.'
-      });
-    }
+    const checkRevocation = Boolean(hasServiceAccountCredential);
+    const decodedToken = await auth.verifyIdToken(token, checkRevocation);
 
-    const token = authHeader.split(' ')[1]?.trim();
-    if (!token || token === 'null' || token === 'undefined') {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required. Missing or empty Bearer token.'
-      });
-    }
-
-    const decoded = verifyToken(token);
-    if (!decoded || !decoded.id) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid, malformed, or expired authentication token.'
-      });
-    }
-
-    // Attempt to verify user existence in MongoDB if DB is connected
-    try {
-      if (User.db?.readyState === 1 && mongoose.Types.ObjectId.isValid(decoded.id)) {
-        const user = await User.findById(decoded.id).select('-passwordHash');
-        if (user) {
-          req.user = user;
-          return next();
-        }
+    if (decodedToken && decodedToken.uid) {
+      // Look up MongoDB profile
+      let mongoUser = null;
+      try {
+        mongoUser = await User.findOne({ firebaseUid: decodedToken.uid });
+      } catch (dbErr) {
+        console.warn('[Auth Middleware] Non-fatal DB lookup warning:', dbErr.message);
       }
-    } catch {
-      // Fall through to ObjectId check
-    }
 
-    if (mongoose.Types.ObjectId.isValid(decoded.id)) {
       req.user = {
-        _id: new mongoose.Types.ObjectId(decoded.id),
-        id: decoded.id,
-        email: decoded.email,
-        name: decoded.name || 'User'
+        _id: mongoUser?._id,
+        id: mongoUser?._id ? mongoUser._id.toString() : decodedToken.uid,
+        uid: decodedToken.uid,
+        email: decodedToken.email || '',
+        emailVerified: Boolean(decodedToken.email_verified),
+        name: decodedToken.name || mongoUser?.name || '',
+        picture: decodedToken.picture || mongoUser?.photoURL || null,
+        claims: decodedToken
       };
+
+      req.mongoUser = mongoUser;
+      req.userId = mongoUser?._id || null;
+
       return next();
     }
+  } catch (firebaseErr) {
+    if (firebaseErr.code === 'auth/id-token-expired') {
+      return res.status(401).json({
+        success: false,
+        code: 'TOKEN_EXPIRED',
+        message: 'Your session has expired. Please sign in again.'
+      });
+    }
+
+    if (firebaseErr.code === 'auth/id-token-revoked') {
+      return res.status(401).json({
+        success: false,
+        code: 'TOKEN_REVOKED',
+        message: 'Authentication token has been revoked. Please sign in again.'
+      });
+    }
+
+    // 2. Fallback: Check local JWT token (used in developer unit tests like trip.test.js)
+    try {
+      const decoded = verifyToken(token);
+      if (decoded && decoded.id) {
+        const idVal = decoded.id;
+        const isValidOid = mongoose.Types.ObjectId.isValid(idVal);
+        const objId = isValidOid ? new mongoose.Types.ObjectId(idVal) : null;
+
+        let user = null;
+        if (User.db?.readyState === 1 && isValidOid) {
+          try {
+            user = await User.findById(objId);
+          } catch {
+            // DB lookup failed or disconnected
+          }
+        }
+
+        req.user = {
+          _id: objId,
+          id: idVal,
+          email: decoded.email,
+          name: decoded.name || user?.name || 'User'
+        };
+        req.mongoUser = user;
+        req.userId = objId;
+
+        return next();
+      }
+    } catch {
+      // Fall through to error response
+    }
+
+    console.warn(`[Auth Middleware] Verification rejected: ${firebaseErr.code || 'INVALID_TOKEN'} (${firebaseErr.message})`);
 
     return res.status(401).json({
       success: false,
-      message: 'Invalid user session. Please log in again.'
+      code: 'INVALID_TOKEN',
+      message: 'Authentication failed: ' + (firebaseErr.message || 'Invalid token')
     });
+  }
+};
+
+/**
+ * Backward compatibility alias for tripRoutes and existing controller tests.
+ */
+export const authenticateUser = verifyAuth;
+
+/**
+ * Optional authentication middleware for routes accessible by both guests and authenticated users.
+ */
+export const optionalAuth = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    req.user = null;
+    req.mongoUser = null;
+    req.userId = null;
+    return next();
+  }
+
+  const token = authHeader.substring(7).trim();
+  if (!token || token === 'null' || token === 'undefined') {
+    req.user = null;
+    req.mongoUser = null;
+    req.userId = null;
+    return next();
+  }
+
+  try {
+    const checkRevocation = Boolean(hasServiceAccountCredential);
+    const decodedToken = await auth.verifyIdToken(token, checkRevocation);
+    const mongoUser = await User.findOne({ firebaseUid: decodedToken.uid });
+
+    req.user = {
+      _id: mongoUser?._id,
+      id: mongoUser?._id ? mongoUser._id.toString() : decodedToken.uid,
+      uid: decodedToken.uid,
+      email: decodedToken.email || '',
+      emailVerified: Boolean(decodedToken.email_verified),
+      name: decodedToken.name || mongoUser?.name || '',
+      picture: decodedToken.picture || null,
+      claims: decodedToken
+    };
+    req.mongoUser = mongoUser;
+    req.userId = mongoUser?._id || null;
+  } catch {
+    // Check fallback local token
+    try {
+      const decoded = verifyToken(token);
+      if (decoded && decoded.id) {
+        const isValidOid = mongoose.Types.ObjectId.isValid(decoded.id);
+        const objId = isValidOid ? new mongoose.Types.ObjectId(decoded.id) : null;
+        req.user = {
+          _id: objId,
+          id: decoded.id,
+          email: decoded.email,
+          name: decoded.name || 'User'
+        };
+        req.mongoUser = null;
+        req.userId = objId;
+        return next();
+      }
+    } catch {
+      // Ignore
+    }
+    req.user = null;
+    req.mongoUser = null;
+    req.userId = null;
+  }
+
+  next();
+};
+
+/**
+ * Role-based authorization middleware to restrict routes to administrators.
+ */
+export const requireAdmin = async (req, res, next) => {
+  if (!req.user || (!req.user.uid && !req.user._id)) {
+    return res.status(401).json({
+      success: false,
+      code: 'AUTH_REQUIRED',
+      message: 'Authentication required for administrative actions.'
+    });
+  }
+
+  try {
+    const query = req.user.uid ? { firebaseUid: req.user.uid } : { _id: req.user._id };
+    const role = req.mongoUser?.role || (await User.findOne(query).select('role'))?.role;
+    if (role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        code: 'FORBIDDEN',
+        message: 'Forbidden. Administrator privileges required.'
+      });
+    }
+
+    next();
   } catch (err) {
     return res.status(500).json({
       success: false,
-      message: 'Server error during authentication',
-      error: err.message
+      message: 'Error verifying administrative privileges: ' + err.message
     });
   }
-}
-
-/**
- * Middleware: Optional authentication.
- * If a valid Bearer token is provided, populates req.user with a verified user.
- * If no token is provided, sets req.user to null and allows request to proceed.
- */
-export async function optionalAuth(req, res, next) {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      req.user = null;
-      return next();
-    }
-
-    const token = authHeader.split(' ')[1]?.trim();
-    if (!token || token === 'null' || token === 'undefined') {
-      req.user = null;
-      return next();
-    }
-
-    const decoded = verifyToken(token);
-    if (!decoded || !decoded.id) {
-      req.user = null;
-      return next();
-    }
-
-    try {
-      if (User.db?.readyState === 1 && mongoose.Types.ObjectId.isValid(decoded.id)) {
-        const user = await User.findById(decoded.id).select('-passwordHash');
-        if (user) {
-          req.user = user;
-          return next();
-        }
-      }
-    } catch {
-      // Fall through
-    }
-
-    if (mongoose.Types.ObjectId.isValid(decoded.id)) {
-      req.user = {
-        _id: new mongoose.Types.ObjectId(decoded.id),
-        id: decoded.id,
-        email: decoded.email,
-        name: decoded.name || 'User'
-      };
-      return next();
-    }
-
-    req.user = null;
-    next();
-  } catch {
-    req.user = null;
-    next();
-  }
-}
+};

@@ -1,19 +1,38 @@
 /**
  * Dastaan Reusable Frontend API Client
- * Compatible with Vite environment variables.
+ * Compatible with Vite environment variables and Firebase Bearer authentication.
  */
+import { auth } from '../firebase';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 /**
- * Generic fetch wrapper with JSON parsing and standardized error handling.
+ * Helper to retrieve the current fresh Firebase ID token.
+ */
+export async function getAuthToken(forceRefresh = false) {
+  try {
+    if (auth.currentUser) {
+      return await auth.currentUser.getIdToken(forceRefresh);
+    }
+  } catch (err) {
+    console.warn('[API Client] Error getting auth token:', err);
+  }
+  return null;
+}
+
+/**
+ * Generic fetch wrapper with JSON parsing, Firebase Bearer token attachment, and standardized error handling.
  */
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL.replace(/\/+$/, '')}/${endpoint.replace(/^\/+/, '')}`;
 
+  // Automatically attach fresh Firebase ID token if user is authenticated
+  const token = options.token || (await getAuthToken());
+
   const defaultHeaders = {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'Accept': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   };
 
   // Automatically attach Bearer token if present
@@ -44,7 +63,7 @@ async function request(endpoint, options = {}) {
         success: false,
         status: response.status,
         error: errorMsg,
-        data: null
+        data: data || null
       };
     }
 
@@ -67,6 +86,7 @@ export const apiClient = {
   get: (endpoint, options) => request(endpoint, { ...options, method: 'GET' }),
   post: (endpoint, body, options) => request(endpoint, { ...options, method: 'POST', body: JSON.stringify(body) }),
   put: (endpoint, body, options) => request(endpoint, { ...options, method: 'PUT', body: JSON.stringify(body) }),
+  patch: (endpoint, body, options) => request(endpoint, { ...options, method: 'PATCH', body: JSON.stringify(body) }),
   delete: (endpoint, options) => request(endpoint, { ...options, method: 'DELETE' }),
 
   // Trip API Methods
@@ -86,6 +106,29 @@ export const apiClient = {
    */
   checkHealth: async () => {
     return await request('health', { method: 'GET' });
+  },
+
+  /**
+   * Auth API methods
+   */
+  getMe: async (token) => {
+    return await request('auth/me', { method: 'GET', token });
+  },
+
+  createProfile: async (profileData, token) => {
+    return await request('auth/profile', {
+      method: 'POST',
+      body: JSON.stringify(profileData),
+      token
+    });
+  },
+
+  updateProfile: async (updateData, token) => {
+    return await request('auth/profile', {
+      method: 'PATCH',
+      body: JSON.stringify(updateData),
+      token
+    });
   },
 
   getBaseUrl: () => API_BASE_URL
