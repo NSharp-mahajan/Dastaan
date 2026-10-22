@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { plannerDestinations } from '../data/destinations';
 import { availableInterests } from '../data/interests';
+import apiClient from '../services/api';
 import '../styles/navigation.css';
 import '../styles/page2.css';
 
@@ -110,7 +111,7 @@ export default function TripConfiguratorPage() {
     saveState({ travelStyle: style });
   };
 
-  const handleBuild = () => {
+  const handleBuild = async () => {
     if (!selectedDest) {
       setValidationMsg('Please select a destination to continue.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -120,9 +121,32 @@ export default function TripConfiguratorPage() {
     setValidationMsg('');
     setIsBuilding(true);
 
+    const tripPayload = {
+      destination: selectedDest,
+      duration,
+      budget,
+      interests,
+      travelStyle
+    };
+
+    // Store in localStorage for instant access
+    localStorage.setItem('dastaanTrip', JSON.stringify(tripPayload));
+
+    try {
+      const res = await apiClient.createTrip(tripPayload);
+      if (res.success && res.data?.data) {
+        const savedTrip = res.data.data;
+        localStorage.setItem('dastaanTrip', JSON.stringify(savedTrip));
+        navigate(`/itinerary?id=${savedTrip._id}`);
+        return;
+      }
+    } catch (err) {
+      console.warn('[TripPlanner] Backend API call failed, navigating with local state:', err);
+    }
+
     setTimeout(() => {
       navigate('/itinerary');
-    }, 600);
+    }, 400);
   };
 
   return (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { hashPassword, getUsers, setUsers, createSession } from '../utils/auth';
+import apiClient from '../services/api';
 import '../styles/signup.css';
 
 export default function AuthPage() {
@@ -71,6 +72,23 @@ export default function AuthPage() {
     const identifier = loginEmail.trim().toLowerCase();
     const pass = loginPassword;
 
+    // Attempt backend authentication first
+    try {
+      const res = await apiClient.login({ email: identifier, password: pass });
+      if (res.success && res.data) {
+        createSession(res.data.data || res.data, res.data.token);
+        navigate('/plan');
+        return;
+      }
+      if (res.status === 401 || res.status === 400) {
+        setLoginError(res.error || 'Invalid email or password.');
+        return;
+      }
+    } catch {
+      // Backend unavailable, fallback to client storage
+    }
+
+    // Client-side fallback
     const users = getUsers();
     const user = users.find(u => u.email === identifier || u.mobile === identifier);
 
@@ -105,6 +123,30 @@ export default function AuthPage() {
       return;
     }
 
+    // Attempt backend registration first
+    try {
+      const res = await apiClient.signup({
+        name,
+        email,
+        password: pass,
+        mobile,
+        travelStyle: style
+      });
+
+      if (res.success && res.data) {
+        createSession(res.data.data || res.data, res.data.token);
+        navigate('/plan');
+        return;
+      }
+      if (res.status === 400) {
+        setSignupError(res.error || 'An account with this email already exists.');
+        return;
+      }
+    } catch {
+      // Backend unavailable, fallback to client storage
+    }
+
+    // Client-side fallback
     const users = getUsers();
     if (users.some(u => u.email === email)) {
       setSignupError('An account with this email already exists.');

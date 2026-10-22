@@ -1,18 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LightboxModal from '../components/LightboxModal';
 import { mockItineraries, resolveImage, interestImages, interestExplanations } from '../data/itineraries';
+import apiClient from '../services/api';
 import '../styles/navigation.css';
 import '../styles/page3.css';
 
 export default function ItineraryPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { id: paramId } = useParams();
+  const tripId = paramId || searchParams.get('id') || searchParams.get('tripId');
+
   const [trip, setTrip] = useState(null);
   const [activeDay, setActiveDay] = useState(1);
   const [isSaved, setIsSaved] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEmpty, setIsEmpty] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Tooltip state for budget bar
   const [budgetTooltip, setBudgetTooltip] = useState({ text: '', x: 0, visible: false });
@@ -24,22 +32,80 @@ export default function ItineraryPage() {
   const budgetBarRef = useRef(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('dastaanTrip');
-    if (!saved) {
-      navigate('/plan');
-      return;
-    }
-    try {
-      const parsed = JSON.parse(saved);
-      if (!parsed.destination) {
-        navigate('/plan');
-        return;
+    let isMounted = true;
+
+    async function loadTrip() {
+      setIsLoading(true);
+      setErrorMessage('');
+      setIsEmpty(false);
+
+      // Scenario 1: Specific trip requested via URL parameter ?id=...
+      if (tripId) {
+        try {
+          const res = await apiClient.getTripById(tripId);
+          if (!isMounted) return;
+
+          if (res.success && res.data?.data) {
+            const fetched = res.data.data;
+            setTrip(fetched);
+            localStorage.setItem('dastaanTrip', JSON.stringify(fetched));
+            setIsLoading(false);
+            return;
+          } else {
+            console.warn('[ItineraryPage] Could not fetch trip by ID:', res.error);
+            setErrorMessage(res.error || 'Failed to retrieve requested journey.');
+          }
+        } catch (e) {
+          console.warn('[ItineraryPage] Network error fetching trip by ID:', e);
+          if (!isMounted) return;
+        }
       }
-      setTrip(parsed);
-    } catch {
-      navigate('/plan');
+
+      // Scenario 2: Load from localStorage if present
+      const saved = localStorage.getItem('dastaanTrip');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.destination) {
+            if (!isMounted) return;
+            setTrip(parsed);
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.error('[ItineraryPage] Error parsing saved local trip:', e);
+        }
+      }
+
+      // Scenario 3: Attempt to fetch user's saved trips from backend
+      try {
+        const userTripsRes = await apiClient.getUserTrips();
+        if (!isMounted) return;
+
+        if (userTripsRes.success && Array.isArray(userTripsRes.data?.data) && userTripsRes.data.data.length > 0) {
+          const latestTrip = userTripsRes.data.data[0];
+          setTrip(latestTrip);
+          localStorage.setItem('dastaanTrip', JSON.stringify(latestTrip));
+          setIsLoading(false);
+          return;
+        }
+      } catch (e) {
+        console.warn('[ItineraryPage] Error querying user trips:', e);
+      }
+
+      // Scenario 4: No trip found
+      if (isMounted) {
+        setIsEmpty(true);
+        setIsLoading(false);
+      }
     }
-  }, [navigate]);
+
+    loadTrip();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [tripId]);
 
   // Scroll reveal observer
   useEffect(() => {
@@ -55,7 +121,128 @@ export default function ItineraryPage() {
     return () => observer.disconnect();
   }, [trip, activeDay]);
 
-  if (!trip) return null;
+  // Loading Screen
+  if (isLoading) {
+    return (
+      <div className="itinerary-body">
+        <Navbar isFixed={false} />
+        <div style={{
+          minHeight: '75vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#071D1A',
+          color: '#F4EFE3',
+          textAlign: 'center',
+          padding: '80px 20px'
+        }}>
+          <div style={{
+            width: '46px',
+            height: '46px',
+            border: '3px solid rgba(214, 181, 109, 0.25)',
+            borderTopColor: '#D6B56D',
+            borderRadius: '50%',
+            animation: 'spin 0.9s linear infinite',
+            marginBottom: '24px'
+          }}></div>
+          <h2 style={{
+            fontFamily: 'Cinzel, Georgia, serif',
+            color: '#D6B56D',
+            fontSize: '22px',
+            letterSpacing: '2px',
+            textTransform: 'uppercase'
+          }}>
+            Retrieving Your Journey
+          </h2>
+          <p style={{ color: '#E8DCC7', opacity: 0.8, marginTop: '8px', fontSize: '14px' }}>
+            Connecting to Dastaan and preparing your curated itinerary...
+          </p>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Empty State Screen
+  if (isEmpty || !trip) {
+    return (
+      <div className="itinerary-body">
+        <Navbar isFixed={false} />
+        <div style={{
+          minHeight: '75vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#071D1A',
+          color: '#F4EFE3',
+          textAlign: 'center',
+          padding: '80px 24px'
+        }}>
+          <span style={{
+            color: '#D6B56D',
+            letterSpacing: '3px',
+            fontSize: '11px',
+            fontWeight: '600',
+            textTransform: 'uppercase',
+            marginBottom: '12px',
+            display: 'block'
+          }}>
+            CHAPTER 02 &middot; NO ACTIVE ITINERARY
+          </span>
+          <h1 style={{
+            fontFamily: 'Cinzel, Georgia, serif',
+            color: '#F4EFE3',
+            fontSize: '32px',
+            maxWidth: '650px',
+            margin: '0 0 16px',
+            lineHeight: '1.3'
+          }}>
+            WHERE WILL YOUR STORY TAKE YOU?
+          </h1>
+          <p style={{
+            color: '#E8DCC7',
+            opacity: 0.85,
+            lineHeight: '1.7',
+            maxWidth: '520px',
+            marginBottom: '36px',
+            fontSize: '15px'
+          }}>
+            {errorMessage || 'You have not built a personalized itinerary yet. Select your destination, budget, and travel preferences to begin your journey.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/plan')}
+            style={{
+              background: '#D6B56D',
+              color: '#071D1A',
+              border: 'none',
+              padding: '14px 34px',
+              fontSize: '12px',
+              fontWeight: '700',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              borderRadius: '2px',
+              transition: 'transform 0.2s ease, background 0.2s ease'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.background = '#e5c98a'; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = '#D6B56D'; }}
+          >
+            PLAN A TRIP &rarr;
+          </button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const destId = (trip.destination?.id || '').toLowerCase();
   const data = mockItineraries[destId] || mockItineraries['default'];
@@ -68,17 +255,22 @@ export default function ItineraryPage() {
 
   const heroImgSrc = resolveImage(destId, resolveImage(destName, trip.destination?.image || data.image));
 
-  // Dynamic tagline
-  let tagline = `A ${travelStyle.toLowerCase()} journey`;
-  if (interests.length > 0) {
-    tagline += ` through ${trip.destination.name}'s ${interests.join(', ').toLowerCase()}`;
-  } else {
-    tagline += ` through ${trip.destination.name}'s cultural landmarks and local escapes`;
+  // Dynamic tagline (prefer persisted tagline if available)
+  let tagline = trip.itinerary?.tagline;
+  if (!tagline) {
+    tagline = `A ${travelStyle.toLowerCase()} journey`;
+    if (interests.length > 0) {
+      tagline += ` through ${trip.destination?.name || destName}'s ${interests.join(', ').toLowerCase()}`;
+    } else {
+      tagline += ` through ${trip.destination?.name || destName}'s cultural landmarks and local escapes`;
+    }
+    tagline += '.';
   }
-  tagline += '.';
 
-  // Days list calculation
-  const daysList = data.days;
+  // Days list calculation: prefer database-stored days if present
+  const daysList = (trip.itinerary?.days && trip.itinerary.days.length > 0)
+    ? trip.itinerary.days
+    : data.days;
   const currentDayData = daysList[(activeDay - 1) % daysList.length];
 
   // Open Lightbox
@@ -144,7 +336,28 @@ export default function ItineraryPage() {
     });
   };
 
-  const handleSaveJourney = () => {
+  const handleSaveJourney = async () => {
+    // If trip already has a backend ID, persist updates
+    if (trip._id) {
+      try {
+        await apiClient.updateTrip(trip._id, trip);
+      } catch (e) {
+        console.warn('[ItineraryPage] Update to backend failed:', e);
+      }
+    } else {
+      // Otherwise persist new trip to MongoDB Atlas
+      try {
+        const res = await apiClient.createTrip(trip);
+        if (res.success && res.data?.data) {
+          const persisted = res.data.data;
+          setTrip(persisted);
+          localStorage.setItem('dastaanTrip', JSON.stringify(persisted));
+        }
+      } catch (e) {
+        console.warn('[ItineraryPage] Save to backend failed:', e);
+      }
+    }
+
     localStorage.setItem('dastaanSavedJourney', JSON.stringify(trip));
     setIsSaved(true);
     setShowToast(true);

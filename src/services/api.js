@@ -16,6 +16,16 @@ async function request(endpoint, options = {}) {
     'Accept': 'application/json'
   };
 
+  // Automatically attach Bearer token if present
+  try {
+    const token = localStorage.getItem('dastaan_token');
+    if (token) {
+      defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+  } catch {
+    // Ignore localStorage access issues
+  }
+
   const config = {
     ...options,
     headers: {
@@ -58,6 +68,18 @@ export const apiClient = {
   post: (endpoint, body, options) => request(endpoint, { ...options, method: 'POST', body: JSON.stringify(body) }),
   put: (endpoint, body, options) => request(endpoint, { ...options, method: 'PUT', body: JSON.stringify(body) }),
   delete: (endpoint, options) => request(endpoint, { ...options, method: 'DELETE' }),
+
+  // Trip API Methods
+  createTrip: (tripData) => request('trips', { method: 'POST', body: JSON.stringify(tripData) }),
+  getUserTrips: () => request('trips', { method: 'GET' }),
+  getTripById: (id) => request(`trips/${id}`, { method: 'GET' }),
+  updateTrip: (id, tripData) => request(`trips/${id}`, { method: 'PUT', body: JSON.stringify(tripData) }),
+  deleteTrip: (id) => request(`trips/${id}`, { method: 'DELETE' }),
+
+  // Auth API Methods
+  login: (credentials) => request('auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
+  signup: (userData) => request('auth/signup', { method: 'POST', body: JSON.stringify(userData) }),
+  getMe: () => request('auth/me', { method: 'GET' }),
 
   /**
    * Health check query

@@ -27,7 +27,7 @@ const tripSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      default: null,
+      required: [true, 'Trip must be associated with an authenticated user'],
       index: true
     },
     destination: {
@@ -61,6 +61,16 @@ const tripSchema = new mongoose.Schema(
       default: 'Balanced'
     },
     itinerary: {
+      tagline: { type: String, trim: true },
+      overview: { type: String, trim: true },
+      breakdown: [
+        {
+          name: { type: String, trim: true },
+          pct: { type: Number },
+          amount: { type: Number },
+          color: { type: String, trim: true }
+        }
+      ],
       days: [daySchema]
     }
   },

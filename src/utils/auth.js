@@ -31,16 +31,22 @@ export function getCurrentUser() {
   }
 }
 
-export function createSession(user) {
+export function createSession(user, token = null) {
   const session = {
-    userId: user.id,
-    fullName: user.fullName,
+    userId: user.id || user._id,
+    fullName: user.fullName || user.name,
     email: user.email,
     loginAt: new Date().toISOString()
   };
   sessionStorage.setItem('dastaan_session', JSON.stringify(session));
-  const userData = { name: user.fullName || user.email.split('@')[0] };
+  const userData = { 
+    id: user.id || user._id,
+    name: user.fullName || user.name || user.email?.split('@')[0] 
+  };
   localStorage.setItem('dastaanUser', JSON.stringify(userData));
+  if (token) {
+    localStorage.setItem('dastaan_token', token);
+  }
   
   // Dispatch a custom event so reactive components can update instantly
   window.dispatchEvent(new Event('dastaan-auth-change'));
@@ -49,6 +55,7 @@ export function createSession(user) {
 
 export function clearSession() {
   localStorage.removeItem('dastaanUser');
+  localStorage.removeItem('dastaan_token');
   sessionStorage.removeItem('dastaan_session');
   window.dispatchEvent(new Event('dastaan-auth-change'));
 }

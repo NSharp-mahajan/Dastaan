@@ -44,6 +44,7 @@ export default function App() {
 
         {/* Itinerary Route */}
         <Route path="/itinerary" element={<ItineraryPage />} />
+        <Route path="/itinerary/:id" element={<ItineraryPage />} />
         <Route path="/my-journey" element={<ItineraryPage />} />
         <Route path="/page3" element={<ItineraryPage />} />
         <Route path="/page3/page3.html" element={<ItineraryPage />} />

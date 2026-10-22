@@ -49,9 +49,6 @@ userSchema.methods.toJSON = function () {
   return obj;
 };
 
-// Index on email for fast lookups
-userSchema.index({ email: 1 });
-
 const User = mongoose.model('User', userSchema);
 
 export default User;

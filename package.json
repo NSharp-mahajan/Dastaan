@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "server": "npm start --prefix server",
-    "server:dev": "npm run dev --prefix server"
+    "server:dev": "npm run dev --prefix server",
+    "test:server": "npm test --prefix server"
   },
   "dependencies": {
     "react": "^19.0.0",
