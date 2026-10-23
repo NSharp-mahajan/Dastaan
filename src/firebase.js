@@ -14,28 +14,30 @@ import {
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'dastaan-32c4e.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'dastaan-32c4e',
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-const requiredConfig = [
-  firebaseConfig.apiKey,
-  firebaseConfig.authDomain,
-  firebaseConfig.projectId,
-  firebaseConfig.appId
-];
-export const firebaseConfigError = requiredConfig.some(value =>
-  !value || value.startsWith('your_') || value.startsWith('replace_with_')
-)
+export const isFirebaseConfigured = Boolean(
+  firebaseConfig.apiKey &&
+  firebaseConfig.appId &&
+  !firebaseConfig.apiKey.startsWith('replace_with_') &&
+  !firebaseConfig.apiKey.startsWith('your_') &&
+  !firebaseConfig.appId.startsWith('replace_with_') &&
+  !firebaseConfig.appId.startsWith('your_')
+);
+
+export const firebaseConfigError = !isFirebaseConfigured
   ? 'Firebase Web configuration is missing or still contains example values.'
   : '';
 
 // Singleton initialization to prevent duplicate Firebase apps in Vite HMR.
 // Never initialize Auth with the example/missing config: it throws before React can render.
-const app = firebaseConfigError
-  ? null
-  : getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const app = isFirebaseConfigured
+  ? (getApps().length > 0 ? getApp() : initializeApp(firebaseConfig))
+  : null;
+
 export const auth = app ? getAuth(app) : null;
 
 export const googleProvider = app ? new GoogleAuthProvider() : null;

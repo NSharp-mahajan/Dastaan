@@ -61,7 +61,9 @@ export function createSession(user, token = null) {
  */
 export async function clearSession() {
   try {
-    await fbSignOut(auth);
+    if (auth) {
+      await fbSignOut(auth);
+    }
   } catch {
     // Ignore signOut errors if already offline
   } finally {
@@ -72,9 +74,30 @@ export async function clearSession() {
 export const logoutUser = clearSession;
 
 /**
+ * Log in a local demo user when Firebase credentials are not yet configured.
+ */
+export function loginDemoUser(profileDetails = {}) {
+  const demoProfile = {
+    firebaseUid: 'demo_guest_traveler',
+    name: profileDetails.name || 'Demo Traveler',
+    email: profileDetails.email || 'traveler@dastaan.local',
+    mobile: profileDetails.mobile || '+91 98765 43210',
+    travelStyle: profileDetails.travelStyle || 'Balanced',
+    role: 'user',
+    emailVerified: true
+  };
+  setCachedUser(demoProfile);
+  return demoProfile;
+}
+
+/**
  * Sign up a new user with Firebase and initialize their MongoDB profile.
  */
 export async function signupWithEmail(email, password, profileDetails = {}) {
+  if (!auth) {
+    throw new Error('Firebase Authentication is not configured. Please add your Firebase Web credentials to .env or use Demo mode.');
+  }
+
   const { name, mobile, travelStyle } = profileDetails;
 
   // 1. Create user in Firebase Authentication
@@ -134,6 +157,10 @@ export async function signupWithEmail(email, password, profileDetails = {}) {
  * Log in an existing user with email and password, then fetch their MongoDB profile.
  */
 export async function loginWithEmail(email, password) {
+  if (!auth) {
+    throw new Error('Firebase Authentication is not configured. Please add your Firebase Web credentials to .env or use Demo mode.');
+  }
+
   // 1. Authenticate with Firebase
   const userCredential = await fbSignIn(auth, email, password);
   const fbUser = userCredential.user;
@@ -165,6 +192,10 @@ export async function loginWithEmail(email, password) {
  * Sign in using Google popup provider, then sync with MongoDB Atlas.
  */
 export async function loginWithGoogle() {
+  if (!auth || !googleProvider) {
+    throw new Error('Firebase Authentication is not configured. Please add your Firebase Web credentials to .env or use Demo mode.');
+  }
+
   const userCredential = await signInWithPopup(auth, googleProvider);
   const fbUser = userCredential.user;
 
@@ -193,6 +224,9 @@ export async function loginWithGoogle() {
  * Send password reset email.
  */
 export async function sendPasswordReset(email) {
+  if (!auth) {
+    throw new Error('Firebase Authentication is not configured.');
+  }
   return await fbSendPasswordResetEmail(auth, email);
 }
 
@@ -200,7 +234,7 @@ export async function sendPasswordReset(email) {
  * Resend email verification to current user.
  */
 export async function resendVerification() {
-  if (auth.currentUser) {
+  if (auth && auth.currentUser) {
     return await fbSendEmailVerification(auth.currentUser);
   }
   throw new Error('No signed-in user to send verification to');
@@ -210,6 +244,7 @@ export async function resendVerification() {
  * Initialize Firebase authentication state listener with automatic token refresh and MongoDB session sync.
  */
 export function initAuthListener(onUserChange) {
+  if (!auth) return () => {};
   return onAuthStateChanged(auth, async (firebaseUser) => {
     if (firebaseUser) {
       try {
@@ -252,7 +287,7 @@ export function getFriendlyAuthErrorMessage(error) {
   switch (code) {
     case 'auth/api-key-not-valid':
     case 'auth/invalid-api-key':
-      return 'Firebase rejected this Web API key. In Firebase Console, open the project for this Web App, copy its apiKey from Project settings > General > Your apps, update VITE_FIREBASE_API_KEY in the root .env, and restart Vite.';
+      return 'Firebase rejected this Web API key. In Firebase Console, open project dastaan-32c4e, copy its apiKey from Project settings > General > Your apps, update VITE_FIREBASE_API_KEY in .env, and restart Vite.';
     case 'auth/email-already-in-use':
       return 'An account with this email address already exists. Please sign in instead.';
     case 'auth/configuration-not-found':

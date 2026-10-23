@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import DiscoverPage from './pages/DiscoverPage';
@@ -29,6 +29,8 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  const [showConfigNotice, setShowConfigNotice] = useState(true);
+
   // Restore Firebase Auth session and keep MongoDB profile synchronized
   useEffect(() => {
     if (firebaseConfigError) return undefined;
@@ -38,22 +40,48 @@ export default function App() {
     };
   }, []);
 
-  if (firebaseConfigError) {
-    return (
-      <main style={{ maxWidth: 720, margin: '10vh auto', padding: '2rem', fontFamily: 'system-ui, sans-serif', lineHeight: 1.6 }}>
-        <h1>Firebase setup is incomplete</h1>
-        <p>{firebaseConfigError}</p>
-        <p>In Firebase Console, open project <strong>dastaan-32c4e</strong>, then go to Project settings → General → Your apps. Select the Web app (or create one) and copy its Firebase SDK configuration.</p>
-        <p>Set these values in the project root <code>.env</code> file, then restart Vite:</p>
-        <pre style={{ whiteSpace: 'pre-wrap' }}>{'VITE_FIREBASE_API_KEY=<apiKey from the Web app config>\nVITE_FIREBASE_AUTH_DOMAIN=<authDomain>\nVITE_FIREBASE_PROJECT_ID=<projectId>\nVITE_FIREBASE_APP_ID=<appId>'}</pre>
-        <p>Use the Firebase Web app configuration. Do not use backend service account or Firebase Admin credentials.</p>
-      </main>
-    );
-  }
-
   return (
     <>
       <ScrollToTop />
+      {firebaseConfigError && showConfigNotice && (
+        <aside
+          style={{
+            background: 'linear-gradient(90deg, #173B35 0%, #0d221e 100%)',
+            color: '#E8DCC7',
+            padding: '8px 16px',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid rgba(223, 186, 115, 0.4)',
+            position: 'sticky',
+            top: 0,
+            zIndex: 10000,
+            fontFamily: 'Inter, system-ui, sans-serif'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ color: '#DFBA73', fontWeight: 600 }}>Preview Mode:</span>
+            <span>Running with local features. Firebase Web credentials are not yet set in <code>.env</code>.</span>
+          </div>
+          <button
+            onClick={() => setShowConfigNotice(false)}
+            aria-label="Dismiss notice"
+            title="Dismiss notice"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#DFBA73',
+              fontSize: '18px',
+              cursor: 'pointer',
+              lineHeight: 1,
+              padding: '0 4px'
+            }}
+          >
+            ×
+          </button>
+        </aside>
+      )}
       <DevApiStatus />
       <Routes>
         <Route path="/" element={<LandingPage />} />

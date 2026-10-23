@@ -245,15 +245,15 @@ export default function TripConfiguratorPage() {
             <div className="journey-col duration-col">
               <span className="col-label">HOW MANY DAYS?</span>
               <div className="duration-control">
-                <button type="button" id="btn-dur-minus" onClick={() => handleDurationChange(duration - 1)}>
-                  &minus;
+                <button type="button" id="btn-dur-minus" aria-label="Decrease days" onClick={() => handleDurationChange(duration - 1)}>
+                  −
                 </button>
                 <div className="duration-display">
                   <span id="dur-val">{duration}</span>
                   <span className="dur-unit">DAYS</span>
                 </div>
-                <button type="button" id="btn-dur-plus" onClick={() => handleDurationChange(duration + 1)}>
-                  &plus;
+                <button type="button" id="btn-dur-plus" aria-label="Increase days" onClick={() => handleDurationChange(duration + 1)}>
+                  +
                 </button>
               </div>
 

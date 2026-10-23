@@ -11,7 +11,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
  */
 export async function getAuthToken(forceRefresh = false) {
   try {
-    if (auth.currentUser) {
+    if (auth && auth.currentUser) {
       return await auth.currentUser.getIdToken(forceRefresh);
     }
   } catch (err) {
@@ -46,7 +46,6 @@ async function request(endpoint, options = {}) {
       // Ignore localStorage access issues
     }
   }
-
   const config = {
     ...options,
     headers: {
@@ -116,6 +115,7 @@ export const apiClient = {
   checkHealth: async () => {
     return await request('health', { method: 'GET' });
   },
+
 
   getBaseUrl: () => API_BASE_URL
 };

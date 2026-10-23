@@ -271,10 +271,10 @@ export default function ItineraryPage() {
     tagline += '.';
   }
 
-  // Days list calculation: prefer database-stored days if present
-  const daysList = (trip.itinerary?.days && trip.itinerary.days.length > 0)
+  // Days list calculation: prefer database-stored days if matching duration, otherwise curated days
+  const daysList = (trip.itinerary?.days && trip.itinerary.days.length >= Math.min(duration, (data?.days || []).length))
     ? trip.itinerary.days
-    : data.days;
+    : (data?.days || []);
   const currentDayData = daysList[(activeDay - 1) % daysList.length];
 
   // Open Lightbox

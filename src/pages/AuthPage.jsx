@@ -5,8 +5,10 @@ import {
   signupWithEmail,
   loginWithGoogle,
   sendPasswordReset,
+  loginDemoUser,
   getFriendlyAuthErrorMessage
 } from '../utils/auth';
+import { firebaseConfigError } from '../firebase';
 import '../styles/signup.css';
 
 export default function AuthPage() {
@@ -247,6 +249,48 @@ export default function AuthPage() {
               <span className="logo-tagline">STORIES &bull; IDEAS &bull; EMOTIONS</span>
             </div>
           </div>
+
+          {firebaseConfigError && (
+            <div
+              style={{
+                background: 'rgba(223, 186, 115, 0.08)',
+                border: '1px solid rgba(223, 186, 115, 0.35)',
+                borderRadius: '8px',
+                padding: '14px 16px',
+                marginBottom: '1.25rem',
+                color: '#E8DCC7',
+                fontSize: '0.875rem'
+              }}
+            >
+              <div style={{ color: '#DFBA73', fontWeight: 600, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>⚠️</span>
+                <span>Firebase Authentication Not Configured</span>
+              </div>
+              <p style={{ margin: '0 0 10px 0', fontSize: '0.82rem', lineHeight: 1.5, opacity: 0.9 }}>
+                Web credentials for Firebase project <code>dastaan-32c4e</code> are not yet set in <code>.env</code>. You can explore full features right now as a Demo Traveler or add your API keys to <code>.env</code>.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  loginDemoUser();
+                  navigate('/plan');
+                }}
+                style={{
+                  background: '#DFBA73',
+                  color: '#071D1A',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '7px 14px',
+                  fontWeight: 600,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                Continue as Demo Traveler →
+              </button>
+            </div>
+          )}
 
           <div className="auth-forms-wrapper">
             {/* LOGIN FORM */}

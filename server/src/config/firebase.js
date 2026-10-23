@@ -3,9 +3,14 @@ import { getAuth } from 'firebase-admin/auth';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Ensure environment variables from server/.env and root .env are loaded
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 let firebaseApp = null;
 export let hasServiceAccountCredential = false;
@@ -15,7 +20,7 @@ export const initFirebaseAdmin = () => {
     return getApp();
   }
 
-  const projectId = process.env.FIREBASE_PROJECT_ID || 'dastaan-32c4e';
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || 'dastaan-32c4e-249d1';
 
   // 1. Try explicit service account JSON string from environment variable
   if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {

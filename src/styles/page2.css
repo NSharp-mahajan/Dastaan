@@ -77,6 +77,14 @@ body, html {
   padding-top: 160px;
   padding-bottom: 60px;
   text-align: center;
+  width: 100%;
+}
+.section-hero .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 .stepper {
   display: flex;
@@ -84,16 +92,27 @@ body, html {
   justify-content: center;
   gap: 16px;
   margin-bottom: 40px;
+  width: 100%;
   animation: fadeUp 0.8s ease;
 }
 .step { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; color: rgba(244, 239, 227, 0.4); }
 .step.active { color: var(--gold); }
 .step-divider { width: 40px; height: 1px; background: rgba(214, 181, 109, 0.3); }
 
-.hero-content { animation: fadeUp 0.8s ease 0.1s both; }
-.hero-content .eyebrow { display: block; font-size: 0.7rem; font-weight: 700; color: var(--gold); letter-spacing: 3px; margin-bottom: 16px; }
-.hero-content h1 { font-family: var(--font-serif); font-size: clamp(2.5rem, 5vw, 4rem); margin: 0 0 16px; color: var(--paper); }
-.hero-content p { color: var(--muted); font-size: 1.1rem; margin: 0; }
+.hero-content {
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 900px;
+  animation: fadeUp 0.8s ease 0.1s both;
+}
+.hero-content .eyebrow { display: block; font-size: 0.7rem; font-weight: 700; color: var(--gold); letter-spacing: 3px; margin-bottom: 16px; text-align: center; }
+.hero-content h1 { font-family: var(--font-serif); font-size: clamp(2.5rem, 5vw, 4rem); margin: 0 0 16px; color: var(--paper); text-align: center; width: 100%; }
+.hero-content p { color: var(--muted); font-size: 1.1rem; margin: 0; text-align: center; }
 
 /* SECTION 2: DESTINATION */
 .section-destination {
@@ -244,11 +263,21 @@ body, html {
   margin-bottom: 32px;
 }
 .duration-control button {
-  width: 48px; height: 48px; border-radius: 50%;
-  border: 1px solid var(--primary-deep); background: transparent;
-  color: var(--primary-deep); font-size: 1.5rem; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--primary-deep);
+  background: transparent;
+  color: var(--primary-deep);
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s;
+  user-select: none;
 }
 .duration-control button:hover { background: var(--primary-deep); color: var(--paper); }
 .duration-display { display: flex; flex-direction: column; align-items: center; min-width: 80px; }
