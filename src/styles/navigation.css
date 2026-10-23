@@ -21,24 +21,26 @@
   right: 0;
   z-index: 1000;
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) auto minmax(260px, 1fr);
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 32px;
-  padding: 32px;
+  gap: clamp(16px, 2vw, 32px);
+  padding: 20px 32px;
   color: rgba(253, 241, 225, 0.86);
   pointer-events: auto;
-  background: linear-gradient(180deg, rgba(7, 16, 15, 0.5) 0%, rgba(7, 16, 15, 0) 100%);
+  background: linear-gradient(180deg, rgba(7, 16, 15, 0.75) 0%, rgba(7, 16, 15, 0) 100%);
   box-sizing: border-box;
+  width: 100%;
 }
 
 /* Sticky/Fixed navbar variation for scrollable pages */
 .site-header.fixed-nav {
   position: fixed;
-  background: rgba(7, 29, 26, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(223, 186, 115, 0.15);
-  padding: 20px 32px;
+  background: rgba(6, 35, 31, 0.98);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(223, 186, 115, 0.2);
+  padding: 16px 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 .site-logo {

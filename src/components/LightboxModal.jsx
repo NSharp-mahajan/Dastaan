@@ -1,6 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function LightboxModal({ isOpen, onClose, data }) {
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [data?.imgSrc]);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -36,8 +42,17 @@ export default function LightboxModal({ isOpen, onClose, data }) {
         </button>
 
         <div className="lightbox-media-wrap">
-          {imgSrc ? (
-            <img src={imgSrc} alt={title || 'Place View'} className="lightbox-img" style={{ display: 'block' }} />
+          {imgSrc && !imgError ? (
+            <img
+              src={imgSrc}
+              alt={title || 'Place View'}
+              className="lightbox-img"
+              style={{ display: 'block' }}
+              onError={() => {
+                console.warn(`[LightboxModal] Failed to load image: ${imgSrc}`);
+                setImgError(true);
+              }}
+            />
           ) : (
             <div className="lightbox-placeholder-box" style={{ display: 'flex' }}>
               <span className="placeholder-badge">[ {imgLabel || (title || '').toUpperCase()} ]</span>

@@ -41,8 +41,8 @@ console.log('====================================================');
 // Setup Firebase Client with Emulator
 const clientApp = initClient({
   apiKey: 'fake-api-key',
-  projectId: 'dastaan-32c4e',
-  authDomain: 'dastaan-32c4e.firebaseapp.com'
+  projectId: process.env.FIREBASE_PROJECT_ID || 'dastaan-32c4e-249d1',
+  authDomain: `${process.env.FIREBASE_PROJECT_ID || 'dastaan-32c4e-249d1'}.firebaseapp.com`
 });
 const clientAuth = getClientAuth(clientApp);
 connectAuthEmulator(clientAuth, 'http://127.0.0.1:9099', { disableWarnings: true });

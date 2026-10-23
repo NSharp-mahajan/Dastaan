@@ -47,6 +47,7 @@ export default function Navbar({ isFixed = true }) {
   const currentPath = location.pathname;
   const isExplore = currentPath === '/';
   const isDiscover = currentPath === '/discover';
+  const isInspiration = currentPath === '/inspiration';
   const isJourney = currentPath === '/itinerary' || currentPath === '/my-journey' || currentPath === '/page3';
   const isPlan = currentPath === '/plan' || currentPath === '/page2';
   const isProfile = currentPath === '/profile';
@@ -83,6 +84,9 @@ export default function Navbar({ isFixed = true }) {
         </Link>
         <Link to="/discover" className={isDiscover ? 'active' : ''}>
           Discover
+        </Link>
+        <Link to="/inspiration" className={isInspiration ? 'active' : ''}>
+          Inspiration
         </Link>
         <Link to="/itinerary" className={isJourney ? 'active' : ''}>
           My Journey

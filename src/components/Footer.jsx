@@ -24,6 +24,7 @@ export default function Footer() {
             <ul>
               <li><Link to="/">Explore</Link></li>
               <li><Link to="/discover">Discover</Link></li>
+              <li><Link to="/inspiration">Inspiration</Link></li>
               <li><Link to="/itinerary">My Journey</Link></li>
               <li><Link to="/plan">Plan a Trip</Link></li>
             </ul>

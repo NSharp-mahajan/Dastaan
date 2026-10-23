@@ -1,8 +1,16 @@
+import dns from 'node:dns';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import app from './app.js';
 import { connectDB } from './config/db.js';
+
+// Configure public DNS resolvers to handle mongodb+srv SRV record resolution across all networks
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch {
+  // Ignore if unsupported in environment
+}
 
 // Resolve current directory for ESM
 const __filename = fileURLToPath(import.meta.url);

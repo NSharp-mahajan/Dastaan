@@ -7,6 +7,7 @@ import ItineraryPage from './pages/ItineraryPage';
 import ProfilePage from './pages/ProfilePage';
 import AuthPage from './pages/AuthPage';
 import NotFoundPage from './pages/NotFoundPage';
+import TripInspirationPage from './pages/TripInspirationPage';
 import DevApiStatus from './components/DevApiStatus';
 import { initAuthListener } from './utils/auth';
 import { firebaseConfigError } from './firebase';
@@ -89,6 +90,9 @@ export default function App() {
         {/* Discover Route */}
         <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/discover/discover.html" element={<DiscoverPage />} />
+
+        {/* Trip Inspiration Route */}
+        <Route path="/inspiration" element={<TripInspirationPage />} />
 
         {/* Trip Planning Route */}
         <Route path="/plan" element={<TripConfiguratorPage />} />

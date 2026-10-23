@@ -1,3 +1,4 @@
+import dns from 'node:dns';
 import mongoose from 'mongoose';
 
 // State tracking for health reporting
@@ -22,11 +23,19 @@ export const connectDB = async () => {
     return false;
   }
 
+  // Force Node.js to use public DNS servers (Google 8.8.8.8, Cloudflare 1.1.1.1)
+  // to resolve mongodb+srv SRV records on networks/routers that block or refuse SRV lookups
+  try {
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+  } catch (dnsErr) {
+    // Ignore if system restricts overriding DNS
+  }
+
   connectionState.status = 'connecting';
 
   try {
     const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 4000 // Fast fail for local testing if no server
+      serverSelectionTimeoutMS: 5000 // Fast fail for local testing if no server
     });
 
     connectionState = {

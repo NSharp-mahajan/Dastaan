@@ -15,7 +15,6 @@ export const plannerDestinations = [
   { id: 'florence', name: 'Florence', country: 'Italy', image: 'https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=1800&q=80', defaultDur: 4, defaultBud: 30000 },
   { id: 'istanbul', name: 'Istanbul', country: 'Turkey', image: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1800&q=80', defaultDur: 4, defaultBud: 22000 },
 ];
-
 export const discoverDestinations = [
   {
     id: "kyoto",
