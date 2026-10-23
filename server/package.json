@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node --use-system-ca src/server.js",
     "dev": "node --watch --use-system-ca src/server.js",
-    "test": "node --use-system-ca --test tests/trip.test.js"
+    "test": "node --use-system-ca --test tests/trip.test.js tests/travelData.test.js tests/stage2Routing.test.js tests/optimizerPhase1.test.js tests/optimizerPhase2.test.js tests/optimizerPhase3.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

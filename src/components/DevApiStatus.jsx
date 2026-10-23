@@ -10,27 +10,28 @@ export default function DevApiStatus() {
 
   useEffect(() => {
     let isMounted = true;
+    let timer = null;
 
     const performCheck = async () => {
       const res = await apiClient.checkHealth();
       if (!isMounted) return;
 
       if (res.success && res.data) {
-        console.log('[Dastaan API Dev Check] Backend is reachable:', res.data);
         setStatus({
           checking: false,
           connected: true,
           message: 'Backend Connected',
-          db: res.data.database?.status || 'unknown'
+          db: res.data.database?.status || 'connected'
         });
       } else {
-        console.warn('[Dastaan API Dev Check] Backend is unreachable:', res.error);
         setStatus({
           checking: false,
           connected: false,
           message: 'Backend Offline',
           db: 'disconnected'
         });
+        // Retry in 5 seconds if currently disconnected
+        timer = setTimeout(performCheck, 5000);
       }
     };
 
@@ -38,6 +39,7 @@ export default function DevApiStatus() {
 
     return () => {
       isMounted = false;
+      if (timer) clearTimeout(timer);
     };
   }, []);
 

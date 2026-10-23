@@ -1,5 +1,60 @@
 import mongoose from 'mongoose';
 
+const routeSchema = new mongoose.Schema(
+  {
+    distanceKm: { type: Number },
+    durationMin: { type: Number },
+    mode: { type: String, enum: ['driving', 'walking', 'transit'], default: 'driving' },
+    provider: { type: String, default: 'haversine-estimate' },
+    isEstimated: { type: Boolean, default: true },
+    geometry: {
+      type: { type: String, default: 'LineString' },
+      coordinates: { type: [[Number]], default: [] }
+    },
+    legs: [
+      {
+        from: { type: String },
+        to: { type: String },
+        distanceKm: { type: Number },
+        durationMin: { type: Number },
+        isEstimated: { type: Boolean },
+        sourceLabel: { type: String }
+      }
+    ],
+    attribution: { type: String },
+    note: { type: String }
+  },
+  { _id: false }
+);
+
+const transitLegSchema = new mongoose.Schema(
+  {
+    toTitle: { type: String },
+    distanceKm: { type: Number },
+    durationMin: { type: Number },
+    mode: { type: String },
+    provider: { type: String },
+    isEstimated: { type: Boolean },
+    sourceLabel: { type: String }
+  },
+  { _id: false }
+);
+
+const feasibilitySchema = new mongoose.Schema(
+  {
+    dailyBudgetHours: { type: Number },
+    totalVisitHours: { type: Number },
+    totalTransitHours: { type: Number },
+    totalDayHours: { type: Number },
+    status: { type: String, enum: ['optimal', 'tight', 'relaxed'], default: 'optimal' },
+    isFeasible: { type: Boolean, default: true },
+    routeQuality: { type: String, enum: ['road_network', 'estimate', 'unknown'], default: 'unknown' },
+    suggestions: [{ type: String }],
+    warnings: [{ type: String }]
+  },
+  { _id: false }
+);
+
 const activitySchema = new mongoose.Schema(
   {
     time: { type: String, trim: true },
@@ -8,7 +63,18 @@ const activitySchema = new mongoose.Schema(
     cat: { type: String, trim: true },
     image: { type: String, trim: true },
     imageLabel: { type: String, trim: true },
-    layout: { type: String, enum: ['image-left', 'image-right'], default: 'image-right' }
+    layout: { type: String, enum: ['image-left', 'image-right'], default: 'image-right' },
+    transitToNext: transitLegSchema,
+    placeId: { type: String, trim: true },
+    latitude: { type: Number },
+    longitude: { type: Number },
+    address: { type: String, trim: true },
+    rating: { type: Number },
+    visitDurationHours: { type: Number },
+    openingStatus: { type: String, trim: true },
+    source: { type: String, trim: true },
+    attribution: { type: String, trim: true },
+    isSelfGuided: { type: Boolean, default: false }
   },
   { _id: false }
 );
@@ -17,6 +83,9 @@ const daySchema = new mongoose.Schema(
   {
     dayNum: { type: Number, required: true },
     dayTitle: { type: String, trim: true },
+    isExplorationDay: { type: Boolean, default: false },
+    feasibility: feasibilitySchema,
+    route: routeSchema,
     activities: [activitySchema]
   },
   { _id: false }
@@ -34,6 +103,9 @@ const tripSchema = new mongoose.Schema(
       id: { type: String, required: true, trim: true },
       name: { type: String, required: true, trim: true },
       country: { type: String, trim: true },
+      countryCode: { type: String, trim: true },
+      latitude: { type: Number },
+      longitude: { type: Number },
       image: { type: String, trim: true },
       defaultDur: { type: Number },
       defaultBud: { type: Number }
@@ -68,7 +140,8 @@ const tripSchema = new mongoose.Schema(
           name: { type: String, trim: true },
           pct: { type: Number },
           amount: { type: Number },
-          color: { type: String, trim: true }
+          color: { type: String, trim: true },
+          isEstimated: { type: Boolean, default: true }
         }
       ],
       days: [daySchema]

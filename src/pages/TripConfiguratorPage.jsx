@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { plannerDestinations } from '../data/destinations';
 import { availableInterests } from '../data/interests';
 import apiClient from '../services/api';
+import { auth } from '../firebase';
 import '../styles/navigation.css';
 import '../styles/page2.css';
 
@@ -47,29 +48,25 @@ export default function TripConfiguratorPage() {
 
   // Save changes to localStorage
   const saveState = (updated) => {
-    const tripPayload = {
-      destination: updated.selectedDest !== undefined ? updated.selectedDest : selectedDest,
-      duration: updated.duration !== undefined ? updated.duration : duration,
-      budget: updated.budget !== undefined ? updated.budget : budget,
-      interests: updated.interests !== undefined ? updated.interests : interests,
-      travelStyle: updated.travelStyle !== undefined ? updated.travelStyle : travelStyle
+    const current = {
+      destination: selectedDest,
+      duration,
+      budget,
+      interests,
+      travelStyle,
+      ...updated
     };
-    localStorage.setItem('dastaanTrip', JSON.stringify(tripPayload));
+    localStorage.setItem('dastaanTrip', JSON.stringify(current));
   };
 
   const handleSelectDest = (dest) => {
     setSelectedDest(dest);
     setSearchVal(dest.name);
     setValidationMsg('');
-
-    // Crossfade background image
-    setBgOpacity(0);
-    setTimeout(() => {
-      setBgImage(dest.image);
-      setBgOpacity(1);
-    }, 400);
-
-    saveState({ selectedDest: dest });
+    if (dest.defaultDur) setDuration(dest.defaultDur);
+    if (dest.defaultBud) setBudget(dest.defaultBud);
+    if (dest.image) setBgImage(dest.image);
+    saveState({ destination: dest });
   };
 
   const handleSearchInput = (val) => {
@@ -129,24 +126,39 @@ export default function TripConfiguratorPage() {
       travelStyle
     };
 
-    // Store in localStorage for instant access
-    localStorage.setItem('dastaanTrip', JSON.stringify(tripPayload));
-
     try {
-      const res = await apiClient.createTrip(tripPayload);
-      if (res.success && res.data?.data) {
-        const savedTrip = res.data.data;
-        localStorage.setItem('dastaanTrip', JSON.stringify(savedTrip));
-        navigate(`/itinerary?id=${savedTrip._id}`);
-        return;
-      }
-    } catch (err) {
-      console.warn('[TripPlanner] Backend API call failed, navigating with local state:', err);
-    }
+      // 1. Generate full intelligent preview with feasibility, ordering & routing
+      const previewRes = await apiClient.previewTrip(tripPayload);
 
-    setTimeout(() => {
+      if (!previewRes.success || !previewRes.data?.data) {
+        throw new Error(previewRes.error || 'Failed to generate itinerary. Please try again.');
+      }
+
+      const generatedTrip = previewRes.data.data;
+      localStorage.setItem('dastaanTrip', JSON.stringify(generatedTrip));
+
+      // 2. If user is authenticated, persist to MongoDB Atlas
+      if (auth.currentUser) {
+        try {
+          const saveRes = await apiClient.createTrip(generatedTrip);
+          if (saveRes.success && saveRes.data?.data) {
+            const savedDoc = saveRes.data.data;
+            localStorage.setItem('dastaanTrip', JSON.stringify(savedDoc));
+            navigate(`/itinerary?id=${savedDoc._id}`);
+            return;
+          }
+        } catch (saveErr) {
+          console.warn('[TripPlanner] Authenticated save deferred, navigating with preview:', saveErr);
+        }
+      }
+
+      // 3. Guest user: Navigate to itinerary with full generated preview
       navigate('/itinerary');
-    }, 400);
+    } catch (err) {
+      console.error('[TripPlanner] Itinerary generation failed:', err);
+      setValidationMsg(err.message || 'Unable to build itinerary. Please check your connection and try again.');
+      setIsBuilding(false);
+    }
   };
 
   return (

@@ -26,6 +26,19 @@ export default function ItineraryPage() {
   const [isEmpty, setIsEmpty] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Phase 3: Interactive Itinerary Editing & Persistence States
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isRecalculating, setIsRecalculating] = useState(false);
+  const [replaceModal, setReplaceModal] = useState({ isOpen: false, dayNum: 1, actIdx: -1, currentTitle: '' });
+  const [moveDayModal, setMoveDayModal] = useState({ isOpen: false, dayNum: 1, actIdx: -1, currentTitle: '' });
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  // V2 Live Data State
+  const [weather, setWeather] = useState(null);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(false);
+  const [places, setPlaces] = useState([]);
+  const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
+
   // Tooltip state for budget bar
   const [budgetTooltip, setBudgetTooltip] = useState({ text: '', x: 0, visible: false });
 
@@ -34,6 +47,19 @@ export default function ItineraryPage() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const budgetBarRef = useRef(null);
+
+  // Warn user before leaving with unsaved modifications
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -52,16 +78,25 @@ export default function ItineraryPage() {
           if (res.success && res.data?.data) {
             const fetched = res.data.data;
             setTrip(fetched);
+            setIsSaved(true);
+            setHasUnsavedChanges(false);
             localStorage.setItem('dastaanTrip', JSON.stringify(fetched));
             setIsLoading(false);
             return;
           } else {
             console.warn('[ItineraryPage] Could not fetch trip by ID:', res.error);
-            setErrorMessage(res.error || 'Failed to retrieve requested journey.');
+            setErrorMessage(res.error || 'Failed to retrieve the requested journey. You may not have permission to view it or it may not exist.');
+            setIsEmpty(true);
+            setIsLoading(false);
+            return;
           }
         } catch (e) {
           console.warn('[ItineraryPage] Network error fetching trip by ID:', e);
           if (!isMounted) return;
+          setErrorMessage('Unable to connect to the server to load the requested journey.');
+          setIsEmpty(true);
+          setIsLoading(false);
+          return;
         }
       }
 
@@ -73,6 +108,8 @@ export default function ItineraryPage() {
           if (parsed.destination) {
             if (!isMounted) return;
             setTrip(parsed);
+            setIsSaved(Boolean(parsed._id));
+            setHasUnsavedChanges(false);
             setIsLoading(false);
             return;
           }
@@ -110,6 +147,49 @@ export default function ItineraryPage() {
       isMounted = false;
     };
   }, [tripId]);
+
+  // V2: Fetch live weather forecast and destination places
+  useEffect(() => {
+    if (!trip || !trip.destination) return;
+    let isMounted = true;
+
+    async function fetchLiveData() {
+      const destName = trip.destination.name;
+      const lat = trip.destination.latitude;
+      const lng = trip.destination.longitude;
+
+      setIsLoadingWeather(true);
+      try {
+        const weatherRes = await apiClient.getWeather({
+          latitude: lat,
+          longitude: lng,
+          destination: destName
+        });
+        if (isMounted && weatherRes.success && weatherRes.data) {
+          setWeather(weatherRes.data);
+        }
+      } catch (e) {
+        console.warn('[ItineraryPage] Live weather fetch failed:', e);
+      } finally {
+        if (isMounted) setIsLoadingWeather(false);
+      }
+
+      setIsLoadingPlaces(true);
+      try {
+        const placesRes = await apiClient.getDestinationPlaces(destName, 'all', lat, lng);
+        if (isMounted && placesRes.success && Array.isArray(placesRes.data)) {
+          setPlaces(placesRes.data);
+        }
+      } catch (e) {
+        console.warn('[ItineraryPage] Live places fetch failed:', e);
+      } finally {
+        if (isMounted) setIsLoadingPlaces(false);
+      }
+    }
+
+    fetchLiveData();
+    return () => { isMounted = false; };
+  }, [trip]);
 
   // Scroll reveal observer
   useEffect(() => {
@@ -271,11 +351,60 @@ export default function ItineraryPage() {
     tagline += '.';
   }
 
-  // Days list calculation: prefer database-stored days if matching duration, otherwise curated days
-  const daysList = (trip.itinerary?.days && trip.itinerary.days.length >= Math.min(duration, (data?.days || []).length))
+  // Days list calculation: prefer database-stored or generated days, fallback to curated data
+  const daysList = (Array.isArray(trip.itinerary?.days) && trip.itinerary.days.length > 0)
     ? trip.itinerary.days
-    : (data?.days || []);
-  const currentDayData = daysList[(activeDay - 1) % daysList.length];
+    : (Array.isArray(data?.days) && data.days.length > 0 ? data.days : null);
+
+  if (!daysList || daysList.length === 0) {
+    return (
+      <div className="itinerary-body">
+        <Navbar isFixed={false} />
+        <div style={{
+          minHeight: '75vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#071D1A',
+          color: '#F4EFE3',
+          textAlign: 'center',
+          padding: '80px 24px'
+        }}>
+          <span style={{ color: '#D6B56D', letterSpacing: '3px', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '12px', display: 'block' }}>
+            NO ACTIVE ITINERARY FOUND
+          </span>
+          <h1 style={{ fontFamily: 'Cinzel, Georgia, serif', color: '#F4EFE3', fontSize: '30px', maxWidth: '600px', margin: '0 0 16px' }}>
+            BUILD YOUR PERSONALIZED STORY
+          </h1>
+          <p style={{ color: '#E8DCC7', opacity: 0.85, maxWidth: '520px', marginBottom: '32px', fontSize: '15px', lineHeight: '1.6' }}>
+            No generated itinerary exists for this session. Please select your destination, travel pace, and interests on the planner to generate an authentic route.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/plan')}
+            style={{
+              background: '#D6B56D',
+              color: '#071D1A',
+              border: 'none',
+              padding: '14px 34px',
+              fontSize: '12px',
+              fontWeight: '700',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              borderRadius: '2px'
+            }}
+          >
+            PLAN A TRIP &rarr;
+          </button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const currentDayData = daysList[activeDay - 1] || daysList[0] || {};
 
   // Open Lightbox
   const openLightbox = (title, desc, cat, imgSrc, imgLabel) => {
@@ -290,44 +419,267 @@ export default function ItineraryPage() {
     setIsLightboxOpen(true);
   };
 
-  // Route statistics
-  const multiplier = travelStyle === 'Packed' ? 1.4 : travelStyle === 'Relaxed' ? 0.7 : 1;
-  const placesCount = Math.round((currentDayData.activities?.length || 3) * duration);
-  const movementKm = Math.round(3.2 * multiplier * duration);
-  const timeSavedMin = Math.round(45 * multiplier);
+  // Route statistics & real-world road network integration (Phase 2)
+  const currentRoute = currentDayData?.route || null;
+  const dayActivities = currentDayData?.activities || [];
+  const placesCount = dayActivities.length;
 
-  // Route SVG nodes
-  const nodeNames = ['START', ...(currentDayData.activities || []).map(a => a.title), 'END'];
-  const nodeCount = nodeNames.length;
-  const startX = 60;
-  const endX = 740;
-  const step = (endX - startX) / Math.max(1, nodeCount - 1);
+  const hasValidRoute = Boolean(
+    currentRoute &&
+    currentRoute.provider !== 'none' &&
+    currentRoute.provider !== 'insufficient-coordinates' &&
+    typeof currentRoute.distanceKm === 'number' &&
+    currentRoute.distanceKm > 0
+  );
 
-  const points = [];
-  let pathD = `M ${startX} 80`;
+  const routeProvider = currentRoute?.provider || "none";
+  const isRouteEstimated = currentRoute?.isEstimated ?? (!hasValidRoute ? false : true);
+  const movementKm = hasValidRoute ? currentRoute.distanceKm : null;
+  const travelDurationMin = hasValidRoute ? currentRoute.durationMin : null;
 
-  for (let i = 0; i < nodeCount; i++) {
-    const x = startX + i * step;
-    const y = 80 + (i % 2 === 1 ? -25 : 25);
-    points.push({ x, y, name: nodeNames[i] });
-    if (i > 0) {
-      const prev = points[i - 1];
-      const cx1 = prev.x + step / 2;
-      const cy1 = prev.y;
-      const cx2 = prev.x + step / 2;
-      const cy2 = y;
-      pathD += ` C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x} ${y}`;
+  // Compute SVG projection from genuine coordinates if available (no fake decorative curve)
+  let points = [];
+  let pathD = "";
+  let hasRealGeometry = false;
+
+  if (hasValidRoute && currentRoute?.geometry?.coordinates && currentRoute.geometry.coordinates.length >= 2) {
+    const rawCoords = currentRoute.geometry.coordinates; // [[lng, lat], ...]
+    const lngs = rawCoords.map(c => c[0]);
+    const lats = rawCoords.map(c => c[1]);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+
+    const spanLng = (maxLng - minLng) || 0.01;
+    const spanLat = (maxLat - minLat) || 0.01;
+    const padLng = spanLng * 0.15;
+    const padLat = spanLat * 0.15;
+
+    const bMinLng = minLng - padLng;
+    const bMaxLng = maxLng + padLng;
+    const bMinLat = minLat - padLat;
+    const bMaxLat = maxLat + padLat;
+
+    const project = (lng, lat) => ({
+      x: Math.round(70 + ((lng - bMinLng) / (bMaxLng - bMinLng)) * 660),
+      y: Math.round(150 - ((lat - bMinLat) / (bMaxLat - bMinLat)) * 110)
+    });
+
+    pathD = rawCoords.map((c, i) => `${i === 0 ? "M" : "L"} ${project(c[0], c[1]).x} ${project(c[0], c[1]).y}`).join(" ");
+
+    points = dayActivities.map((act) => {
+      if (typeof act.latitude === "number" && typeof act.longitude === "number") {
+        const pt = project(act.longitude, act.latitude);
+        return { x: pt.x, y: pt.y, name: act.title };
+      }
+      return null;
+    }).filter(Boolean);
+
+    if (points.length >= 2) {
+      hasRealGeometry = true;
     }
   }
 
-  // Budget calculations
-  const breakdown = [
-    { name: 'Accommodation', pct: 40, color: '#D6B56D' },
-    { name: 'Food', pct: 25, color: '#C87955' },
-    { name: 'Transport', pct: 15, color: '#7F9087' },
-    { name: 'Activities', pct: 15, color: '#F4EFE3' },
-    { name: 'Buffer', pct: 5, color: 'rgba(214, 181, 109, 0.35)' }
-  ];
+  // Budget calculations with transparent estimates
+  const breakdown = (trip.itinerary?.breakdown && trip.itinerary.breakdown.length > 0)
+    ? trip.itinerary.breakdown
+    : [
+        { name: "Accommodation (Est.)", pct: 40, color: "#D6B56D", isEstimated: true },
+        { name: "Food & Dining (Est.)", pct: 25, color: "#C87955", isEstimated: true },
+        { name: "Local Transport (Est.)", pct: 15, color: "#7F9087", isEstimated: true },
+        { name: "Activities & Fees (Est.)", pct: 15, color: "#F4EFE3", isEstimated: true },
+        { name: "Buffer & Contingency", pct: 5, color: "rgba(214, 181, 109, 0.35)", isEstimated: true }
+      ];
+
+  // Available replacement places from catalog: exclude all places already in ANY day
+  const existingPlaceTitles = new Set(
+    (trip?.itinerary?.days || []).flatMap(d => (d.activities || []).map(a => (a.title || '').toLowerCase().trim()))
+  );
+  const availableReplacementPlaces = places.filter(
+    p => p && p.name && !existingPlaceTitles.has((p.name || '').toLowerCase().trim())
+  );
+
+  // Trigger server-side recalculation of routes and feasibility after an edit
+  const triggerRecalculation = async (updatedDays) => {
+    setIsRecalculating(true);
+    const updatedItinerary = {
+      ...trip.itinerary,
+      days: updatedDays
+    };
+
+    try {
+      const res = await apiClient.recalculateItinerary({
+        destination: trip.destination,
+        travelStyle: trip.travelStyle || 'Balanced',
+        itinerary: updatedItinerary
+      });
+
+      if (res && res.success && res.data) {
+        const canonicalItin = res.data;
+        const newTrip = {
+          ...trip,
+          itinerary: canonicalItin
+        };
+        setTrip(newTrip);
+        localStorage.setItem('dastaanTrip', JSON.stringify(newTrip));
+        setHasUnsavedChanges(true);
+        setIsSaved(false);
+      } else {
+        throw new Error(res?.error || 'Recalculation returned an unsuccessful response.');
+      }
+    } catch (err) {
+      console.warn('[ItineraryPage] Recalculation failed:', err);
+      // Fallback: keep local order changes in trip
+      const fallbackTrip = {
+        ...trip,
+        itinerary: updatedItinerary
+      };
+      setTrip(fallbackTrip);
+      localStorage.setItem('dastaanTrip', JSON.stringify(fallbackTrip));
+      setHasUnsavedChanges(true);
+      setIsSaved(false);
+      setToastInfo({
+        type: 'error',
+        title: 'RECALCULATION NOTE',
+        message: 'Itinerary was updated locally, but road routes could not be refreshed. Changes are preserved.'
+      });
+      setShowToast(true);
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
+
+  // Move activity up or down within current day
+  const handleMoveActivity = (dayNum, actIdx, direction) => {
+    if (!trip?.itinerary?.days) return;
+    const days = trip.itinerary.days.map(d => ({
+      ...d,
+      activities: d.activities ? [...d.activities] : []
+    }));
+
+    const dayObj = days.find(d => d.dayNum === dayNum);
+    if (!dayObj || !dayObj.activities) return;
+
+    const targetIdx = actIdx + direction;
+    if (targetIdx < 0 || targetIdx >= dayObj.activities.length) return;
+
+    const temp = dayObj.activities[actIdx];
+    dayObj.activities[actIdx] = dayObj.activities[targetIdx];
+    dayObj.activities[targetIdx] = temp;
+
+    triggerRecalculation(days);
+  };
+
+  // Remove activity from current day
+  const handleRemoveActivity = (dayNum, actIdx) => {
+    if (!trip?.itinerary?.days) return;
+    const days = trip.itinerary.days.map(d => ({
+      ...d,
+      activities: d.activities ? [...d.activities] : []
+    }));
+
+    const dayObj = days.find(d => d.dayNum === dayNum);
+    if (!dayObj || !dayObj.activities) return;
+
+    dayObj.activities.splice(actIdx, 1);
+    triggerRecalculation(days);
+  };
+
+  // Move activity to another day
+  const handleMoveToAnotherDay = (sourceDayNum, actIdx, targetDayNum) => {
+    if (!trip?.itinerary?.days) return;
+    const days = trip.itinerary.days.map(d => ({
+      ...d,
+      activities: d.activities ? [...d.activities] : []
+    }));
+
+    const sourceDay = days.find(d => d.dayNum === sourceDayNum);
+    const targetDay = days.find(d => d.dayNum === targetDayNum);
+
+    if (!sourceDay || !targetDay || !sourceDay.activities) return;
+
+    const [movedAct] = sourceDay.activities.splice(actIdx, 1);
+    if (!targetDay.activities) targetDay.activities = [];
+    targetDay.activities.push(movedAct);
+
+    setMoveDayModal({ isOpen: false, dayNum: 1, actIdx: -1, currentTitle: '' });
+    triggerRecalculation(days);
+  };
+
+  // Open replace modal
+  const openReplaceModal = (dayNum, actIdx, currentTitle) => {
+    setReplaceModal({
+      isOpen: true,
+      dayNum,
+      actIdx,
+      currentTitle: currentTitle || ''
+    });
+  };
+
+  const closeReplaceModal = () => {
+    setReplaceModal({ isOpen: false, dayNum: 1, actIdx: -1, currentTitle: '' });
+  };
+
+  // Open move day modal
+  const openMoveDayModal = (dayNum, actIdx, currentTitle) => {
+    setMoveDayModal({
+      isOpen: true,
+      dayNum,
+      actIdx,
+      currentTitle: currentTitle || ''
+    });
+  };
+
+  const closeMoveDayModal = () => {
+    setMoveDayModal({ isOpen: false, dayNum: 1, actIdx: -1, currentTitle: '' });
+  };
+
+  // Handle selected place from replace modal
+  const handleSelectReplacement = (selectedPlace) => {
+    if (!trip?.itinerary?.days || !selectedPlace) return;
+    const days = trip.itinerary.days.map(d => ({
+      ...d,
+      activities: d.activities ? [...d.activities] : []
+    }));
+
+    const dayObj = days.find(d => d.dayNum === replaceModal.dayNum);
+    if (!dayObj) return;
+
+    const cat = (selectedPlace.category || 'attraction').toUpperCase();
+    const isRestaurant = cat === 'RESTAURANT';
+    const visitDur = selectedPlace.visitDurationHours || (isRestaurant ? 1.5 : 2.0);
+
+    const newActivity = {
+      title: selectedPlace.name,
+      desc: selectedPlace.address ? `Located at ${selectedPlace.address}. Realistic visit: ~${visitDur}h.` : `Curated sight in ${destName}.`,
+      cat: isRestaurant ? 'FOOD' : 'CULTURE',
+      image: selectedPlace.photoUrl || heroImgSrc,
+      imageLabel: `${selectedPlace.name.toUpperCase()} · ${isRestaurant ? 'FOOD' : 'CULTURE'}`,
+      placeId: selectedPlace.placeId,
+      latitude: selectedPlace.latitude,
+      longitude: selectedPlace.longitude,
+      address: selectedPlace.address,
+      rating: selectedPlace.rating,
+      visitDurationHours: visitDur,
+      openingHours: selectedPlace.openingHours || null,
+      openingStatus: selectedPlace.openingHours && selectedPlace.openingHours.length > 0 ? 'verified_hours' : 'unknown',
+      source: selectedPlace.source || 'curated-catalog',
+      attribution: selectedPlace.attribution || 'Dastaan Verified Heritage Archive'
+    };
+
+    if (replaceModal.actIdx >= 0 && dayObj.activities && dayObj.activities[replaceModal.actIdx]) {
+      // Replace existing activity
+      dayObj.activities[replaceModal.actIdx] = newActivity;
+    } else {
+      // Add as new activity to this day
+      if (!dayObj.activities) dayObj.activities = [];
+      dayObj.activities.push(newActivity);
+    }
+
+    closeReplaceModal();
+    triggerRecalculation(days);
+  };
 
   const handleBudgetHover = (item, e) => {
     if (!budgetBarRef.current) return;
@@ -344,15 +696,13 @@ export default function ItineraryPage() {
     // 1. Verify that the user is authenticated
     const currentUser = auth.currentUser || getCurrentUser();
     if (!currentUser) {
+      setAuthModalOpen(true);
       setToastInfo({
         type: 'error',
         title: 'AUTHENTICATION REQUIRED',
-        message: 'Please sign in to save this journey to your Dastaan account.'
+        message: 'Please sign in to permanently save your journey to your Dastaan account.'
       });
       setShowToast(true);
-      setTimeout(() => {
-        document.getElementById('save-toast')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 100);
       return;
     }
 
@@ -383,6 +733,7 @@ export default function ItineraryPage() {
       localStorage.setItem('dastaanTrip', JSON.stringify(persisted));
       localStorage.setItem('dastaanSavedJourney', JSON.stringify(persisted));
       setIsSaved(true);
+      setHasUnsavedChanges(false);
       setToastInfo({
         type: 'success',
         title: 'JOURNEY SAVED',
@@ -513,6 +864,59 @@ export default function ItineraryPage() {
                 ? interests.map(i => i.toUpperCase()).join(' \u2022 ')
                 : 'BALANCED \u2022 CURATED \u2022 PERSONALIZED'}
             </div>
+          
+            {/* LIVE WEATHER OUTLOOK (Open-Meteo Integration) */}
+            <div className="weather-capsule-card">
+              <div className="weather-header-row">
+                <div className="weather-title-group">
+                  <span className="section-eyebrow" style={{ margin: 0 }}>LIVE DESTINATION CLIMATE</span>
+                  <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary-deep)' }}>
+                    {destName} Forecast
+                  </span>
+                </div>
+                {weather?.current && (
+                  <div className="weather-current-badge">
+                    <span>{weather.current.icon}</span>
+                    <span>{weather.current.temperature}°C</span>
+                    <span>&bull;</span>
+                    <span>{weather.current.condition}</span>
+                  </div>
+                )}
+              </div>
+
+              {isLoadingWeather ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: '#7F9087', fontSize: '0.88rem' }}>
+                  Connecting to live meteorological satellites...
+                </div>
+              ) : weather?.daily && weather.daily.length > 0 ? (
+                <div className="weather-days-grid">
+                  {weather.daily.slice(0, 5).map((d, idx) => (
+                    <div key={idx} className="weather-day-item">
+                      <span className="weather-day-date">
+                        {new Date(d.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </span>
+                      <span className="weather-day-icon" aria-hidden="true">{d.icon}</span>
+                      <span className="weather-day-temp">
+                        {Math.round(d.tempMax)}° / {Math.round(d.tempMin)}°C
+                      </span>
+                      <span className="weather-day-condition">{d.condition}</span>
+                      <span className="weather-day-precip">
+                        {d.precipitationProbability}% Rain
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '16px', color: '#7F9087', fontSize: '0.85rem' }}>
+                  Weather forecast synchronizes automatically for destinations with verified coordinates.
+                </div>
+              )}
+
+              <div style={{ marginTop: '14px', fontSize: '0.72rem', color: '#7F9087', textAlign: 'right' }}>
+                Source: Real-time atmospheric models via Open-Meteo &bull; Coords:{' '}
+                {trip.destination?.latitude ? `${trip.destination.latitude.toFixed(2)}°, ${trip.destination.longitude?.toFixed(2)}°` : 'Regional centroid'}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -545,37 +949,222 @@ export default function ItineraryPage() {
               </nav>
             </div>
 
-            {/* Travel Journal Day Title Header */}
+            {/* Travel Journal Day Title Header & Daily Feasibility */}
             <div className="day-journal-header" id="day-journal-header">
-              <div className="journal-day-badge" id="journal-day-num">
-                DAY {String(activeDay).padStart(2, '0')}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div className="journal-day-badge" id="journal-day-num">
+                    DAY {String(activeDay).padStart(2, '0')}
+                  </div>
+                  <h3 className="journal-day-title" id="journal-day-title" style={{ margin: 0 }}>
+                    {currentDayData.dayTitle || `EXPLORING ${destName}`}
+                  </h3>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {hasUnsavedChanges ? (
+                    <span className="unsaved-badge">● UNSAVED EDITS</span>
+                  ) : isSaved ? (
+                    <span className="saved-badge">✓ SAVED</span>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="act-btn"
+                    onClick={() => openReplaceModal(activeDay, -1, 'Add Place')}
+                    style={{ background: 'rgba(214, 181, 109, 0.15)', borderColor: '#D6B56D', color: '#D6B56D' }}
+                  >
+                    + Add Place
+                  </button>
+                </div>
               </div>
-              <h3 className="journal-day-title" id="journal-day-title">
-                {currentDayData.dayTitle || `EXPLORING ${destName}`}
-              </h3>
             </div>
+
+            {/* Daily Feasibility Metric Pill & Travel Window */}
+            {currentDayData.feasibility && (
+              <div className="day-feasibility-bar" style={{
+                margin: '14px 0 20px',
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'center',
+                flexWrap: 'wrap'
+              }}>
+                <span className="badge-tag-pill" style={{
+                  background: currentDayData.feasibility.status === 'tight' ? 'rgba(200, 121, 85, 0.25)' : 'rgba(214, 181, 109, 0.2)',
+                  border: `1px solid ${currentDayData.feasibility.status === 'tight' ? '#C87955' : '#D6B56D'}`,
+                  color: currentDayData.feasibility.status === 'tight' ? '#C87955' : '#D6B56D',
+                  fontSize: '0.74rem'
+                }}>
+                  {currentDayData.feasibility.status === 'tight'
+                    ? '⚠️ TIGHT DAY SCHEDULE'
+                    : currentDayData.feasibility.status === 'relaxed'
+                    ? 'RELAXED DAY PACING'
+                    : 'OPTIMAL DAY PACING'} · ~{currentDayData.feasibility.totalDayHours}h Planned ({currentDayData.feasibility.dailyBudgetHours}h Budget)
+                </span>
+                <span className="badge-tag-pill" style={{
+                  background: currentDayData.feasibility.routeQuality === 'road_network' ? 'rgba(214, 181, 109, 0.25)' : 'rgba(200, 121, 85, 0.15)',
+                  border: `1px solid ${currentDayData.feasibility.routeQuality === 'road_network' ? '#D6B56D' : '#C87955'}`,
+                  color: currentDayData.feasibility.routeQuality === 'road_network' ? '#D6B56D' : '#E8DCC7',
+                  fontSize: '0.72rem'
+                }}>
+                  {currentDayData.feasibility.routeQuality === 'road_network'
+                    ? '✓ ROAD ROUTED (OSRM)'
+                    : currentDayData.feasibility.routeQuality === 'estimate'
+                    ? '~ EST. TRANSIT'
+                    : '• UNMAPPED TRANSIT'}
+                </span>
+                <span style={{ fontSize: '0.8rem', color: '#E8DCC7', opacity: 0.8 }}>
+                  ({currentDayData.feasibility.totalVisitHours}h visits + {currentDayData.feasibility.totalTransitHours}h transit)
+                </span>
+              </div>
+            )}
+
+            {/* Daily Feasibility Actionable Warnings */}
+            {currentDayData.feasibility?.warnings && currentDayData.feasibility.warnings.length > 0 && (
+              <div className="feasibility-warnings-box" style={{
+                background: 'rgba(200, 121, 85, 0.12)',
+                borderLeft: '3px solid #C87955',
+                padding: '10px 16px',
+                marginBottom: '22px',
+                borderRadius: '2px',
+                fontSize: '0.82rem',
+                color: '#F4EFE3'
+              }}>
+                {currentDayData.feasibility.warnings.map((warn, wIdx) => {
+                  const isSuggestion = warn.startsWith('Suggestion:');
+                  return (
+                    <div
+                      key={wIdx}
+                      style={{
+                        marginBottom: wIdx === currentDayData.feasibility.warnings.length - 1 ? 0 : '6px',
+                        padding: isSuggestion ? '6px 10px' : '0',
+                        background: isSuggestion ? 'rgba(214, 181, 109, 0.15)' : 'transparent',
+                        borderLeft: isSuggestion ? '3px solid #D6B56D' : 'none',
+                        color: isSuggestion ? '#D6B56D' : '#F4EFE3'
+                      }}
+                    >
+                      {isSuggestion ? `💡 ${warn}` : warn}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Timeline / Travel Journal Content */}
             <div className="travel-journal-container" id="timeline-container">
-              {currentDayData.activities?.map((act, idx) => {
+              {(!currentDayData.activities || currentDayData.activities.length === 0) ? (
+                <div className="empty-day-banner">
+                  <h4>NO ACTIVITIES SCHEDULED FOR DAY {activeDay}</h4>
+                  <p>
+                    You have removed all activities from this day. You can add an unused place from the destination catalog or move activities here from another day.
+                  </p>
+                  <button
+                    type="button"
+                    className="btn-select-place"
+                    onClick={() => openReplaceModal(activeDay, -1, 'Add Place')}
+                    style={{ padding: '10px 24px', fontSize: '0.8rem' }}
+                  >
+                    + ADD PLACE FROM CATALOG
+                  </button>
+                </div>
+              ) : (
+                currentDayData.activities?.map((act, idx) => {
                 const layoutClass = act.layout || (idx % 2 === 0 ? 'image-right' : 'image-left');
                 const imgLabel = act.imageLabel || `${act.title.toUpperCase()} \u00B7 ${act.cat}`;
                 const actImgSrc = resolveImage(act.title, act.image);
 
+                const prevAct = idx > 0 ? currentDayData.activities[idx - 1] : null;
+                const transit = prevAct?.transitToNext || (currentRoute?.legs && currentRoute.legs[idx - 1]) || null;
+                const hasTransitInfo = transit && typeof transit.distanceKm === 'number' && typeof transit.durationMin === 'number';
+
                 return (
-                  <div
-                    key={idx}
-                    className={`activity-card-row ${layoutClass}`}
-                    style={{ animationDelay: `${idx * 0.1}s` }}
-                  >
+                  <React.Fragment key={idx}>
+                    {idx > 0 && (
+                      <div className="activity-transit-row">
+                        <div className="transit-badge-pill">
+                          <span className="transit-arrow">↕</span>
+                          {hasTransitInfo ? (
+                            <>
+                              <span className="transit-time">~{transit.durationMin} MIN</span>
+                              <span className="transit-dist">({transit.distanceKm} KM)</span>
+                              <span className={`transit-chip ${transit.isEstimated ? 'est' : 'road'}`}>
+                                {transit.isEstimated ? 'Est. Transit' : 'Road Route (OSRM)'}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="transit-unmapped">
+                              Transit unmapped / self-guided
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    <div
+                      className={`activity-card-row ${layoutClass}`}
+                      style={{ animationDelay: `${idx * 0.1}s` }}
+                    >
                     <div className="activity-time-col">
                       <span className="activity-time-text">{act.time}</span>
+                      {act.visitDurationHours && (
+                        <span style={{ fontSize: '0.72rem', color: '#D6B56D', opacity: 0.9, display: 'block', marginTop: '4px' }}>
+                          ~{act.visitDurationHours}h visit
+                        </span>
+                      )}
                     </div>
                     <div className="activity-main-content">
                       <div className="activity-text-box">
                         <h4>{act.title}</h4>
                         <p className="activity-desc">{act.desc}</p>
                         <span className="activity-cat-tag">{act.cat}</span>
+
+                        {/* Phase 3 Activity Editing Controls */}
+                        <div className="activity-actions-bar">
+                          <button
+                            type="button"
+                            className="act-btn"
+                            disabled={idx === 0 || isRecalculating}
+                            onClick={() => handleMoveActivity(activeDay, idx, -1)}
+                            title="Move earlier in this day"
+                          >
+                            ↑ Move Up
+                          </button>
+                          <button
+                            type="button"
+                            className="act-btn"
+                            disabled={idx === (currentDayData.activities?.length || 1) - 1 || isRecalculating}
+                            onClick={() => handleMoveActivity(activeDay, idx, 1)}
+                            title="Move later in this day"
+                          >
+                            ↓ Move Down
+                          </button>
+                          {daysList.length > 1 && (
+                            <button
+                              type="button"
+                              className="act-btn"
+                              disabled={isRecalculating}
+                              onClick={() => openMoveDayModal(activeDay, idx, act.title)}
+                              title="Move to another day"
+                            >
+                              ⇄ Move to Day...
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="act-btn act-btn-replace"
+                            disabled={isRecalculating}
+                            onClick={() => openReplaceModal(activeDay, idx, act.title)}
+                            title="Replace with an unused place from catalog"
+                          >
+                            ↻ Replace
+                          </button>
+                          <button
+                            type="button"
+                            className="act-btn act-btn-remove"
+                            disabled={isRecalculating}
+                            onClick={() => handleRemoveActivity(activeDay, idx)}
+                            title="Remove from itinerary"
+                          >
+                            ✕ Remove
+                          </button>
+                        </div>
                       </div>
                       <div
                         className="activity-image-wrap image-placeholder"
@@ -598,8 +1187,9 @@ export default function ItineraryPage() {
                       </div>
                     </div>
                   </div>
+                  </React.Fragment>
                 );
-              })}
+              }))}
             </div>
           </div>
         </section>
@@ -613,41 +1203,72 @@ export default function ItineraryPage() {
               <p className="routing-desc">
                 Today's experiences are grouped logically to reduce unnecessary travel time, giving you more freedom to explore at your own pace.
               </p>
+              <div style={{ marginTop: "14px", display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+                <span className="badge-tag-pill" style={{
+                  background: routeProvider === "osrm" ? "rgba(214, 181, 109, 0.2)" : "rgba(200, 121, 85, 0.2)",
+                  border: `1px solid ${routeProvider === "osrm" ? "#D6B56D" : "#C87955"}`,
+                  color: routeProvider === "osrm" ? "#D6B56D" : "#C87955",
+                  fontSize: "0.74rem"
+                }}>
+                  {routeProvider === "osrm"
+                    ? "REAL ROAD NETWORK (OSRM)"
+                    : hasValidRoute
+                    ? "GEODESIC ESTIMATE (HAVERSINE)"
+                    : "TRAVEL ROUTE UNMAPPED"}
+                </span>
+                {hasValidRoute && isRouteEstimated && (
+                  <span className="badge-tag-pill" style={{ fontSize: "0.74rem", opacity: 0.85 }}>
+                    1.35x Urban Road Tortuosity
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* SVG Route Canvas Container */}
             <div className="route-visualization-wrapper">
               <div className="route-svg-canvas" id="route-svg-canvas">
-                <svg width="100%" height="160" viewBox="0 0 800 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d={pathD} stroke="#D6B56D" strokeWidth="3" strokeLinecap="round" opacity="0.6" strokeDasharray="6 6" />
-                  <path d={pathD} stroke="#D6B56D" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
-                  {points.map((pt, idx) => {
-                    const isEdge = idx === 0 || idx === points.length - 1;
-                    const r = isEdge ? 7 : 9;
-                    const color = isEdge ? '#C87955' : '#D6B56D';
-                    const textY = pt.y > 80 ? pt.y + 24 : pt.y - 16;
-                    const shortLabel = pt.name.length > 14 ? pt.name.substring(0, 12) + '...' : pt.name;
+                {hasRealGeometry ? (
+                  <svg width="100%" height="180" viewBox="0 0 800 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d={pathD} stroke="#D6B56D" strokeWidth="3" strokeLinecap="round" opacity="0.4" strokeDasharray="6 6" />
+                    <path d={pathD} stroke="#D6B56D" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+                    {points.map((pt, idx) => {
+                      const isEdge = idx === 0 || idx === points.length - 1;
+                      const r = isEdge ? 7 : 9;
+                      const color = isEdge ? "#C87955" : "#D6B56D";
+                      const textY = pt.y > 90 ? Math.min(172, pt.y + 22) : Math.max(16, pt.y - 14);
+                      const shortLabel = pt.name.length > 18 ? pt.name.substring(0, 16) + "..." : pt.name;
 
-                    return (
-                      <g key={idx}>
-                        <circle cx={pt.x} cy={pt.y} r={r + 4} fill="#071D1A" stroke={color} strokeWidth="1.5" opacity="0.8" />
-                        <circle cx={pt.x} cy={pt.y} r={r} fill={color} />
-                        <text
-                          x={pt.x}
-                          y={textY}
-                          textAnchor="middle"
-                          fill="#F4EFE3"
-                          fontFamily="sans-serif"
-                          fontSize="11"
-                          fontWeight="600"
-                          letterSpacing="1"
-                        >
-                          {shortLabel.toUpperCase()}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
+                      return (
+                        <g key={idx}>
+                          <circle cx={pt.x} cy={pt.y} r={r + 4} fill="#071D1A" stroke={color} strokeWidth="1.5" opacity="0.8" />
+                          <circle cx={pt.x} cy={pt.y} r={r} fill={color} />
+                          <text
+                            x={pt.x}
+                            y={textY}
+                            textAnchor="middle"
+                            fill="#F4EFE3"
+                            fontFamily="sans-serif"
+                            fontSize="11"
+                            fontWeight="600"
+                            letterSpacing="1"
+                          >
+                            {shortLabel.toUpperCase()}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                ) : (
+                  <div className="route-unmapped-placeholder">
+                    <span className="unmapped-icon">◈</span>
+                    <h4 className="unmapped-title">NO FIXED ROUTE LINE</h4>
+                    <p className="unmapped-desc">
+                      {currentDayData?.isExplorationDay
+                        ? "Self-guided neighborhood discovery day without fixed transit coordinates."
+                        : "Activities for this day are self-guided or lack coordinates. Transit path is not measured."}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -655,17 +1276,25 @@ export default function ItineraryPage() {
             <div className="routing-stats-bar">
               <div className="route-stat-item">
                 <span className="route-stat-num" id="stat-places">{placesCount}</span>
-                <span className="route-stat-label">PLACES</span>
+                <span className="route-stat-label">STOPS TODAY</span>
               </div>
               <div className="route-stat-divider"></div>
               <div className="route-stat-item">
-                <span className="route-stat-num" id="stat-movement">{movementKm} KM</span>
-                <span className="route-stat-label">ESTIMATED MOVEMENT</span>
+                <span className="route-stat-num" id="stat-movement">
+                  {movementKm !== null ? `${movementKm} KM` : '--'}
+                </span>
+                <span className="route-stat-label">
+                  {hasValidRoute ? (isRouteEstimated ? "EST. DISTANCE" : "ROAD DISTANCE") : "ROUTE DISTANCE"}
+                </span>
               </div>
               <div className="route-stat-divider"></div>
               <div className="route-stat-item">
-                <span className="route-stat-num" id="stat-saved">{timeSavedMin} MIN</span>
-                <span className="route-stat-label">TIME SAVED</span>
+                <span className="route-stat-num" id="stat-saved">
+                  {travelDurationMin !== null ? `${travelDurationMin} MIN` : '--'}
+                </span>
+                <span className="route-stat-label">
+                  {hasValidRoute ? (isRouteEstimated ? "EST. TRAVEL TIME" : "ROAD TRAVEL TIME") : "EST. TRAVEL TIME"}
+                </span>
               </div>
             </div>
           </div>
@@ -822,6 +1451,75 @@ export default function ItineraryPage() {
           </div>
         </section>
 
+        {/* SECTION 6.5: VERIFIED PLACES & DINING (Live & Curated Places) */}
+        {places.length > 0 && (
+          <section className="section-places-discovery reveal-on-scroll" id="places-section">
+            <div className="container">
+              <div className="section-header-editorial" style={{ textAlign: 'left', marginBottom: '24px' }}>
+                <span className="section-eyebrow gold-eyebrow">VERIFIED LOCAL DISCOVERIES</span>
+                <h2 className="section-title-serif" style={{ color: 'var(--paper)', fontSize: '2.2rem' }}>
+                  EXPLORE {destName}'S LANDMARKS & DINING
+                </h2>
+                <p style={{ color: 'var(--muted)', fontSize: '0.92rem', marginTop: '6px' }}>
+                  Real sights and authentic dining venues discovered for your destination, verified across global databases.
+                </p>
+              </div>
+
+              <div className="places-grid">
+                {places.map((place, idx) => (
+                  <article key={place.placeId || idx} className="verified-place-card">
+                    <div className="place-img-wrap">
+                      <img
+                        src={place.photoUrl || heroImgSrc}
+                        alt={place.name}
+                        className="place-img"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.src = heroImgSrc || '/images/newdelhi/indiagate.jpg';
+                        }}
+                      />
+                      <span className="place-category-pill">
+                        {place.category === 'restaurant' ? 'Dining' : 'Attraction'}
+                      </span>
+                    </div>
+
+                    <div className="place-body">
+                      <h3 className="place-name">{place.name}</h3>
+                      <p className="place-address">{place.address || `${destName}, ${countryName}`}</p>
+
+                      <div className="place-meta-row">
+                        <div className="place-rating">
+                          {place.rating ? (
+                            <>
+                              <span>&#9733;</span>
+                              <span>{place.rating.toFixed(1)}</span>
+                              {place.reviewCount && (
+                                <span style={{ color: 'var(--muted)', fontWeight: 400, fontSize: '0.72rem', marginLeft: '3px' }}>
+                                  ({place.reviewCount.toLocaleString('en-IN')})
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <span style={{ color: 'var(--muted)', fontWeight: 500 }}>Unrated venue</span>
+                          )}
+                        </div>
+
+                        <span className="place-source-tag">
+                          {place.source === 'google-places-new'
+                            ? 'Google Places'
+                            : place.source === 'foursquare-places'
+                            ? 'Foursquare'
+                            : 'Dastaan Verified'}
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* SECTION 7: FINAL CINEMATIC CTA SECTION (Dark Closing) */}
         <section className="section-final reveal-on-scroll" id="final-section">
           <div className="final-bg-placeholder image-placeholder">
@@ -860,7 +1558,7 @@ export default function ItineraryPage() {
                 disabled={isSaving}
                 style={isSaved ? { background: '#F4EFE3', color: '#071D1A' } : {}}
               >
-                <span>{isSaving ? 'SAVING JOURNEY...' : isSaved ? '\u2713 JOURNEY SAVED' : 'SAVE MY JOURNEY \u2192'}</span>
+                <span>{isSaving ? 'SAVING JOURNEY...' : hasUnsavedChanges ? 'SAVE EDITED JOURNEY \u2192' : isSaved ? '\u2713 JOURNEY SAVED' : 'SAVE MY JOURNEY \u2192'}</span>
               </button>
               <button type="button" className="btn-secondary-outline" id="btn-edit" onClick={handleEditPreferences}>
                 EDIT PREFERENCES

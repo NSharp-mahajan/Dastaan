@@ -9,7 +9,12 @@ const app = express();
 // Allowed origins for CORS (React development frontend)
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:3000',
+  'http://localhost:3000',
   'http://127.0.0.1:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
+  'http://localhost:3002',
+  'http://127.0.0.1:3002',
   'http://localhost:5173', // fallback for Vite default dev
   'http://127.0.0.1:5173'
 ];
@@ -18,7 +23,10 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, curl, Postman, or same-origin)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    if (
+      allowedOrigins.includes(origin) ||
+      /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+    ) {
       return callback(null, true);
     }
     return callback(new Error(`CORS policy: origin ${origin} is not allowed`));

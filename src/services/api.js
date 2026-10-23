@@ -92,10 +92,32 @@ export const apiClient = {
 
   // Trip API Methods
   createTrip: (tripData) => request('trips', { method: 'POST', body: JSON.stringify(tripData) }),
+  previewTrip: (tripData) => request('trips/preview', { method: 'POST', body: JSON.stringify(tripData) }),
+  recalculateItinerary: (payload) => request('trips/recalculate', { method: 'POST', body: JSON.stringify(payload) }),
   getUserTrips: () => request('trips', { method: 'GET' }),
   getTripById: (id) => request(`trips/${id}`, { method: 'GET' }),
   updateTrip: (id, tripData) => request(`trips/${id}`, { method: 'PUT', body: JSON.stringify(tripData) }),
   deleteTrip: (id) => request(`trips/${id}`, { method: 'DELETE' }),
+
+  // Dynamic Travel Data & Discovery Methods (V2)
+  searchDestinations: (query) => request(`destinations/search?q=${encodeURIComponent(query || '')}`, { method: 'GET' }),
+  getPopularDestinations: () => request('destinations/popular', { method: 'GET' }),
+  getDestinationPlaces: (destination, category = 'all', lat, lng) => {
+    let q = `destinations/places?destination=${encodeURIComponent(destination || '')}&category=${encodeURIComponent(category)}`;
+    if (lat && lng) q += `&lat=${lat}&lng=${lng}`;
+    return request(q, { method: 'GET' });
+  },
+  getWeather: ({ latitude, longitude, destination }) => {
+    let q = 'weather?';
+    const params = [];
+    if (latitude !== undefined && latitude !== null) params.push(`latitude=${latitude}`);
+    if (longitude !== undefined && longitude !== null) params.push(`longitude=${longitude}`);
+    if (destination) params.push(`destination=${encodeURIComponent(destination)}`);
+    return request(q + params.join('&'), { method: 'GET' });
+  },
+
+  // Real-world Routing Methods (Stage 2)
+  calculateRoute: ({ waypoints, mode = 'driving' }) => request('routing/calculate', { method: 'POST', body: { waypoints, mode } }),
 
   // Saved Destination API Methods
   getSavedDestinations: () => request('destinations/saved', { method: 'GET' }),

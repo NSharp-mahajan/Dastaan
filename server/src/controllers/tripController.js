@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Trip from '../models/Trip.js';
-import { generateItinerary } from '../utils/itineraryGenerator.js';
+import { generateItinerary, generateItineraryWithLiveRouting, recalculateItinerary } from '../services/itineraryGenerator.js';
 
 /**
  * Normalize travel style to Capitalized form: Relaxed, Balanced, Packed
@@ -53,7 +53,7 @@ export const createTrip = async (req, res, next) => {
     // Generate or format itinerary
     let finalItinerary = itinerary;
     if (!finalItinerary || !Array.isArray(finalItinerary.days) || finalItinerary.days.length === 0) {
-      finalItinerary = generateItinerary({
+      finalItinerary = await generateItineraryWithLiveRouting({
         destination,
         duration: durNum,
         budget: budNum,
@@ -261,12 +261,16 @@ export const updateTrip = async (req, res, next) => {
       needsRegeneration = true;
     }
 
-    // If explicit itinerary was passed in update body, use it
+    // If explicit itinerary was passed in update body, validate and recalculate routing & feasibility
     if (itinerary && Array.isArray(itinerary.days) && itinerary.days.length > 0) {
-      trip.itinerary = itinerary;
+      trip.itinerary = await recalculateItinerary({
+        destination: trip.destination,
+        travelStyle: trip.travelStyle,
+        itinerary
+      });
     } else if (needsRegeneration) {
       // Regenerate updated itinerary
-      trip.itinerary = generateItinerary({
+      trip.itinerary = await generateItineraryWithLiveRouting({
         destination: trip.destination,
         duration: trip.duration,
         budget: trip.budget,
@@ -327,6 +331,110 @@ export const deleteTrip = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: 'Trip deleted successfully.'
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+/**
+ * POST /api/trips/preview
+ * Public endpoint: Generates an intelligent, personalized itinerary preview
+ * without requiring authentication or persisting to MongoDB.
+ */
+export const previewTrip = async (req, res, next) => {
+  try {
+    const { destination, duration, budget, interests, travelStyle } = req.body;
+
+    // Validation: Destination
+    if (!destination || typeof destination !== 'object' || !destination.name) {
+      return res.status(400).json({
+        success: false,
+        message: 'A valid destination object with name is required.'
+      });
+    }
+
+    const durNum = parseInt(duration, 10);
+    if (isNaN(durNum) || durNum < 1 || durNum > 60) {
+      return res.status(400).json({
+        success: false,
+        message: 'Trip duration must be a number between 1 and 60 days.'
+      });
+    }
+
+    const budNum = parseInt(budget, 10);
+    if (isNaN(budNum) || budNum < 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Trip budget must be at least ₹1,000.'
+      });
+    }
+
+    const normalizedTravelStyle = normalizeStyle(travelStyle);
+    const validInterests = Array.isArray(interests) ? interests.map(i => String(i).trim()) : [];
+
+    const generatedItinerary = await generateItineraryWithLiveRouting({
+      destination,
+      duration: durNum,
+      budget: budNum,
+      travelStyle: normalizedTravelStyle,
+      interests: validInterests
+    });
+
+    const previewData = {
+      destination: {
+        id: (destination.id || destination.name).toLowerCase().trim(),
+        name: destination.name.trim(),
+        country: destination.country?.trim() || '',
+        countryCode: destination.countryCode?.trim() || '',
+        latitude: typeof destination.latitude === 'number' ? destination.latitude : null,
+        longitude: typeof destination.longitude === 'number' ? destination.longitude : null,
+        image: destination.image || ''
+      },
+      duration: durNum,
+      budget: budNum,
+      interests: validInterests,
+      travelStyle: normalizedTravelStyle,
+      itinerary: generatedItinerary,
+      isGuestPreview: true
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: 'Itinerary preview generated successfully.',
+      data: previewData
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /api/trips/recalculate
+ * Recalculates routes, legs, and day feasibility for an edited itinerary.
+ * Accessible by both guests and authenticated users.
+ */
+export const recalculateTripItinerary = async (req, res, next) => {
+  try {
+    const { itinerary, travelStyle, destination } = req.body;
+    if (!itinerary || !Array.isArray(itinerary.days)) {
+      return res.status(400).json({
+        success: false,
+        message: 'A valid itinerary object with days array is required.'
+      });
+    }
+
+    const recalculated = await recalculateItinerary({
+      destination,
+      travelStyle: travelStyle || 'Balanced',
+      itinerary
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Itinerary recalculated successfully.',
+      data: recalculated
     });
   } catch (err) {
     next(err);
