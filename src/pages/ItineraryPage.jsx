@@ -5,6 +5,8 @@ import Footer from '../components/Footer';
 import LightboxModal from '../components/LightboxModal';
 import { mockItineraries, resolveImage, interestImages, interestExplanations } from '../data/itineraries';
 import apiClient from '../services/api';
+import { getCurrentUser } from '../utils/auth';
+import { auth } from '../firebase';
 import '../styles/navigation.css';
 import '../styles/page3.css';
 
@@ -18,6 +20,8 @@ export default function ItineraryPage() {
   const [activeDay, setActiveDay] = useState(1);
   const [isSaved, setIsSaved] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [toastInfo, setToastInfo] = useState({ type: 'success', title: 'JOURNEY SAVED', message: '' });
   const [isLoading, setIsLoading] = useState(true);
   const [isEmpty, setIsEmpty] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -337,33 +341,71 @@ export default function ItineraryPage() {
   };
 
   const handleSaveJourney = async () => {
-    // If trip already has a backend ID, persist updates
-    if (trip._id) {
-      try {
-        await apiClient.updateTrip(trip._id, trip);
-      } catch (e) {
-        console.warn('[ItineraryPage] Update to backend failed:', e);
-      }
-    } else {
-      // Otherwise persist new trip to MongoDB Atlas
-      try {
-        const res = await apiClient.createTrip(trip);
-        if (res.success && res.data?.data) {
-          const persisted = res.data.data;
-          setTrip(persisted);
-          localStorage.setItem('dastaanTrip', JSON.stringify(persisted));
-        }
-      } catch (e) {
-        console.warn('[ItineraryPage] Save to backend failed:', e);
-      }
+    // 1. Verify that the user is authenticated
+    const currentUser = auth.currentUser || getCurrentUser();
+    if (!currentUser) {
+      setToastInfo({
+        type: 'error',
+        title: 'AUTHENTICATION REQUIRED',
+        message: 'Please sign in to save this journey to your Dastaan account.'
+      });
+      setShowToast(true);
+      setTimeout(() => {
+        document.getElementById('save-toast')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+      return;
     }
 
-    localStorage.setItem('dastaanSavedJourney', JSON.stringify(trip));
-    setIsSaved(true);
-    setShowToast(true);
-    setTimeout(() => {
-      document.getElementById('save-toast')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 100);
+    // 2. Prevent accidental duplicate saves
+    if (isSaving) return;
+    setIsSaving(true);
+    setShowToast(false);
+
+    try {
+      let persisted = null;
+      if (trip._id) {
+        // Persist updates to existing journey
+        const res = await apiClient.updateTrip(trip._id, trip);
+        if (!res.success) {
+          throw new Error(res.error || 'Failed to update your saved journey in the database.');
+        }
+        persisted = res.data?.data || trip;
+      } else {
+        // Persist new journey to MongoDB Atlas
+        const res = await apiClient.createTrip(trip);
+        if (!res.success || !res.data?.data) {
+          throw new Error(res.error || 'Failed to persist journey to your account.');
+        }
+        persisted = res.data.data;
+      }
+
+      setTrip(persisted);
+      localStorage.setItem('dastaanTrip', JSON.stringify(persisted));
+      localStorage.setItem('dastaanSavedJourney', JSON.stringify(persisted));
+      setIsSaved(true);
+      setToastInfo({
+        type: 'success',
+        title: 'JOURNEY SAVED',
+        message: `Your ${destName} itinerary is saved to your account.`
+      });
+      setShowToast(true);
+      setTimeout(() => {
+        document.getElementById('save-toast')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    } catch (err) {
+      console.error('[ItineraryPage] Save journey failed:', err);
+      setToastInfo({
+        type: 'error',
+        title: 'SAVE FAILED',
+        message: err.message || 'Unable to save your itinerary. Please check your connection and try again.'
+      });
+      setShowToast(true);
+      setTimeout(() => {
+        document.getElementById('save-toast')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleEditPreferences = () => {
@@ -815,9 +857,10 @@ export default function ItineraryPage() {
                 className="btn-primary-gold"
                 id="btn-save"
                 onClick={handleSaveJourney}
+                disabled={isSaving}
                 style={isSaved ? { background: '#F4EFE3', color: '#071D1A' } : {}}
               >
-                <span>{isSaved ? '\u2713 JOURNEY SAVED' : 'SAVE MY JOURNEY \u2192'}</span>
+                <span>{isSaving ? 'SAVING JOURNEY...' : isSaved ? '\u2713 JOURNEY SAVED' : 'SAVE MY JOURNEY \u2192'}</span>
               </button>
               <button type="button" className="btn-secondary-outline" id="btn-edit" onClick={handleEditPreferences}>
                 EDIT PREFERENCES
@@ -828,11 +871,59 @@ export default function ItineraryPage() {
             </div>
 
             {/* Save Confirmation Toast Container */}
-            <div className={`save-toast-banner ${showToast ? 'active' : ''}`} id="save-toast" aria-live="polite">
-              <div className="toast-icon">&#10003;</div>
+            <div className={`save-toast-banner ${showToast ? 'active' : ''} ${toastInfo.type === 'error' ? 'toast-error' : ''}`} id="save-toast" aria-live="polite">
+              <div className="toast-icon" style={toastInfo.type === 'error' ? { background: '#C87955', color: '#fff' } : {}}>
+                {toastInfo.type === 'error' ? '!' : '\u2713'}
+              </div>
               <div className="toast-text">
-                <strong>JOURNEY SAVED</strong>
-                <span id="toast-sub">Your {destName} itinerary is saved to your account.</span>
+                <strong>{toastInfo.title}</strong>
+                <span id="toast-sub">{toastInfo.message}</span>
+                {toastInfo.type === 'success' && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/profile')}
+                    style={{
+                      marginTop: '8px',
+                      background: 'none',
+                      border: 'none',
+                      color: '#D6B56D',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      letterSpacing: '1px',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      padding: 0,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    View in My Profile &rarr;
+                  </button>
+                )}
+                {toastInfo.type === 'error' && !auth.currentUser && !getCurrentUser() && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/auth?redirect=/itinerary')}
+                    style={{
+                      marginTop: '8px',
+                      background: 'none',
+                      border: 'none',
+                      color: '#D6B56D',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      letterSpacing: '1px',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      padding: 0,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    Go to Sign In &rarr;
+                  </button>
+                )}
               </div>
             </div>
           </div>

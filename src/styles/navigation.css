@@ -165,9 +165,24 @@
 .user-profile-nav {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: var(--nav-paper);
-  padding: 0 10px;
+  padding: 6px 14px;
+  text-decoration: none;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+.user-profile-nav:hover {
+  background: rgba(223, 186, 115, 0.12);
+  border-color: rgba(223, 186, 115, 0.35);
+  color: var(--nav-gold);
+}
+.user-profile-nav.active {
+  background: rgba(223, 186, 115, 0.18);
+  border-color: var(--nav-gold);
+  color: var(--nav-gold);
 }
 .user-avatar {
   width: 32px;

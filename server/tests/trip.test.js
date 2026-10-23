@@ -13,6 +13,7 @@ import {
   deleteTrip
 } from '../src/controllers/tripController.js';
 import { authenticateUser, optionalAuth } from '../src/middleware/auth.js';
+import { getMe, updateProfile } from '../src/controllers/authController.js';
 import {
   getSavedDestinations,
   saveDestination,
@@ -439,6 +440,138 @@ test('--- Saved Destination Controller ---', async (t) => {
       assert.equal(res.statusCode, 404);
     } finally {
       SavedDestination.findOneAndDelete = originalFindOneAndDelete;
+    }
+  });
+});
+
+test('--- Profile & User Controller Integration Tests ---', async (t) => {
+  const mockUserId = '650000000000000000000001';
+  const mockFirebaseUid = 'fb-uid-test-123';
+
+  await t.test('getMe returns authenticated user profile', async () => {
+    const originalFindOne = User.findOne;
+    User.findOne = async () => ({
+      _id: mockUserId,
+      firebaseUid: mockFirebaseUid,
+      name: 'Aditi Sharma',
+      email: 'aditi@example.com',
+      travelStyle: 'Balanced',
+      role: 'user',
+      toJSON: () => ({ name: 'Aditi Sharma', email: 'aditi@example.com', travelStyle: 'Balanced', role: 'user' })
+    });
+
+    try {
+      const req = {
+        user: { uid: mockFirebaseUid, email: 'aditi@example.com' }
+      };
+      const res = createMockRes();
+      await getMe(req, res);
+
+      assert.equal(res.statusCode, 200);
+      assert.equal(res.body.success, true);
+      assert.equal(res.body.user.name, 'Aditi Sharma');
+      assert.equal(res.body.user.travelStyle, 'Balanced');
+    } finally {
+      User.findOne = originalFindOne;
+    }
+  });
+
+  await t.test('updateProfile successfully updates permitted fields (name, travelStyle, phoneNumber)', async () => {
+    const originalFindOneAndUpdate = User.findOneAndUpdate;
+    let updatedPayload = null;
+    User.findOneAndUpdate = async (query, update) => {
+      updatedPayload = update.$set;
+      return {
+        _id: mockUserId,
+        firebaseUid: mockFirebaseUid,
+        name: updatedPayload.name,
+        travelStyle: updatedPayload.travelStyle,
+        phoneNumber: updatedPayload.phoneNumber,
+        role: 'user'
+      };
+    };
+
+    try {
+      const req = {
+        user: { uid: mockFirebaseUid },
+        body: {
+          name: 'Aditi Rao',
+          travelStyle: 'Relaxed',
+          phoneNumber: '+91 98765 43210'
+        }
+      };
+      const res = createMockRes();
+      await updateProfile(req, res);
+
+      assert.equal(res.statusCode, 200);
+      assert.equal(res.body.success, true);
+      assert.equal(res.body.data.name, 'Aditi Rao');
+      assert.equal(res.body.data.travelStyle, 'Relaxed');
+      assert.equal(updatedPayload.name, 'Aditi Rao');
+      assert.equal(updatedPayload.travelStyle, 'Relaxed');
+    } finally {
+      User.findOneAndUpdate = originalFindOneAndUpdate;
+    }
+  });
+
+  await t.test('updateProfile rejects invalid travel style with 400', async () => {
+    const req = {
+      user: { uid: mockFirebaseUid },
+      body: { travelStyle: 'HyperFast' }
+    };
+    const res = createMockRes();
+    await updateProfile(req, res);
+
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.body.success, false);
+    assert.match(res.body.message, /Invalid travel style/i);
+  });
+
+  await t.test('updateProfile rejects empty name with 400', async () => {
+    const req = {
+      user: { uid: mockFirebaseUid },
+      body: { name: '   ' }
+    };
+    const res = createMockRes();
+    await updateProfile(req, res);
+
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.body.success, false);
+    assert.match(res.body.message, /Name cannot be empty/i);
+  });
+
+  await t.test('updateProfile ignores attempt to change role or firebaseUid', async () => {
+    const originalFindOneAndUpdate = User.findOneAndUpdate;
+    let updatedPayload = null;
+    User.findOneAndUpdate = async (query, update) => {
+      updatedPayload = update.$set;
+      return {
+        _id: mockUserId,
+        name: 'Aditi',
+        role: 'user'
+      };
+    };
+
+    try {
+      const req = {
+        user: { uid: mockFirebaseUid },
+        body: {
+          name: 'Aditi',
+          role: 'admin',
+          firebaseUid: 'hacked-uid',
+          email: 'hacked@example.com'
+        }
+      };
+      const res = createMockRes();
+      await updateProfile(req, res);
+
+      assert.equal(res.statusCode, 200);
+      assert.equal(updatedPayload.role, undefined);
+      assert.equal(updatedPayload.firebaseUid, undefined);
+      assert.equal(updatedPayload.email, undefined);
+      assert.equal(updatedPayload.name, 'Aditi');
+    } finally {
+      User.findOneAndUpdate = originalFindOneAndUpdate;
     }
   });
 });

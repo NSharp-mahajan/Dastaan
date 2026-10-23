@@ -35,10 +35,44 @@ export const verifyAuth = async (req, res, next) => {
     const decodedToken = await auth.verifyIdToken(token, checkRevocation);
 
     if (decodedToken && decodedToken.uid) {
-      // Look up MongoDB profile
+      // Look up or initialize MongoDB profile
       let mongoUser = null;
       try {
         mongoUser = await User.findOne({ firebaseUid: decodedToken.uid });
+
+        if (!mongoUser && decodedToken.email) {
+          mongoUser = await User.findOne({ email: decodedToken.email });
+          if (mongoUser) {
+            mongoUser.firebaseUid = decodedToken.uid;
+            mongoUser.emailVerified = Boolean(decodedToken.email_verified);
+            if (decodedToken.picture && !mongoUser.photoURL) mongoUser.photoURL = decodedToken.picture;
+            await mongoUser.save();
+          }
+        }
+
+        if (!mongoUser) {
+          const defaultName = decodedToken.name || (decodedToken.email ? decodedToken.email.split('@')[0] : 'Traveler');
+          mongoUser = await User.findOneAndUpdate(
+            { firebaseUid: decodedToken.uid },
+            {
+              $setOnInsert: {
+                firebaseUid: decodedToken.uid,
+                email: decodedToken.email || `${decodedToken.uid}@placeholder.dastaan.local`,
+                name: defaultName,
+                photoURL: decodedToken.picture || null,
+                role: 'user',
+                travelStyle: 'Balanced',
+                emailVerified: Boolean(decodedToken.email_verified)
+              }
+            },
+            {
+              new: true,
+              upsert: true,
+              runValidators: true,
+              setDefaultsOnInsert: true
+            }
+          );
+        }
       } catch (dbErr) {
         console.warn('[Auth Middleware] Non-fatal DB lookup warning:', dbErr.message);
       }

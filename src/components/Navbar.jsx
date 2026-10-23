@@ -49,6 +49,7 @@ export default function Navbar({ isFixed = true }) {
   const isDiscover = currentPath === '/discover';
   const isJourney = currentPath === '/itinerary' || currentPath === '/my-journey' || currentPath === '/page3';
   const isPlan = currentPath === '/plan' || currentPath === '/page2';
+  const isProfile = currentPath === '/profile';
 
   return (
     <header
@@ -94,12 +95,17 @@ export default function Navbar({ isFixed = true }) {
       <div className="header-actions">
         {user ? (
           <>
-            <div className="user-profile-nav">
+            <Link
+              to="/profile"
+              className={`user-profile-nav ${isProfile ? 'active' : ''}`}
+              title="View your profile & saved journeys"
+              aria-label="View user profile"
+            >
               <div className="user-avatar" aria-hidden="true">
                 {(user.name || 'U').charAt(0).toUpperCase()}
               </div>
               <span className="user-name">{user.name}</span>
-            </div>
+            </Link>
             <Link className="nav-link home-link" to="/">
               Home
             </Link>

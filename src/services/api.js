@@ -27,22 +27,24 @@ async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL.replace(/\/+$/, '')}/${endpoint.replace(/^\/+/, '')}`;
 
   // Automatically attach fresh Firebase ID token if user is authenticated
-  const token = options.token || (await getAuthToken());
+  const fbToken = options.token || (await getAuthToken());
 
   const defaultHeaders = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    ...(fbToken ? { 'Authorization': `Bearer ${fbToken}` } : {})
   };
 
-  // Automatically attach Bearer token if present
-  try {
-    const token = localStorage.getItem('dastaan_token');
-    if (token) {
-      defaultHeaders['Authorization'] = `Bearer ${token}`;
+  // Fallback to legacy bearer token only if no Firebase token is available
+  if (!fbToken) {
+    try {
+      const legacyToken = localStorage.getItem('dastaan_token');
+      if (legacyToken) {
+        defaultHeaders['Authorization'] = `Bearer ${legacyToken}`;
+      }
+    } catch {
+      // Ignore localStorage access issues
     }
-  } catch {
-    // Ignore localStorage access issues
   }
 
   const config = {
@@ -101,39 +103,18 @@ export const apiClient = {
   saveDestination: (destination) => request('destinations/save', { method: 'POST', body: JSON.stringify(destination) }),
   removeSavedDestination: (destinationId) => request(`destinations/${encodeURIComponent(destinationId)}`, { method: 'DELETE' }),
 
-  // Auth API Methods
+  // Auth & Profile API Methods
   login: (credentials) => request('auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   signup: (userData) => request('auth/signup', { method: 'POST', body: JSON.stringify(userData) }),
-  getMe: () => request('auth/me', { method: 'GET' }),
+  getMe: (token) => request('auth/me', { method: 'GET', token }),
+  createProfile: (profileData, token) => request('auth/profile', { method: 'POST', body: JSON.stringify(profileData), token }),
+  updateProfile: (updateData, token) => request('auth/profile', { method: 'PATCH', body: JSON.stringify(updateData), token }),
 
   /**
    * Health check query
    */
   checkHealth: async () => {
     return await request('health', { method: 'GET' });
-  },
-
-  /**
-   * Auth API methods
-   */
-  getMe: async (token) => {
-    return await request('auth/me', { method: 'GET', token });
-  },
-
-  createProfile: async (profileData, token) => {
-    return await request('auth/profile', {
-      method: 'POST',
-      body: JSON.stringify(profileData),
-      token
-    });
-  },
-
-  updateProfile: async (updateData, token) => {
-    return await request('auth/profile', {
-      method: 'PATCH',
-      body: JSON.stringify(updateData),
-      token
-    });
   },
 
   getBaseUrl: () => API_BASE_URL

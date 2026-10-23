@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage';
 import DiscoverPage from './pages/DiscoverPage';
 import TripConfiguratorPage from './pages/TripConfiguratorPage';
 import ItineraryPage from './pages/ItineraryPage';
+import ProfilePage from './pages/ProfilePage';
 import AuthPage from './pages/AuthPage';
 import NotFoundPage from './pages/NotFoundPage';
 import DevApiStatus from './components/DevApiStatus';
@@ -72,6 +73,10 @@ export default function App() {
         <Route path="/my-journey" element={<ItineraryPage />} />
         <Route path="/page3" element={<ItineraryPage />} />
         <Route path="/page3/page3.html" element={<ItineraryPage />} />
+
+        {/* User Profile Route */}
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/my-profile" element={<ProfilePage />} />
 
         {/* Authentication Route */}
         <Route path="/auth" element={<AuthPage />} />
