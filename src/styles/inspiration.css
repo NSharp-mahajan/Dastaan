@@ -283,15 +283,15 @@
   background: transparent;
   border-top: 1px solid rgba(214, 181, 109, 0.15);
   border-bottom: 1px solid rgba(214, 181, 109, 0.15);
-  padding: 18px 0;
+  padding: 20px 0;
 }
 
 .insp-filter-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
+  gap: 20px;
+  flex-wrap: nowrap;
 }
 
 .insp-chips-wrap {
@@ -301,8 +301,10 @@
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding: 4px 0;
+  -webkit-overflow-scrolling: touch;
+  padding: 6px 2px;
   flex: 1;
+  min-width: 0;
 }
 
 .insp-chips-wrap::-webkit-scrollbar {
@@ -313,20 +315,26 @@
   position: relative;
   background: rgba(244, 239, 227, 0.05);
   border: 1px solid rgba(214, 181, 109, 0.22);
-  color: rgba(244, 239, 227, 0.75);
-  padding: 9px 20px;
+  color: rgba(244, 239, 227, 0.85);
+  padding: 10px 20px;
   border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
   transition: var(--insp-transition);
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  overflow: hidden;
+}
+
+.insp-filter-chip .chip-label {
+  font-size: 12.5px;
+  font-weight: inherit;
+  letter-spacing: inherit;
 }
 
 .insp-filter-chip::after {
@@ -363,13 +371,16 @@
 }
 
 .chip-count {
-  font-size: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
   opacity: 0.85;
 }
 
 .insp-search-wrapper {
   position: relative;
-  min-width: 260px;
+  min-width: 250px;
+  max-width: 320px;
+  flex-shrink: 0;
 }
 
 .insp-search-input {
@@ -377,13 +388,20 @@
   background: rgba(244, 239, 227, 0.06);
   border: 1px solid rgba(214, 181, 109, 0.2);
   border-radius: 999px;
-  padding: 10px 36px 10px 40px;
+  padding: 10px 38px 10px 42px;
   color: var(--insp-paper);
   font-family: var(--insp-font-sans);
-  font-size: 12px;
+  font-size: 13.5px;
   outline: none;
   transition: var(--insp-transition);
   box-sizing: border-box;
+}
+
+.insp-search-input::placeholder {
+  font-size: 13.5px;
+  color: rgba(244, 239, 227, 0.55);
+  font-weight: 400;
+  letter-spacing: 0.2px;
 }
 
 .insp-search-input:focus {
@@ -394,24 +412,24 @@
 
 .insp-search-icon {
   position: absolute;
-  left: 14px;
+  left: 15px;
   top: 50%;
   transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   color: var(--insp-gold);
   pointer-events: none;
 }
 
 .insp-search-clear {
   position: absolute;
-  right: 12px;
+  right: 13px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   color: var(--insp-muted);
-  font-size: 16px;
+  font-size: 18px;
   cursor: pointer;
   padding: 4px;
   line-height: 1;
@@ -1115,12 +1133,12 @@ html {
   }
 }
 
-/* Mobile Layout Polish (<= 640px) */
-@media (max-width: 640px) {
+/* Responsive Filter Bar Layout (<= 768px) */
+@media (max-width: 768px) {
   .insp-filter-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 14px;
   }
 
   .insp-chips-wrap {
@@ -1131,8 +1149,12 @@ html {
   .insp-search-wrapper {
     width: 100%;
     min-width: 0;
+    max-width: none;
   }
+}
 
+/* Mobile Layout Polish (<= 640px) */
+@media (max-width: 640px) {
   .insp-hero {
     padding: 110px 16px 60px;
     min-height: 72vh;
