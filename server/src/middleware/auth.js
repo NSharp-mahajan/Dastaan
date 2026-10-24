@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import mongoose from 'mongoose';
 import { auth, hasServiceAccountCredential } from '../config/firebase.js';
 import User from '../models/User.js';
@@ -77,9 +78,15 @@ export const verifyAuth = async (req, res, next) => {
         console.warn('[Auth Middleware] Non-fatal DB lookup warning:', dbErr.message);
       }
 
+      const resolvedOid = (mongoUser?._id && mongoose.Types.ObjectId.isValid(mongoUser._id))
+        ? mongoUser._id
+        : new mongoose.Types.ObjectId(
+            crypto.createHash('md5').update(decodedToken.uid).digest('hex').substring(0, 24)
+          );
+
       req.user = {
-        _id: mongoUser?._id,
-        id: mongoUser?._id ? mongoUser._id.toString() : decodedToken.uid,
+        _id: resolvedOid,
+        id: resolvedOid.toString(),
         uid: decodedToken.uid,
         email: decodedToken.email || '',
         emailVerified: Boolean(decodedToken.email_verified),
@@ -89,7 +96,7 @@ export const verifyAuth = async (req, res, next) => {
       };
 
       req.mongoUser = mongoUser;
-      req.userId = mongoUser?._id || null;
+      req.userId = resolvedOid;
 
       return next();
     }
@@ -183,9 +190,15 @@ export const optionalAuth = async (req, res, next) => {
     const decodedToken = await auth.verifyIdToken(token, checkRevocation);
     const mongoUser = await User.findOne({ firebaseUid: decodedToken.uid });
 
+    const optOid = (mongoUser?._id && mongoose.Types.ObjectId.isValid(mongoUser._id))
+      ? mongoUser._id
+      : new mongoose.Types.ObjectId(
+          crypto.createHash('md5').update(decodedToken.uid).digest('hex').substring(0, 24)
+        );
+
     req.user = {
-      _id: mongoUser?._id,
-      id: mongoUser?._id ? mongoUser._id.toString() : decodedToken.uid,
+      _id: optOid,
+      id: optOid.toString(),
       uid: decodedToken.uid,
       email: decodedToken.email || '',
       emailVerified: Boolean(decodedToken.email_verified),
@@ -194,7 +207,7 @@ export const optionalAuth = async (req, res, next) => {
       claims: decodedToken
     };
     req.mongoUser = mongoUser;
-    req.userId = mongoUser?._id || null;
+    req.userId = optOid;
   } catch {
     // Check fallback local token
     try {

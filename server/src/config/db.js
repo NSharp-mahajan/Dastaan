@@ -1,5 +1,12 @@
 import dns from 'node:dns';
 import mongoose from 'mongoose';
+<<<<<<< Updated upstream
+import dns from 'node:dns';
+=======
+import dns from 'dns';
+try { dns.setServers(['8.8.8.8', '1.1.1.1']); } catch {}
+>>>>>>> Stashed changes
+import mongoose from 'mongoose';
 
 // State tracking for health reporting
 let connectionState = {
@@ -8,6 +15,8 @@ let connectionState = {
   host: null,
   name: null
 };
+
+mongoose.set('bufferTimeoutMS', 3000);
 
 export const connectDB = async () => {
   const uri = process.env.MONGODB_URI;
