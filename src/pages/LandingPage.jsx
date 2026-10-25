@@ -261,22 +261,10 @@ export default function LandingPage() {
               />
             </div>
 
-            <div className="hero-title">
+            <div className="hero-title hero-sky-content">
               <h1 className="hero-main-title">DASTAAN</h1>
               <p className="hero-tagline-main">EXPLORE. DISCOVER. JOURNEY.</p>
               <p className="hero-description">Plan your destination, days, budget, and experiences in one personalized trip.</p>
-              <div className="hero-ctas">
-                <Link to="/plan" className="btn-primary btn-large">
-                  PLAN MY TRIP &rarr;
-                </Link>
-                <a href="#how-it-works" className="btn-secondary btn-large">
-                  SEE HOW IT WORKS
-                </a>
-              </div>
-              <div className="scroll-indicator">
-                <span className="scroll-text">EXPLORE</span>
-                <span className="scroll-line"></span>
-              </div>
             </div>
 
             <img
@@ -289,6 +277,16 @@ export default function LandingPage() {
               src="https://raft-blast-61784561.figma.site/_assets/v11/392db6a6a6b98e868bd7f8d3f55bb719d51e5028.png"
               alt=""
             />
+
+            <div className="hero-arch-content">
+              <Link to="/plan" className="btn-hero-plan">
+                PLAN MY TRIP &rarr;
+              </Link>
+              <div className="scroll-indicator">
+                <span className="scroll-text">EXPLORE</span>
+                <span className="scroll-line"></span>
+              </div>
+            </div>
 
             <div className="water-cards-container">
               {/* Card 1 — DISCOVER */}
