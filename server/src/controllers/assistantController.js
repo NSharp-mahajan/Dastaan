@@ -11,6 +11,7 @@
  */
 
 import Trip from '../models/Trip.js';
+import { getAuthenticatedUserId } from './tripController.js';
 import { callNvidiaChat } from '../services/nvidiaClient.js';
 import {
   generateGroundedItinerary,
@@ -878,39 +879,46 @@ export async function handleAssistantChat(req, res) {
 
           // Persist to MongoDB if authenticated
           let savedTripDoc = null;
-          if (req.user && (req.user._id || req.user.id)) {
-            const userId = req.user._id || req.user.id;
-            const firebaseUid = req.user.uid || 'dev-uid';
+          const authUserId = getAuthenticatedUserId(req) || (req.user?._id ? req.user._id : null);
+          if (authUserId) {
+            const firebaseUid = req.user?.uid || 'dev-uid';
 
-            if (currentTripId) {
-              const existing = await Trip.findById(currentTripId);
-              if (existing && String(existing.userId) !== String(userId)) {
-                return {
-                  status: 403,
-                  body: {
-                    success: false,
-                    code: 'FORBIDDEN',
-                    message: 'Unauthorized: You cannot overwrite another user’s trip.'
-                  }
-                };
-              }
-              savedTripDoc = await Trip.findByIdAndUpdate(
-                currentTripId,
-                {
+            try {
+              if (currentTripId) {
+                const existing = await Trip.findById(currentTripId);
+                if (existing && String(existing.user || existing.userId) !== String(authUserId)) {
+                  return {
+                    status: 403,
+                    body: {
+                      success: false,
+                      code: 'FORBIDDEN',
+                      message: 'Unauthorized: You cannot overwrite another user’s trip.'
+                    }
+                  };
+                }
+                savedTripDoc = await Trip.findByIdAndUpdate(
+                  currentTripId,
+                  {
+                    ...generatedTrip,
+                    user: authUserId,
+                    userId: authUserId,
+                    firebaseUid,
+                    updatedAt: new Date()
+                  },
+                  { new: true }
+                );
+              } else {
+                savedTripDoc = await Trip.create({
                   ...generatedTrip,
-                  userId,
+                  user: authUserId,
+                  userId: authUserId,
                   firebaseUid,
-                  updatedAt: new Date()
-                },
-                { new: true }
-              );
-            } else {
-              savedTripDoc = await Trip.create({
-                ...generatedTrip,
-                userId,
-                firebaseUid,
-                isPublic: false
-              });
+                  isPublic: false
+                });
+              }
+            } catch (dbSaveErr) {
+              console.warn('[AssistantController] Non-fatal DB trip persistence warning:', dbSaveErr.message);
+              // Fallback to in-memory trip if DB save fails
             }
           }
 
@@ -994,7 +1002,8 @@ export async function handleAssistantChat(req, res) {
       if (currentTripId) {
         const foundTrip = await Trip.findById(currentTripId);
         if (foundTrip) {
-          if (req.user && String(foundTrip.userId) !== String(req.user._id || req.user.id)) {
+          const checkUserId = getAuthenticatedUserId(req) || req.user?._id || req.user?.id;
+          if (checkUserId && String(foundTrip.user || foundTrip.userId) !== String(checkUserId)) {
             return res.status(403).json({
               success: false,
               code: 'FORBIDDEN',

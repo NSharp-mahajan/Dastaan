@@ -103,6 +103,19 @@ const tripSchema = new mongoose.Schema(
       required: [true, 'Trip must be associated with an authenticated user'],
       index: true
     },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      index: true
+    },
+    firebaseUid: {
+      type: String,
+      trim: true
+    },
+    isPublic: {
+      type: Boolean,
+      default: false
+    },
     destination: {
       id: { type: String, required: true, trim: true },
       name: { type: String, required: true, trim: true },
