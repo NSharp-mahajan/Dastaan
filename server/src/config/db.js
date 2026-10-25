@@ -1,12 +1,12 @@
 import dns from 'node:dns';
 import mongoose from 'mongoose';
-<<<<<<< Updated upstream
-import dns from 'node:dns';
-=======
-import dns from 'dns';
-try { dns.setServers(['8.8.8.8', '1.1.1.1']); } catch {}
->>>>>>> Stashed changes
-import mongoose from 'mongoose';
+
+// Ensure public DNS fallback for MongoDB Atlas SRV resolution
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+  // Ignore if system restricts overriding DNS
+}
 
 // State tracking for health reporting
 let connectionState = {
