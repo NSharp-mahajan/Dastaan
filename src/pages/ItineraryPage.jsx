@@ -938,7 +938,7 @@ export default function ItineraryPage() {
 
           <div className="hero-content-layer">
             <span className="hero-eyebrow reveal-on-scroll">YOUR PERSONALIZED JOURNEY</span>
-            <h1 className="hero-title reveal-on-scroll" id="hero-dest-name">
+            <h1 className="hero-dest-title hero-title reveal-on-scroll" id="hero-dest-name">
               {destName}
             </h1>
             <div className="hero-meta reveal-on-scroll" id="hero-meta">

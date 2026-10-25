@@ -248,16 +248,29 @@ body.itinerary-body {
   display: block;
 }
 
-.hero-title {
+.hero-content-layer .hero-title,
+.hero-dest-title {
+  position: static !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  text-align: center !important;
   font-family: var(--font-serif);
-  font-size: clamp(3.5rem, 8vw, 6.5rem);
+  font-size: clamp(2.8rem, 6.5vw, 5.5rem);
   font-weight: 400;
   letter-spacing: 4px;
-  line-height: 1.05;
+  line-height: 1.08;
   color: var(--paper);
   text-transform: uppercase;
-  margin: 0 0 16px;
-  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  margin: 0 auto 16px !important;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .hero-meta {

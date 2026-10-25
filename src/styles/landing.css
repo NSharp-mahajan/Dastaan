@@ -41,7 +41,7 @@ button { border:0; font:inherit; }
 
 .cinema-scroll { position: relative; height: calc(100vh + 6550px); background: #0b1110; }
 .stage { position: sticky; top: 0; height: 100vh; min-height: 620px; overflow: hidden; isolation: isolate; background: #7fb4d4; }
-.world, .back-stack, .sky-img, .shade, .scene-img, .hero-title, .intro-copy, .story-panel { position: absolute; }
+.world, .back-stack, .sky-img, .shade, .scene-img, .stage .hero-title, .stage .hero-sky-content, .intro-copy, .story-panel { position: absolute; }
 .world { inset: 0; overflow: hidden; background: #79b7dd; animation: heroLoad 4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 @keyframes heroLoad {
   0% { transform: scale(1.03); }
@@ -67,7 +67,7 @@ button { border:0; font:inherit; }
 .back-bazaar { z-index:3; opacity:1; filter: blur(var(--bazaar-blur-px)) brightness(var(--bazaar-brightness)) saturate(var(--bazaar-saturation)); transform: translate3d(-50%, var(--bazaar-y), 0) scale(0.86); }
 .back-four { z-index:1; opacity:0.72; mix-blend-mode:screen; transform: translate3d(-50%, calc(var(--four-y) - 110px), 0) scale(var(--four-scale)); }
 
-.hero-title, .hero-sky-content {
+.stage .hero-title, .stage .hero-sky-content {
   z-index: 3;
   left: 50%;
   top: clamp(80px, 12vh, 130px);
@@ -659,7 +659,7 @@ button { border:0; font:inherit; }
   .stage { min-height: 640px; }
   /* Mobile header handled in navigation.css */
   
-  .hero-title, .hero-sky-content { top: clamp(64px, 9vh, 90px); }
+  .stage .hero-title, .stage .hero-sky-content { top: clamp(64px, 9vh, 90px); }
   .hero-main-title { font-size: clamp(1.9rem, 6.0vw, 3.2rem); }
   .hero-tagline-main { font-size: clamp(0.66rem, 1.2vw, 0.8rem); letter-spacing: 0.18em; margin: 4px 0 8px; }
   .hero-description { font-size: clamp(0.78rem, 1.0vw, 0.86rem); padding: 0 16px; max-width: 88vw; }
@@ -689,6 +689,6 @@ button { border:0; font:inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .scene-img, .back-stack, .hero-title, .intro-copy, .story-panel { transition: none; }
+  .scene-img, .back-stack, .stage .hero-title, .stage .hero-sky-content, .intro-copy, .story-panel { transition: none; }
   .observe-fade { transition: none; opacity: 1; transform: none; }
 }
