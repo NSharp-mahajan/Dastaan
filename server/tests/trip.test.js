@@ -75,16 +75,21 @@ test('--- Unit Tests: Itinerary Generator ---', async (t) => {
     assert.ok(itin.overview.includes('packed'));
   });
 
-  await t.test('falls back to default template for unknown destination', () => {
-    const itin = generateItinerary({
-      destination: { id: 'unknown-city', name: 'Unknown City' },
-      duration: 2,
-      budget: 5000
-    });
-
-    assert.ok(itin);
-    assert.equal(itin.days.length, 2);
-    assert.ok(itin.days[0].activities.length > 0);
+  await t.test('rejects unknown destination without falling back to Delhi default', () => {
+    assert.throws(
+      () => {
+        generateItinerary({
+          destination: { id: 'unknown-city', name: 'Unknown City' },
+          duration: 2,
+          budget: 5000
+        });
+      },
+      (err) => {
+        assert.equal(err.code, 'DESTINATION_NOT_FOUND');
+        assert.ok(!err.message.includes('Delhi'));
+        return true;
+      }
+    );
   });
 });
 

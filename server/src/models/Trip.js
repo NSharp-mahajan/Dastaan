@@ -76,7 +76,8 @@ const activitySchema = new mongoose.Schema(
     attribution: { type: String, trim: true },
     imageSource: { type: String, trim: true },
     imageAttribution: { type: String, trim: true },
-    isSelfGuided: { type: Boolean, default: false }
+    isSelfGuided: { type: Boolean, default: false },
+    poiId: { type: String, trim: true, default: '' }
   },
   { _id: false }
 );
@@ -84,6 +85,7 @@ const activitySchema = new mongoose.Schema(
 const daySchema = new mongoose.Schema(
   {
     dayNum: { type: Number, required: true },
+    date: { type: Date, default: null },
     dayTitle: { type: String, trim: true },
     isExplorationDay: { type: Boolean, default: false },
     feasibility: feasibilitySchema,
@@ -120,6 +122,21 @@ const tripSchema = new mongoose.Schema(
       max: [60, 'Duration cannot exceed 60 days'],
       default: 3
     },
+    travelers: {
+      type: Number,
+      required: [true, 'Traveller count is required'],
+      min: [1, 'At least 1 traveller is required'],
+      max: [20, 'Maximum 20 travellers allowed per group plan'],
+      default: 1
+    },
+    startDate: {
+      type: Date,
+      default: null
+    },
+    endDate: {
+      type: Date,
+      default: null
+    },
     budget: {
       type: Number,
       required: [true, 'Trip budget is required'],
@@ -138,11 +155,13 @@ const tripSchema = new mongoose.Schema(
     itinerary: {
       tagline: { type: String, trim: true },
       overview: { type: String, trim: true },
+      estimatedCostPerPerson: { type: Number },
       breakdown: [
         {
           name: { type: String, trim: true },
           pct: { type: Number },
           amount: { type: Number },
+          perPersonAmount: { type: Number },
           color: { type: String, trim: true },
           isEstimated: { type: Boolean, default: true }
         }

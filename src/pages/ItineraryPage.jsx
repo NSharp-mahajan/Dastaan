@@ -98,14 +98,6 @@ export default function ItineraryPage() {
   const [places, setPlaces] = useState([]);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
 
-  // Tooltip state for budget bar
-  const [budgetTooltip, setBudgetTooltip] = useState({ text: '', x: 0, visible: false });
-
-  // Lightbox state
-  const [lightboxData, setLightboxData] = useState(null);
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-
-  const budgetBarRef = useRef(null);
 
   // Warn user before leaving with unsaved modifications
   useEffect(() => {
@@ -118,7 +110,14 @@ export default function ItineraryPage() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
+  // Tooltip state for budget bar
+  const [budgetTooltip, setBudgetTooltip] = useState({ text: '', x: 0, visible: false });
 
+  // Lightbox state
+  const [lightboxData, setLightboxData] = useState(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+  const budgetBarRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -144,18 +143,11 @@ export default function ItineraryPage() {
             return;
           } else {
             console.warn('[ItineraryPage] Could not fetch trip by ID:', res.error);
-            setErrorMessage(res.error || 'Failed to retrieve the requested journey. You may not have permission to view it or it may not exist.');
-            setIsEmpty(true);
-            setIsLoading(false);
-            return;
+            setErrorMessage(res.error || 'Failed to retrieve requested journey.');
           }
         } catch (e) {
           console.warn('[ItineraryPage] Network error fetching trip by ID:', e);
           if (!isMounted) return;
-          setErrorMessage('Unable to connect to the server to load the requested journey.');
-          setIsEmpty(true);
-          setIsLoading(false);
-          return;
         }
       }
 
@@ -397,10 +389,13 @@ export default function ItineraryPage() {
   }
 
   const destId = (trip.destination?.id || '').toLowerCase();
-  const data = mockItineraries[destId] || mockItineraries['default'];
+  const data = mockItineraries[destId] || mockItineraries['default'] || { name: trip.destination?.name || 'Destination', country: 'Worldwide', days: [] };
   const destName = (trip.destination?.name || data.name).toUpperCase();
-  const countryName = (trip.destination?.country || (data.country && data.country !== 'World' ? data.country : '')).toUpperCase();
+  const countryName = (trip.destination?.country || (data.country && data.country !== 'World' ? data.country : 'India')).toUpperCase();
+  const travelers = Math.max(1, parseInt(trip.travelers, 10) || 1);
+  const startDate = trip.startDate || null;
   const budget = trip.budget || 8000;
+  const estimatedCostPerPerson = trip.itinerary?.estimatedCostPerPerson || Math.round(budget / travelers);
   const travelStyle = trip.travelStyle || 'Balanced';
   const interests = Array.isArray(trip.interests) ? trip.interests : [];
 
@@ -419,10 +414,11 @@ export default function ItineraryPage() {
     tagline += '.';
   }
 
-  // Days list calculation: prefer database-stored or generated days, fallback to curated data
-  const daysList = (Array.isArray(trip.itinerary?.days) && trip.itinerary.days.length > 0)
+
+  // Days list calculation: strictly read available days WITHOUT repeating via modulo
+  const daysList = (trip.itinerary?.days && trip.itinerary.days.length > 0)
     ? trip.itinerary.days
-    : (Array.isArray(data?.days) && data.days.length > 0 ? data.days : null);
+    : (data?.days || []);
 
   const duration = Math.max(
     1,
@@ -478,7 +474,47 @@ export default function ItineraryPage() {
     );
   }
 
-  const currentDayData = daysList[activeDay - 1] || daysList[0] || {};
+  // Strict 1-based indexing; if requested day is beyond generated days, currentDayData is null
+  const currentDayData = daysList[activeDay - 1] || null;
+
+  // Calendar date helpers
+  const getComputedDayDate = (dayNum) => {
+    const dayObj = daysList[dayNum - 1];
+    if (dayObj?.date) return dayObj.date;
+
+    if (startDate) {
+      const base = new Date(startDate);
+      if (!isNaN(base.getTime())) {
+        base.setDate(base.getDate() + (dayNum - 1));
+        return base;
+      }
+    }
+    return null;
+  };
+
+  const formatCalendarDate = (dateVal) => {
+    if (!dateVal) return '';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const formatTabDate = (dateVal) => {
+    if (!dateVal) return '';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  };
+
+  let dateRangeText = '';
+  if (startDate) {
+    const startObj = new Date(startDate);
+    if (!isNaN(startObj.getTime())) {
+      const endObj = new Date(startObj);
+      endObj.setDate(endObj.getDate() + Math.max(0, duration - 1));
+      dateRangeText = `${startObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} – ${endObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+    }
+  }
 
   // Open Lightbox
   const openLightbox = (title, desc, cat, imgSrc, imgLabel) => {
@@ -493,65 +529,34 @@ export default function ItineraryPage() {
     setIsLightboxOpen(true);
   };
 
-  // Route statistics & real-world road network integration (Phase 2)
-  const currentRoute = currentDayData?.route || null;
-  const dayActivities = currentDayData?.activities || [];
-  const placesCount = dayActivities.length;
+  // Route statistics (safely handles null currentDayData)
+  const multiplier = travelStyle === 'Packed' ? 1.4 : travelStyle === 'Relaxed' ? 0.7 : 1;
+  const currentActivities = currentDayData?.activities || [];
+  const placesCount = Math.round((currentActivities.length || 3) * duration);
+  const movementKm = Math.round(3.2 * multiplier * duration);
+  const timeSavedMin = Math.round(45 * multiplier);
 
-  const hasValidRoute = Boolean(
-    currentRoute &&
-    currentRoute.provider !== 'none' &&
-    currentRoute.provider !== 'insufficient-coordinates' &&
-    typeof currentRoute.distanceKm === 'number' &&
-    currentRoute.distanceKm > 0
-  );
+  // Route SVG nodes
+  const nodeNames = ['START', ...currentActivities.map(a => a.title), 'END'];
+  const nodeCount = Math.max(2, nodeNames.length);
+  const startX = 60;
+  const endX = 740;
+  const step = (endX - startX) / Math.max(1, nodeCount - 1);
 
-  const routeProvider = currentRoute?.provider || "none";
-  const isRouteEstimated = currentRoute?.isEstimated ?? (!hasValidRoute ? false : true);
-  const movementKm = hasValidRoute ? currentRoute.distanceKm : null;
-  const travelDurationMin = hasValidRoute ? currentRoute.durationMin : null;
+  const points = [];
+  let pathD = `M ${startX} 80`;
 
-  // Compute SVG projection from genuine coordinates if available (no fake decorative curve)
-  let points = [];
-  let pathD = "";
-  let hasRealGeometry = false;
-
-  if (hasValidRoute && currentRoute?.geometry?.coordinates && currentRoute.geometry.coordinates.length >= 2) {
-    const rawCoords = currentRoute.geometry.coordinates; // [[lng, lat], ...]
-    const lngs = rawCoords.map(c => c[0]);
-    const lats = rawCoords.map(c => c[1]);
-    const minLng = Math.min(...lngs);
-    const maxLng = Math.max(...lngs);
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
-
-    const spanLng = (maxLng - minLng) || 0.01;
-    const spanLat = (maxLat - minLat) || 0.01;
-    const padLng = spanLng * 0.15;
-    const padLat = spanLat * 0.15;
-
-    const bMinLng = minLng - padLng;
-    const bMaxLng = maxLng + padLng;
-    const bMinLat = minLat - padLat;
-    const bMaxLat = maxLat + padLat;
-
-    const project = (lng, lat) => ({
-      x: Math.round(70 + ((lng - bMinLng) / (bMaxLng - bMinLng)) * 660),
-      y: Math.round(150 - ((lat - bMinLat) / (bMaxLat - bMinLat)) * 110)
-    });
-
-    pathD = rawCoords.map((c, i) => `${i === 0 ? "M" : "L"} ${project(c[0], c[1]).x} ${project(c[0], c[1]).y}`).join(" ");
-
-    points = dayActivities.map((act) => {
-      if (typeof act.latitude === "number" && typeof act.longitude === "number") {
-        const pt = project(act.longitude, act.latitude);
-        return { x: pt.x, y: pt.y, name: act.title };
-      }
-      return null;
-    }).filter(Boolean);
-
-    if (points.length >= 2) {
-      hasRealGeometry = true;
+  for (let i = 0; i < nodeCount; i++) {
+    const x = startX + i * step;
+    const y = 80 + (i % 2 === 1 ? -25 : 25);
+    points.push({ x, y, name: nodeNames[i] || 'STOP' });
+    if (i > 0) {
+      const prev = points[i - 1];
+      const cx1 = prev.x + step / 2;
+      const cy1 = prev.y;
+      const cx2 = prev.x + step / 2;
+      const cy2 = y;
+      pathD += ` C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x} ${y}`;
     }
   }
 
@@ -809,25 +814,32 @@ export default function ItineraryPage() {
   const handleBudgetHover = (item, e) => {
     if (!budgetBarRef.current) return;
     const rect = budgetBarRef.current.getBoundingClientRect();
-    const segmentVal = Math.round(budget * (item.pct / 100));
+    const savedCategory = trip.itinerary?.breakdown?.find(
+      b => b.category?.toLowerCase() === item.name.toLowerCase()
+    );
+    const totalVal = savedCategory ? savedCategory.amount : Math.round(budget * (item.pct / 100));
+    const perPersonVal = savedCategory?.perPersonAmount || Math.round(totalVal / travelers);
+
     setBudgetTooltip({
-      text: `${item.name} · ${item.pct}% · ₹${segmentVal.toLocaleString('en-IN')}`,
+      text: `${item.name} · ${item.pct}% · ₹${totalVal.toLocaleString('en-IN')} total (₹${perPersonVal.toLocaleString('en-IN')}/person)`,
       x: e.clientX - rect.left,
       visible: true
     });
   };
 
   const handleSaveJourney = async () => {
-    // 1. Verify that the user is authenticated
+    // 1. Verify user authentication
     const currentUser = auth.currentUser || getCurrentUser();
     if (!currentUser) {
-      setAuthModalOpen(true);
       setToastInfo({
         type: 'error',
         title: 'AUTHENTICATION REQUIRED',
-        message: 'Please sign in to permanently save your journey to your Dastaan account.'
+        message: 'Please sign in to save this journey to your Dastaan account.'
       });
       setShowToast(true);
+      setTimeout(() => {
+        document.getElementById('save-toast')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
       return;
     }
 
@@ -930,7 +942,8 @@ export default function ItineraryPage() {
               {destName}
             </h1>
             <div className="hero-meta reveal-on-scroll" id="hero-meta">
-              {countryName} &bull; {duration} DAYS &bull; ₹{budget.toLocaleString('en-IN')}
+              {countryName} &bull; {duration} DAYS &bull; {travelers} {travelers === 1 ? 'TRAVELLER' : 'TRAVELLERS'} &bull; ₹{budget.toLocaleString('en-IN')} TOTAL (₹{estimatedCostPerPerson.toLocaleString('en-IN')}/PERSON)
+              {dateRangeText && <> &bull; {dateRangeText}</>}
             </div>
             <p className="hero-tagline reveal-on-scroll" id="hero-desc">
               "{tagline}"
@@ -965,20 +978,28 @@ export default function ItineraryPage() {
                   {String(duration).padStart(2, '0')}
                 </span>
                 <span className="glance-label">DAYS</span>
+                {dateRangeText && <span className="glance-sub-text">{dateRangeText}</span>}
+              </div>
+              <div className="glance-divider"></div>
+              <div className="glance-col">
+                <span className="glance-num" id="glance-travelers">
+                  {String(travelers).padStart(2, '0')}
+                </span>
+                <span className="glance-label">{travelers === 1 ? 'TRAVELLER' : 'TRAVELLERS'}</span>
               </div>
               <div className="glance-divider"></div>
               <div className="glance-col">
                 <span className="glance-num" id="glance-budget">
                   ₹{budget.toLocaleString('en-IN')}
                 </span>
-                <span className="glance-label">BUDGET</span>
+                <span className="glance-label">TOTAL BUDGET</span>
               </div>
               <div className="glance-divider"></div>
               <div className="glance-col">
-                <span className="glance-num" id="glance-interests-count">
-                  {String(interests.length).padStart(2, '0')}
+                <span className="glance-num" id="glance-per-person">
+                  ₹{estimatedCostPerPerson.toLocaleString('en-IN')}
                 </span>
-                <span className="glance-label">INTERESTS</span>
+                <span className="glance-label">PER PERSON</span>
               </div>
               <div className="glance-divider"></div>
               <div className="glance-col">
@@ -1066,16 +1087,25 @@ export default function ItineraryPage() {
             {/* Premium Day Selector */}
             <div className="day-selector-sticky-wrap">
               <nav className="day-selector" id="day-selector" aria-label="Day selection">
-                {Array.from({ length: duration }, (_, i) => i + 1).map(dayNum => (
-                  <button
-                    key={dayNum}
-                    type="button"
-                    className={`day-btn ${activeDay === dayNum ? 'active' : ''}`}
-                    onClick={() => setActiveDay(dayNum)}
-                  >
-                    DAY {String(dayNum).padStart(2, '0')}
-                  </button>
-                ))}
+                {Array.from({ length: duration }, (_, i) => i + 1).map(dayNum => {
+                  const dayObj = daysList[dayNum - 1];
+                  const tabDate = getComputedDayDate(dayNum);
+                  const isMissing = !dayObj;
+
+                  return (
+                    <button
+                      key={dayNum}
+                      type="button"
+                      className={`day-btn ${activeDay === dayNum ? 'active' : ''} ${isMissing ? 'day-btn-missing' : ''}`}
+                      onClick={() => setActiveDay(dayNum)}
+                      title={isMissing ? `Day ${dayNum} is not generated` : undefined}
+                    >
+                      <span className="day-btn-label">DAY {String(dayNum).padStart(2, '0')}</span>
+                      {tabDate && <span className="day-btn-date">{formatTabDate(tabDate)}</span>}
+                      {isMissing && <span className="day-btn-tag">(Unplanned)</span>}
+                    </button>
+                  );
+                })}
                 <button
                   type="button"
                   className="day-btn add-day-tab-btn"
@@ -1093,248 +1123,90 @@ export default function ItineraryPage() {
               </nav>
             </div>
 
-            {/* Travel Journal Day Title Header & Daily Feasibility */}
+            {/* Travel Journal Day Title Header */}
             <div className="day-journal-header" id="day-journal-header">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div className="journal-day-badge" id="journal-day-num">
-                    DAY {String(activeDay).padStart(2, '0')}
-                  </div>
-                  <h3 className="journal-day-title" id="journal-day-title" style={{ margin: 0 }}>
-                    {currentDayData.dayTitle || `EXPLORING ${destName}`}
-                  </h3>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  {hasUnsavedChanges ? (
-                    <span className="unsaved-badge">● UNSAVED EDITS</span>
-                  ) : isSaved ? (
-                    <span className="saved-badge">✓ SAVED</span>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="act-btn"
-                    onClick={() => openReplaceModal(activeDay, -1, 'Add Place')}
-                    style={{ background: 'rgba(214, 181, 109, 0.15)', borderColor: '#D6B56D', color: '#D6B56D' }}
-                  >
-                    + Add Place
-                  </button>
-                </div>
+              <div className="journal-day-badge" id="journal-day-num">
+                DAY {String(activeDay).padStart(2, '0')}
+              </div>
+              <div className="journal-day-title-box">
+                <h3 className="journal-day-title" id="journal-day-title">
+                  {currentDayData?.dayTitle || (currentDayData ? `EXPLORING ${destName}` : `DAY ${activeDay}`)}
+                </h3>
+                {getComputedDayDate(activeDay) && (
+                  <span className="journal-day-date">
+                    {formatCalendarDate(getComputedDayDate(activeDay))}
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* Daily Feasibility Metric Pill & Travel Window */}
-            {currentDayData.feasibility && (
-              <div className="day-feasibility-bar" style={{
-                margin: '14px 0 20px',
-                display: 'flex',
-                gap: '12px',
-                alignItems: 'center',
-                flexWrap: 'wrap'
-              }}>
-                <span className="badge-tag-pill" style={{
-                  background: currentDayData.feasibility.status === 'tight' ? 'rgba(200, 121, 85, 0.25)' : 'rgba(214, 181, 109, 0.2)',
-                  border: `1px solid ${currentDayData.feasibility.status === 'tight' ? '#C87955' : '#D6B56D'}`,
-                  color: currentDayData.feasibility.status === 'tight' ? '#C87955' : '#D6B56D',
-                  fontSize: '0.74rem'
-                }}>
-                  {currentDayData.feasibility.status === 'tight'
-                    ? '⚠️ TIGHT DAY SCHEDULE'
-                    : currentDayData.feasibility.status === 'relaxed'
-                    ? 'RELAXED DAY PACING'
-                    : 'OPTIMAL DAY PACING'} · ~{currentDayData.feasibility.totalDayHours}h Planned ({currentDayData.feasibility.dailyBudgetHours}h Budget)
-                </span>
-                <span className="badge-tag-pill" style={{
-                  background: currentDayData.feasibility.routeQuality === 'road_network' ? 'rgba(214, 181, 109, 0.25)' : 'rgba(200, 121, 85, 0.15)',
-                  border: `1px solid ${currentDayData.feasibility.routeQuality === 'road_network' ? '#D6B56D' : '#C87955'}`,
-                  color: currentDayData.feasibility.routeQuality === 'road_network' ? '#D6B56D' : '#E8DCC7',
-                  fontSize: '0.72rem'
-                }}>
-                  {currentDayData.feasibility.routeQuality === 'road_network'
-                    ? '✓ ROAD ROUTED (OSRM)'
-                    : currentDayData.feasibility.routeQuality === 'estimate'
-                    ? '~ EST. TRANSIT'
-                    : '• UNMAPPED TRANSIT'}
-                </span>
-                <span style={{ fontSize: '0.8rem', color: '#E8DCC7', opacity: 0.8 }}>
-                  ({currentDayData.feasibility.totalVisitHours}h visits + {currentDayData.feasibility.totalTransitHours}h transit)
-                </span>
+            {/* Incomplete / Unplanned Day Recovery Card */}
+            {!currentDayData ? (
+              <div className="incomplete-day-card">
+                <div className="incomplete-day-icon">!</div>
+                <span className="incomplete-badge">DAY {activeDay} NOT PLANNED</span>
+                <h3>Day {activeDay} Is Not Available</h3>
+                <p>
+                  This journey contains {daysList.length} verified {daysList.length === 1 ? 'day' : 'days'}.
+                  Dastaan does not loop earlier days or fabricate unverified daily schedules.
+                </p>
+                <div className="incomplete-actions">
+                  <button type="button" className="btn-return-day1" onClick={() => setActiveDay(1)}>
+                    &larr; Return to Day 01
+                  </button>
+                  <button type="button" className="btn-edit-pref" onClick={handleEditPreferences}>
+                    Adjust Trip Duration &rarr;
+                  </button>
+                </div>
               </div>
-            )}
+            ) : (
+              /* Timeline / Travel Journal Content */
+              <div className="travel-journal-container" id="timeline-container">
+                {currentDayData.activities?.map((act, idx) => {
+                  const layoutClass = act.layout || (idx % 2 === 0 ? 'image-right' : 'image-left');
+                  const imgLabel = act.imageLabel || `${act.title.toUpperCase()} \u00B7 ${act.cat}`;
+                  const actImgSrc = resolveImage(act.title, act.image);
 
-            {/* Daily Feasibility Actionable Warnings */}
-            {currentDayData.feasibility?.warnings && currentDayData.feasibility.warnings.length > 0 && (
-              <div className="feasibility-warnings-box" style={{
-                background: 'rgba(200, 121, 85, 0.12)',
-                borderLeft: '3px solid #C87955',
-                padding: '10px 16px',
-                marginBottom: '22px',
-                borderRadius: '2px',
-                fontSize: '0.82rem',
-                color: '#F4EFE3'
-              }}>
-                {currentDayData.feasibility.warnings.map((warn, wIdx) => {
-                  const isSuggestion = warn.startsWith('Suggestion:');
                   return (
                     <div
-                      key={wIdx}
-                      style={{
-                        marginBottom: wIdx === currentDayData.feasibility.warnings.length - 1 ? 0 : '6px',
-                        padding: isSuggestion ? '6px 10px' : '0',
-                        background: isSuggestion ? 'rgba(214, 181, 109, 0.15)' : 'transparent',
-                        borderLeft: isSuggestion ? '3px solid #D6B56D' : 'none',
-                        color: isSuggestion ? '#D6B56D' : '#F4EFE3'
-                      }}
+                      key={idx}
+                      className={`activity-card-row ${layoutClass}`}
+                      style={{ animationDelay: `${idx * 0.1}s` }}
                     >
-                      {isSuggestion ? `💡 ${warn}` : warn}
+                      <div className="activity-time-col">
+                        <span className="activity-time-text">{act.time}</span>
+                      </div>
+                      <div className="activity-main-content">
+                        <div className="activity-text-box">
+                          <h4>{act.title}</h4>
+                          <p className="activity-desc">{act.desc}</p>
+                          <span className="activity-cat-tag">{act.cat}</span>
+                        </div>
+                        <div
+                          className="activity-image-wrap image-placeholder"
+                          style={{ cursor: 'pointer' }}
+                          title="Click to view full image"
+                          onClick={() => openLightbox(act.title, act.desc, act.cat, actImgSrc, imgLabel)}
+                        >
+                          {actImgSrc && (
+                            <img
+                              src={actImgSrc}
+                              alt={act.title}
+                              className="activity-img-element loaded"
+                              onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                          )}
+                          <div className="placeholder-overlay">
+                            <span className="placeholder-badge">[ {imgLabel} ]</span>
+                          </div>
+                          <div className="view-place-badge">VIEW PLACE</div>
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             )}
-
-            {/* Timeline / Travel Journal Content */}
-            <div className="travel-journal-container" id="timeline-container">
-              {(!currentDayData.activities || currentDayData.activities.length === 0) ? (
-                <div className="empty-day-banner">
-                  <h4>NO ACTIVITIES SCHEDULED FOR DAY {activeDay}</h4>
-                  <p>
-                    You have removed all activities from this day. You can add an unused place from the destination catalog or move activities here from another day.
-                  </p>
-                  <button
-                    type="button"
-                    className="btn-select-place"
-                    onClick={() => openReplaceModal(activeDay, -1, 'Add Place')}
-                    style={{ padding: '10px 24px', fontSize: '0.8rem' }}
-                  >
-                    + ADD PLACE FROM CATALOG
-                  </button>
-                </div>
-              ) : (
-                currentDayData.activities?.map((act, idx) => {
-                const layoutClass = act.layout || (idx % 2 === 0 ? 'image-right' : 'image-left');
-                const imgLabel = act.imageLabel || `${act.title.toUpperCase()} \u00B7 ${act.cat}`;
-                const actImgSrc = resolveImage(act.title, act.image);
-
-                const prevAct = idx > 0 ? currentDayData.activities[idx - 1] : null;
-                const transit = prevAct?.transitToNext || (currentRoute?.legs && currentRoute.legs[idx - 1]) || null;
-                const hasTransitInfo = transit && typeof transit.distanceKm === 'number' && typeof transit.durationMin === 'number';
-
-                return (
-                  <React.Fragment key={idx}>
-                    {idx > 0 && (
-                      <div className="activity-transit-row">
-                        <div className="transit-badge-pill">
-                          <span className="transit-arrow">↕</span>
-                          {hasTransitInfo ? (
-                            <>
-                              <span className="transit-time">~{transit.durationMin} MIN</span>
-                              <span className="transit-dist">({transit.distanceKm} KM)</span>
-                              <span className={`transit-chip ${transit.isEstimated ? 'est' : 'road'}`}>
-                                {transit.isEstimated ? 'Est. Transit' : 'Road Route (OSRM)'}
-                              </span>
-                            </>
-                          ) : (
-                            <span className="transit-unmapped">
-                              Transit unmapped / self-guided
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    <div
-                      className={`activity-card-row ${layoutClass}`}
-                      style={{ animationDelay: `${idx * 0.1}s` }}
-                    >
-                    <div className="activity-time-col">
-                      <span className="activity-time-text">{act.time}</span>
-                      {act.visitDurationHours && (
-                        <span style={{ fontSize: '0.72rem', color: '#D6B56D', opacity: 0.9, display: 'block', marginTop: '4px' }}>
-                          ~{act.visitDurationHours}h visit
-                        </span>
-                      )}
-                    </div>
-                    <div className="activity-main-content">
-                      <div className="activity-text-box">
-                        <h4>{act.title}</h4>
-                        <p className="activity-desc">{act.desc}</p>
-                        <span className="activity-cat-tag">{act.cat}</span>
-
-                        {/* Phase 3 Activity Editing Controls */}
-                        <div className="activity-actions-bar">
-                          <button
-                            type="button"
-                            className="act-btn"
-                            disabled={idx === 0 || isRecalculating}
-                            onClick={() => handleMoveActivity(activeDay, idx, -1)}
-                            title="Move earlier in this day"
-                          >
-                            ↑ Move Up
-                          </button>
-                          <button
-                            type="button"
-                            className="act-btn"
-                            disabled={idx === (currentDayData.activities?.length || 1) - 1 || isRecalculating}
-                            onClick={() => handleMoveActivity(activeDay, idx, 1)}
-                            title="Move later in this day"
-                          >
-                            ↓ Move Down
-                          </button>
-                          {daysList.length > 1 && (
-                            <button
-                              type="button"
-                              className="act-btn"
-                              disabled={isRecalculating}
-                              onClick={() => openMoveDayModal(activeDay, idx, act.title)}
-                              title="Move to another day"
-                            >
-                              ⇄ Move to Day...
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            className="act-btn act-btn-replace"
-                            disabled={isRecalculating}
-                            onClick={() => openReplaceModal(activeDay, idx, act.title)}
-                            title="Replace with an unused place from catalog"
-                          >
-                            ↻ Replace
-                          </button>
-                          <button
-                            type="button"
-                            className="act-btn act-btn-remove"
-                            disabled={isRecalculating}
-                            onClick={() => handleRemoveActivity(activeDay, idx)}
-                            title="Remove from itinerary"
-                          >
-                            ✕ Remove
-                          </button>
-                        </div>
-                      </div>
-                      <div
-                        className="activity-image-wrap image-placeholder"
-                        style={{ cursor: 'pointer' }}
-                        title="Click to view full image"
-                        onClick={() => openLightbox(act.title, act.desc, act.cat, actImgSrc, imgLabel)}
-                      >
-                        {actImgSrc && (
-                          <img
-                            src={actImgSrc}
-                            alt={act.title}
-                            className="activity-img-element loaded"
-                            onError={(e) => { e.target.style.display = 'none'; }}
-                          />
-                        )}
-                        <div className="placeholder-overlay">
-                          <span className="placeholder-badge">[ {imgLabel} ]</span>
-                        </div>
-                        <div className="view-place-badge">VIEW PLACE</div>
-                      </div>
-                    </div>
-                  </div>
-                  </React.Fragment>
-                );
-              }))}
-            </div>
           </div>
         </section>
 
@@ -1347,72 +1219,41 @@ export default function ItineraryPage() {
               <p className="routing-desc">
                 Today's experiences are grouped logically to reduce unnecessary travel time, giving you more freedom to explore at your own pace.
               </p>
-              <div style={{ marginTop: "14px", display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-                <span className="badge-tag-pill" style={{
-                  background: routeProvider === "osrm" ? "rgba(214, 181, 109, 0.2)" : "rgba(200, 121, 85, 0.2)",
-                  border: `1px solid ${routeProvider === "osrm" ? "#D6B56D" : "#C87955"}`,
-                  color: routeProvider === "osrm" ? "#D6B56D" : "#C87955",
-                  fontSize: "0.74rem"
-                }}>
-                  {routeProvider === "osrm"
-                    ? "REAL ROAD NETWORK (OSRM)"
-                    : hasValidRoute
-                    ? "GEODESIC ESTIMATE (HAVERSINE)"
-                    : "TRAVEL ROUTE UNMAPPED"}
-                </span>
-                {hasValidRoute && isRouteEstimated && (
-                  <span className="badge-tag-pill" style={{ fontSize: "0.74rem", opacity: 0.85 }}>
-                    1.35x Urban Road Tortuosity
-                  </span>
-                )}
-              </div>
             </div>
 
             {/* SVG Route Canvas Container */}
             <div className="route-visualization-wrapper">
               <div className="route-svg-canvas" id="route-svg-canvas">
-                {hasRealGeometry ? (
-                  <svg width="100%" height="180" viewBox="0 0 800 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d={pathD} stroke="#D6B56D" strokeWidth="3" strokeLinecap="round" opacity="0.4" strokeDasharray="6 6" />
-                    <path d={pathD} stroke="#D6B56D" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
-                    {points.map((pt, idx) => {
-                      const isEdge = idx === 0 || idx === points.length - 1;
-                      const r = isEdge ? 7 : 9;
-                      const color = isEdge ? "#C87955" : "#D6B56D";
-                      const textY = pt.y > 90 ? Math.min(172, pt.y + 22) : Math.max(16, pt.y - 14);
-                      const shortLabel = pt.name.length > 18 ? pt.name.substring(0, 16) + "..." : pt.name;
+                <svg width="100%" height="160" viewBox="0 0 800 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d={pathD} stroke="#D6B56D" strokeWidth="3" strokeLinecap="round" opacity="0.6" strokeDasharray="6 6" />
+                  <path d={pathD} stroke="#D6B56D" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+                  {points.map((pt, idx) => {
+                    const isEdge = idx === 0 || idx === points.length - 1;
+                    const r = isEdge ? 7 : 9;
+                    const color = isEdge ? '#C87955' : '#D6B56D';
+                    const textY = pt.y > 80 ? pt.y + 24 : pt.y - 16;
+                    const shortLabel = pt.name.length > 14 ? pt.name.substring(0, 12) + '...' : pt.name;
 
-                      return (
-                        <g key={idx}>
-                          <circle cx={pt.x} cy={pt.y} r={r + 4} fill="#071D1A" stroke={color} strokeWidth="1.5" opacity="0.8" />
-                          <circle cx={pt.x} cy={pt.y} r={r} fill={color} />
-                          <text
-                            x={pt.x}
-                            y={textY}
-                            textAnchor="middle"
-                            fill="#F4EFE3"
-                            fontFamily="sans-serif"
-                            fontSize="11"
-                            fontWeight="600"
-                            letterSpacing="1"
-                          >
-                            {shortLabel.toUpperCase()}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </svg>
-                ) : (
-                  <div className="route-unmapped-placeholder">
-                    <span className="unmapped-icon">◈</span>
-                    <h4 className="unmapped-title">NO FIXED ROUTE LINE</h4>
-                    <p className="unmapped-desc">
-                      {currentDayData?.isExplorationDay
-                        ? "Self-guided neighborhood discovery day without fixed transit coordinates."
-                        : "Activities for this day are self-guided or lack coordinates. Transit path is not measured."}
-                    </p>
-                  </div>
-                )}
+                    return (
+                      <g key={idx}>
+                        <circle cx={pt.x} cy={pt.y} r={r + 4} fill="#071D1A" stroke={color} strokeWidth="1.5" opacity="0.8" />
+                        <circle cx={pt.x} cy={pt.y} r={r} fill={color} />
+                        <text
+                          x={pt.x}
+                          y={textY}
+                          textAnchor="middle"
+                          fill="#F4EFE3"
+                          fontFamily="sans-serif"
+                          fontSize="11"
+                          fontWeight="600"
+                          letterSpacing="1"
+                        >
+                          {shortLabel.toUpperCase()}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
               </div>
             </div>
 
@@ -1420,25 +1261,17 @@ export default function ItineraryPage() {
             <div className="routing-stats-bar">
               <div className="route-stat-item">
                 <span className="route-stat-num" id="stat-places">{placesCount}</span>
-                <span className="route-stat-label">STOPS TODAY</span>
+                <span className="route-stat-label">PLACES</span>
               </div>
               <div className="route-stat-divider"></div>
               <div className="route-stat-item">
-                <span className="route-stat-num" id="stat-movement">
-                  {movementKm !== null ? `${movementKm} KM` : '--'}
-                </span>
-                <span className="route-stat-label">
-                  {hasValidRoute ? (isRouteEstimated ? "EST. DISTANCE" : "ROAD DISTANCE") : "ROUTE DISTANCE"}
-                </span>
+                <span className="route-stat-num" id="stat-movement">{movementKm} KM</span>
+                <span className="route-stat-label">ESTIMATED MOVEMENT</span>
               </div>
               <div className="route-stat-divider"></div>
               <div className="route-stat-item">
-                <span className="route-stat-num" id="stat-saved">
-                  {travelDurationMin !== null ? `${travelDurationMin} MIN` : '--'}
-                </span>
-                <span className="route-stat-label">
-                  {hasValidRoute ? (isRouteEstimated ? "EST. TRAVEL TIME" : "ROAD TRAVEL TIME") : "EST. TRAVEL TIME"}
-                </span>
+                <span className="route-stat-num" id="stat-saved">{timeSavedMin} MIN</span>
+                <span className="route-stat-label">TIME SAVED</span>
               </div>
             </div>
           </div>
@@ -1450,8 +1283,21 @@ export default function ItineraryPage() {
             <div className="budget-header">
               <span className="section-eyebrow gold-eyebrow">TRANSPARENT COST ALLOCATION</span>
               <h2 className="section-title-serif gold-title">YOUR BUDGET</h2>
-              <div className="budget-total-hero" id="budget-total">
-                ₹{budget.toLocaleString('en-IN')}
+
+              <div className="budget-hero-row">
+                <div className="budget-hero-col">
+                  <span className="budget-hero-eyebrow">TOTAL GROUP BUDGET</span>
+                  <div className="budget-total-hero" id="budget-total">
+                    ₹{budget.toLocaleString('en-IN')}
+                  </div>
+                </div>
+                <div className="budget-hero-divider"></div>
+                <div className="budget-hero-col">
+                  <span className="budget-hero-eyebrow">ESTIMATED PER PERSON ({travelers} {travelers === 1 ? 'TRAVELLER' : 'TRAVELLERS'})</span>
+                  <div className="budget-total-hero budget-per-person-hero" id="budget-per-person">
+                    ₹{estimatedCostPerPerson.toLocaleString('en-IN')}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1482,15 +1328,21 @@ export default function ItineraryPage() {
               {/* Breakdown Grid */}
               <div className="budget-grid" id="budget-grid">
                 {breakdown.map((item, idx) => {
-                  const segmentVal = Math.round(budget * (item.pct / 100));
+                  const savedCategory = trip.itinerary?.breakdown?.find(
+                    b => b.category?.toLowerCase() === item.name.toLowerCase()
+                  );
+                  const totalVal = savedCategory ? savedCategory.amount : Math.round(budget * (item.pct / 100));
+                  const perPersonVal = savedCategory?.perPersonAmount || Math.round(totalVal / travelers);
+
                   return (
                     <div key={idx} className="budget-grid-item">
                       <div className="bg-item-name">
                         <div className="bg-item-dot" style={{ backgroundColor: item.color }}></div>
                         <span>{item.name}</span>
+                        <span className="bg-item-pct">{item.pct}%</span>
                       </div>
-                      <div className="bg-item-val">₹{segmentVal.toLocaleString('en-IN')}</div>
-                      <div className="bg-item-pct">{item.pct}%</div>
+                      <div className="bg-item-val">₹{totalVal.toLocaleString('en-IN')}</div>
+                      <div className="bg-item-per-person">₹{perPersonVal.toLocaleString('en-IN')} / person</div>
                     </div>
                   );
                 })}
@@ -1589,7 +1441,9 @@ export default function ItineraryPage() {
                 </span>
                 <span className="badge-tag-pill">{travelStyle} Pace</span>
                 <span className="badge-tag-pill">{duration} Days</span>
-                <span className="badge-tag-pill">₹{budget.toLocaleString('en-IN')}</span>
+                <span className="badge-tag-pill">{travelers} {travelers === 1 ? 'Traveller' : 'Travellers'}</span>
+                <span className="badge-tag-pill">₹{budget.toLocaleString('en-IN')} Total</span>
+                <span className="badge-tag-pill">₹{estimatedCostPerPerson.toLocaleString('en-IN')}/Person</span>
               </div>
             </div>
           </div>
@@ -1691,7 +1545,8 @@ export default function ItineraryPage() {
             <h2 className="final-heading-serif">ALL THAT'S LEFT IS TO GO.</h2>
 
             <div className="final-dest-summary" id="final-dest-summary">
-              {destName} &bull; {duration} DAYS &bull; ₹{budget.toLocaleString('en-IN')}
+              {destName} &bull; {duration} DAYS &bull; {travelers} {travelers === 1 ? 'TRAVELLER' : 'TRAVELLERS'} &bull; ₹{budget.toLocaleString('en-IN')} TOTAL (₹{estimatedCostPerPerson.toLocaleString('en-IN')}/PERSON)
+              {dateRangeText && <> &bull; {dateRangeText}</>}
             </div>
 
             {/* CTA Buttons Hierarchy */}

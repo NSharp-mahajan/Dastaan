@@ -10,7 +10,8 @@
     "test": "npm run test:server",
     "server": "npm start --prefix server",
     "server:dev": "npm run dev --prefix server",
-    "test:server": "npm test --prefix server"
+    "test:server": "npm test --prefix server",
+    "start": "npm start --prefix server"
   },
   "dependencies": {
     "firebase": "^13.1.0",

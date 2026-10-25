@@ -12,9 +12,20 @@ import '../styles/page2.css';
 export default function TripConfiguratorPage() {
   const navigate = useNavigate();
 
+  // Helper for today's date in YYYY-MM-DD (local time)
+  const getTodayDateString = () => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   // Load existing state from localStorage if available
   const [selectedDest, setSelectedDest] = useState(null);
   const [duration, setDuration] = useState(3);
+  const [travelers, setTravelers] = useState(1);
+  const [startDate, setStartDate] = useState('');
   const [budget, setBudget] = useState(8000);
   const [interests, setInterests] = useState([]);
   const [travelStyle, setTravelStyle] = useState('Balanced');
@@ -42,8 +53,16 @@ export default function TripConfiguratorPage() {
             setBgImage(parsed.destination.image);
           }
         }
-        if (parsed.duration) setDuration(parsed.duration);
-        if (parsed.budget) setBudget(parsed.budget);
+        if (parsed.duration) setDuration(Math.max(1, Math.min(60, parseInt(parsed.duration, 10))));
+        if (parsed.travelers) setTravelers(Math.max(1, Math.min(20, parseInt(parsed.travelers, 10))));
+        if (parsed.startDate) {
+          const rawDate = typeof parsed.startDate === 'string' ? parsed.startDate.split('T')[0] : '';
+          const todayStr = getTodayDateString();
+          if (rawDate && rawDate >= todayStr) {
+            setStartDate(rawDate);
+          }
+        }
+        if (parsed.budget) setBudget(Math.max(1000, parseInt(parsed.budget, 10)));
         if (Array.isArray(parsed.interests)) setInterests(parsed.interests);
         if (parsed.travelStyle) setTravelStyle(parsed.travelStyle);
       } catch (e) {
@@ -67,16 +86,17 @@ export default function TripConfiguratorPage() {
   }, []);
 
   // Save changes to localStorage
-  const saveState = (updated) => {
-    const current = {
-      destination: selectedDest,
-      duration,
-      budget,
-      interests,
-      travelStyle,
-      ...updated
+  const saveState = (updated = {}) => {
+    const tripPayload = {
+      destination: updated.selectedDest !== undefined ? updated.selectedDest : selectedDest,
+      duration: updated.duration !== undefined ? updated.duration : duration,
+      travelers: updated.travelers !== undefined ? updated.travelers : travelers,
+      startDate: updated.startDate !== undefined ? updated.startDate : (startDate || null),
+      budget: updated.budget !== undefined ? updated.budget : budget,
+      interests: updated.interests !== undefined ? updated.interests : interests,
+      travelStyle: updated.travelStyle !== undefined ? updated.travelStyle : travelStyle
     };
-    localStorage.setItem('dastaanTrip', JSON.stringify(current));
+    localStorage.setItem('dastaanTrip', JSON.stringify(tripPayload));
   };
 
   const handleSelectDest = (dest) => {
@@ -86,15 +106,51 @@ export default function TripConfiguratorPage() {
     setIsDropdownOpen(false);
     if (dest.defaultDur) setDuration(dest.defaultDur);
     if (dest.defaultBud) setBudget(dest.defaultBud);
-    if (dest.image) setBgImage(dest.image);
-    saveState({ destination: dest });
+
+    // Crossfade background image
+    setBgOpacity(0);
+    setTimeout(() => {
+      setBgImage(dest.image || 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80');
+      setBgOpacity(1);
+    }, 400);
+
+    saveState({ destination: dest, selectedDest: dest });
   };
 
   const handleSearchInput = (val) => {
     setSearchVal(val);
     setValidationMsg('');
 
-    if (!val || val.trim().length < 2) {
+    const trimmed = (val || '').trim();
+    if (!trimmed) {
+      setSelectedDest(null);
+      setSuggestions([]);
+      setIsDropdownOpen(false);
+      setIsSearching(false);
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      saveState({ destination: null, selectedDest: null });
+      return;
+    }
+
+    // Immediately keep typed text available as open worldwide destination
+    const foundCurated = plannerDestinations.find(
+      d => d.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (foundCurated) {
+      setSelectedDest(foundCurated);
+      saveState({ destination: foundCurated, selectedDest: foundCurated });
+    } else {
+      const worldwideDest = {
+        name: trimmed,
+        country: 'Worldwide',
+        id: trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        image: bgImage || 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80'
+      };
+      setSelectedDest(worldwideDest);
+      saveState({ destination: worldwideDest, selectedDest: worldwideDest });
+    }
+
+    if (trimmed.length < 2) {
       setSuggestions([]);
       setIsDropdownOpen(false);
       setIsSearching(false);
@@ -110,7 +166,7 @@ export default function TripConfiguratorPage() {
 
     debounceTimerRef.current = setTimeout(async () => {
       try {
-        const res = await apiClient.searchDestinations(val.trim());
+        const res = await apiClient.searchDestinations(trimmed);
         if (res.success && Array.isArray(res.data?.data)) {
           setSuggestions(res.data.data);
           setIsDropdownOpen(true);
@@ -128,15 +184,42 @@ export default function TripConfiguratorPage() {
   };
 
   const handleDurationChange = (val) => {
-    let num = parseInt(val);
+    let num = parseInt(val, 10);
     if (isNaN(num) || num < 1) num = 1;
     if (num > 60) num = 60;
     setDuration(num);
     saveState({ duration: num });
   };
 
+  const handleTravelersChange = (val) => {
+    let num = parseInt(val, 10);
+    if (isNaN(num) || num < 1) num = 1;
+    if (num > 20) num = 20;
+    setTravelers(num);
+    saveState({ travelers: num });
+  };
+
+  const handleStartDateChange = (val) => {
+    if (!val) {
+      setStartDate('');
+      setValidationMsg('');
+      saveState({ startDate: null });
+      return;
+    }
+
+    const todayStr = getTodayDateString();
+    if (val < todayStr) {
+      setValidationMsg('Travel date cannot be in the past. Please choose today or an upcoming date.');
+      return;
+    }
+
+    setValidationMsg('');
+    setStartDate(val);
+    saveState({ startDate: val });
+  };
+
   const handleBudgetChange = (val) => {
-    let num = parseInt(val) || 0;
+    let num = parseInt(val, 10) || 0;
     if (num < 1000) num = 1000;
     setBudget(num);
     saveState({ budget: num });
@@ -158,13 +241,28 @@ export default function TripConfiguratorPage() {
     saveState({ travelStyle: style });
   };
 
+  const formatDateRangeDisplay = (startStr, dur) => {
+    if (!startStr) return 'Flexible Dates';
+    try {
+      const start = new Date(startStr);
+      if (isNaN(start.getTime())) return 'Flexible Dates';
+      const end = new Date(start);
+      end.setDate(end.getDate() + Math.max(0, dur - 1));
+      const sDay = start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+      const eDay = end.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      return `${sDay} – ${eDay}`;
+    } catch {
+      return 'Flexible Dates';
+    }
+  };
+
   const handleBuild = async () => {
     let destToUse = selectedDest;
 
     // Guard against mismatch: user typed destination without clicking dropdown suggestion
     if (!destToUse || (searchVal.trim() && destToUse.name.toLowerCase() !== searchVal.trim().toLowerCase())) {
       if (!searchVal.trim()) {
-        setValidationMsg('Please select a destination to continue.');
+        setValidationMsg('Please enter or select a destination to continue.');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
@@ -175,73 +273,99 @@ export default function TripConfiguratorPage() {
         if (searchRes.success && Array.isArray(searchRes.data?.data) && searchRes.data.data.length > 0) {
           destToUse = searchRes.data.data[0];
           setSelectedDest(destToUse);
-          saveState({ destination: destToUse });
+          saveState({ destination: destToUse, selectedDest: destToUse });
         } else {
-          setIsBuilding(false);
-          setValidationMsg(`Could not find a destination matching "${searchVal}". Please choose a valid city or destination.`);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          return;
+          destToUse = {
+            name: searchVal.trim(),
+            country: 'Worldwide',
+            id: searchVal.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            image: bgImage || 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80'
+          };
+          setSelectedDest(destToUse);
+          saveState({ destination: destToUse, selectedDest: destToUse });
         }
       } catch (e) {
-        setIsBuilding(false);
-        setValidationMsg(`Failed to look up "${searchVal}". Please check your connection and try again.`);
-        return;
+        destToUse = {
+          name: searchVal.trim(),
+          country: 'Worldwide',
+          id: searchVal.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          image: bgImage || 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80'
+        };
+        setSelectedDest(destToUse);
+        saveState({ destination: destToUse, selectedDest: destToUse });
       }
     }
 
-    if (!destToUse) {
-      setValidationMsg('Please select a destination to continue.');
+    if (!destToUse || !destToUse.name?.trim()) {
+      setValidationMsg('Please enter or select a destination to continue.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
+    }
+
+    if (travelers < 1 || travelers > 20) {
+      setValidationMsg('Traveller count must be between 1 and 20.');
+      return;
+    }
+
+    if (startDate) {
+      const todayStr = getTodayDateString();
+      if (startDate < todayStr) {
+        setValidationMsg('Travel date cannot be in the past.');
+        return;
+      }
     }
 
     setValidationMsg('');
     setIsBuilding(true);
 
     const tripPayload = {
-      destination: destToUse,
+      destination: {
+        ...(destToUse || selectedDest),
+        name: (destToUse?.name || selectedDest?.name || '').trim(),
+        country: destToUse?.country || selectedDest?.country || 'Worldwide',
+        id: destToUse?.id || selectedDest?.id || (destToUse?.name || selectedDest?.name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        image: destToUse?.image || selectedDest?.image || bgImage
+      },
       duration,
+      travelers,
+      startDate: startDate || undefined,
       budget,
       interests,
       travelStyle
     };
 
     try {
-      // 1. Generate full intelligent preview with feasibility, ordering & routing
-      const previewRes = await apiClient.previewTrip(tripPayload);
-
-      if (!previewRes.success || !previewRes.data?.data) {
-        throw new Error(previewRes.error || 'Failed to generate itinerary. Please try again.');
+      const res = await apiClient.createTrip(tripPayload);
+      if (res.success && res.data?.data) {
+        const savedTrip = res.data.data;
+        localStorage.setItem('dastaanTrip', JSON.stringify(savedTrip));
+        navigate(`/itinerary?id=${savedTrip._id}`);
+        return;
+      } else {
+        // Backend validation or grounding error (e.g. 400 DESTINATION_NOT_FOUND, 422 INSUFFICIENT_ATTRACTIONS)
+        const errorMsg = res.error || res.data?.message || 'Could not generate itinerary for this destination. Please verify the destination name or try another.';
+        setValidationMsg(errorMsg);
+        setIsBuilding(false);
+        return;
       }
 
-      const generatedTrip = previewRes.data.data;
-      // Guarantee no stale trip from previous destinations remains
-      localStorage.removeItem('dastaanTrip');
-      localStorage.setItem('dastaanTrip', JSON.stringify(generatedTrip));
-
-      // 2. If user is authenticated, persist to MongoDB Atlas
-      if (auth.currentUser) {
-        try {
-          const saveRes = await apiClient.createTrip(generatedTrip);
-          if (saveRes.success && saveRes.data?.data) {
-            const savedDoc = saveRes.data.data;
-            localStorage.setItem('dastaanTrip', JSON.stringify(savedDoc));
-            navigate(`/itinerary?id=${savedDoc._id}`);
-            return;
-          }
-        } catch (saveErr) {
-          console.warn('[TripPlanner] Authenticated save deferred, navigating with preview:', saveErr);
-        }
-      }
-
-      // 3. Guest user: Navigate to itinerary with full generated preview
-      navigate('/itinerary');
     } catch (err) {
-      console.error('[TripPlanner] Itinerary generation failed:', err);
-      setValidationMsg(err.message || 'Unable to build itinerary. Please check your connection and try again.');
+      console.warn('[TripPlanner] Backend API call error:', err);
+      // Offline fallback for curated catalog
+      const isCurated = plannerDestinations.some(d => d.name.toLowerCase() === selectedDest.name.trim().toLowerCase());
+      if (isCurated) {
+        setTimeout(() => {
+          navigate('/itinerary');
+        }, 400);
+        return;
+      }
+
+      setValidationMsg(err.message || 'Unable to connect to the itinerary service. Please ensure the server is running.');
       setIsBuilding(false);
     }
   };
+
+  const perPersonEstimated = Math.round(budget / Math.max(1, travelers));
 
   return (
     <div className="trip-configurator-page">
@@ -290,7 +414,7 @@ export default function TripConfiguratorPage() {
               <input
                 type="text"
                 id="dest-search"
-                placeholder="Search for any city worldwide (e.g. Vancouver, Kyoto, Paris)..."
+                placeholder="Search any city worldwide (e.g. Vancouver, Kyoto, Paris)..."
                 autoComplete="off"
                 value={searchVal}
                 onChange={(e) => handleSearchInput(e.target.value)}
@@ -351,13 +475,13 @@ export default function TripConfiguratorPage() {
             </div>
 
             <div className="popular-dests">
-              <span className="popular-label">POPULAR DESTINATIONS</span>
+              <span className="popular-label">POPULAR CURATED DESTINATIONS</span>
               <div className="dest-tags" id="dest-tags">
                 {plannerDestinations.map(dest => (
                   <button
                     key={dest.id}
                     type="button"
-                    className={`dest-tag ${selectedDest?.id === dest.id ? 'active' : ''}`}
+                    className={`dest-tag ${selectedDest?.name?.toLowerCase() === dest.name.toLowerCase() ? 'active' : ''}`}
                     onClick={() => handleSelectDest(dest)}
                   >
                     {dest.name}
@@ -369,11 +493,14 @@ export default function TripConfiguratorPage() {
 
           <div className="dest-preview-card" id="dest-preview">
             <h3 id="preview-name">{selectedDest ? selectedDest.name : 'Select a destination'}</h3>
-            <p id="preview-country">{selectedDest ? selectedDest.country : 'To begin your story'}</p>
+            <p id="preview-country">{selectedDest ? (selectedDest.country || 'Worldwide') : 'To begin your story'}</p>
             {selectedDest && (
               <div className="preview-meta" id="preview-meta" style={{ display: 'block' }}>
-                <span id="preview-duration">~{selectedDest.defaultDur} days</span> &middot;{' '}
-                <span id="preview-budget">~₹{selectedDest.defaultBud?.toLocaleString('en-IN')}</span>
+                <span id="preview-duration">~{duration} days</span> &middot;{' '}
+                <span id="preview-budget">~₹{budget?.toLocaleString('en-IN')} total</span>
+                {travelers > 1 && (
+                  <div className="preview-per-person">~₹{perPersonEstimated.toLocaleString('en-IN')}/person</div>
+                )}
               </div>
             )}
           </div>
@@ -387,20 +514,35 @@ export default function TripConfiguratorPage() {
             <h2>TELL US ABOUT THE JOURNEY.</h2>
           </div>
 
+          {/* Row 1: Duration & Travelers */}
           <div className="journey-grid">
             {/* Duration */}
             <div className="journey-col duration-col">
               <span className="col-label">HOW MANY DAYS?</span>
               <div className="duration-control">
-                <button type="button" id="btn-dur-minus" aria-label="Decrease days" onClick={() => handleDurationChange(duration - 1)}>
-                  −
+
+                <button
+                  type="button"
+                  id="btn-dur-minus"
+                  onClick={() => handleDurationChange(duration - 1)}
+                  disabled={duration <= 1}
+                  aria-label="Decrease duration"
+                >
+                  &minus;
                 </button>
                 <div className="duration-display">
                   <span id="dur-val">{duration}</span>
-                  <span className="dur-unit">DAYS</span>
+                  <span className="dur-unit">{duration === 1 ? 'DAY' : 'DAYS'}</span>
                 </div>
-                <button type="button" id="btn-dur-plus" aria-label="Increase days" onClick={() => handleDurationChange(duration + 1)}>
-                  +
+
+                <button
+                  type="button"
+                  id="btn-dur-plus"
+                  onClick={() => handleDurationChange(duration + 1)}
+                  disabled={duration >= 60}
+                  aria-label="Increase duration"
+                >
+                  &plus;
                 </button>
               </div>
 
@@ -420,9 +562,91 @@ export default function TripConfiguratorPage() {
 
             <div className="journey-divider"></div>
 
+            {/* Travelers */}
+            <div className="journey-col travelers-col">
+              <span className="col-label">WHO IS TRAVELLING?</span>
+              <div className="travelers-control">
+                <button
+                  type="button"
+                  id="btn-travelers-minus"
+                  onClick={() => handleTravelersChange(travelers - 1)}
+                  disabled={travelers <= 1}
+                  aria-label="Decrease travelers"
+                >
+                  &minus;
+                </button>
+                <div className="travelers-display">
+                  <span id="travelers-val">{travelers}</span>
+                  <span className="travelers-unit">{travelers === 1 ? 'TRAVELLER' : 'TRAVELLERS'}</span>
+                </div>
+                <button
+                  type="button"
+                  id="btn-travelers-plus"
+                  onClick={() => handleTravelersChange(travelers + 1)}
+                  disabled={travelers >= 20}
+                  aria-label="Increase travelers"
+                >
+                  &plus;
+                </button>
+              </div>
+
+              <div className="preset-pills">
+                {[1, 2, 4, 6].map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`preset-pill ${travelers === t ? 'active' : ''}`}
+                    onClick={() => handleTravelersChange(t)}
+                  >
+                    {t === 1 ? 'Solo (1)' : t === 2 ? 'Couple (2)' : t === 4 ? 'Family (4)' : 'Group (6)'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Sub-divider between control rows */}
+          <div className="journey-section-spacer"></div>
+
+          {/* Row 2: Travel Dates & Budget */}
+          <div className="journey-grid">
+            {/* Start Date */}
+            <div className="journey-col dates-col">
+              <span className="col-label">WHEN ARE YOU GOING?</span>
+              <div className="date-input-wrapper">
+                <input
+                  type="date"
+                  id="start-date-input"
+                  className="date-input"
+                  min={getTodayDateString()}
+                  value={startDate}
+                  onChange={(e) => handleStartDateChange(e.target.value)}
+                />
+              </div>
+
+              <div className="date-preview-range">
+                {startDate ? (
+                  <>
+                    <span className="date-range-text">{formatDateRangeDisplay(startDate, duration)}</span>
+                    <button
+                      type="button"
+                      className="date-clear-btn"
+                      onClick={() => handleStartDateChange('')}
+                    >
+                      Clear date (flexible)
+                    </button>
+                  </>
+                ) : (
+                  <span className="date-range-placeholder">Flexible dates &bull; Pick a start date anytime</span>
+                )}
+              </div>
+            </div>
+
+            <div className="journey-divider"></div>
+
             {/* Budget */}
             <div className="journey-col budget-col">
-              <span className="col-label">WHAT'S YOUR BUDGET?</span>
+              <span className="col-label">TOTAL GROUP BUDGET</span>
               <div className="budget-input-wrapper">
                 <span className="currency-symbol">₹</span>
                 <input
@@ -433,6 +657,10 @@ export default function TripConfiguratorPage() {
                   step="1000"
                   onChange={(e) => handleBudgetChange(e.target.value)}
                 />
+              </div>
+
+              <div className="budget-per-person-hint">
+                ~₹{perPersonEstimated.toLocaleString('en-IN')} / person for {travelers} {travelers === 1 ? 'traveller' : 'travellers'}
               </div>
 
               <div className="preset-pills">
@@ -528,7 +756,19 @@ export default function TripConfiguratorPage() {
               <div className="summary-item">
                 <span className="sum-label">DESTINATION</span>
                 <span className="sum-val" id="sum-dest">
-                  {selectedDest ? `${selectedDest.name}, ${selectedDest.country}` : 'Not selected'}
+                  {selectedDest ? `${selectedDest.name}, ${selectedDest.country || 'Worldwide'}` : 'Not selected'}
+                </span>
+              </div>
+              <div className="summary-item">
+                <span className="sum-label">TRAVELLERS</span>
+                <span className="sum-val" id="sum-travelers">
+                  {travelers} {travelers === 1 ? 'Traveller' : 'Travellers'}
+                </span>
+              </div>
+              <div className="summary-item">
+                <span className="sum-label">DATES</span>
+                <span className="sum-val" id="sum-dates">
+                  {formatDateRangeDisplay(startDate, duration)}
                 </span>
               </div>
               <div className="summary-item">
@@ -538,9 +778,15 @@ export default function TripConfiguratorPage() {
                 </span>
               </div>
               <div className="summary-item">
-                <span className="sum-label">BUDGET</span>
+                <span className="sum-label">TOTAL BUDGET</span>
                 <span className="sum-val" id="sum-budget">
                   ₹{budget.toLocaleString('en-IN')}
+                </span>
+              </div>
+              <div className="summary-item">
+                <span className="sum-label">PER PERSON</span>
+                <span className="sum-val" id="sum-per-person">
+                  ₹{perPersonEstimated.toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="summary-item">
@@ -563,11 +809,15 @@ export default function TripConfiguratorPage() {
       {/* SECTION 7: FINAL CTA */}
       <section className="section-cta">
         <div className="container text-center">
-          {validationMsg && <div className="validation-msg" id="validation-msg">{validationMsg}</div>}
+          {validationMsg && (
+            <div className="validation-msg" id="validation-msg" role="alert">
+              {validationMsg}
+            </div>
+          )}
           <button className="btn-build" id="btn-build" onClick={handleBuild} disabled={isBuilding}>
-            {isBuilding ? 'BUILDING...' : 'BUILD MY ITINERARY \u2192'}
+            {isBuilding ? 'BUILDING YOUR ITINERARY...' : 'BUILD MY ITINERARY \u2192'}
           </button>
-          <p className="cta-sub">Your preferences will be used to create a personalized journey.</p>
+          <p className="cta-sub">Your preferences will be grounded using real-world destinations and personalized travel pacing.</p>
         </div>
       </section>
 

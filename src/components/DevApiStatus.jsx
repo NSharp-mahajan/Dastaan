@@ -24,10 +24,13 @@ export default function DevApiStatus() {
           db: res.data.database?.status || 'connected'
         });
       } else {
+        const failureLabel = res.errorType === 'CORS_ERROR'
+          ? 'CORS Blocked'
+          : (res.errorType === 'TIMEOUT' ? 'Timeout' : 'Backend Offline');
         setStatus({
           checking: false,
           connected: false,
-          message: 'Backend Offline',
+          message: failureLabel,
           db: 'disconnected'
         });
         // Retry in 5 seconds if currently disconnected

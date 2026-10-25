@@ -530,76 +530,91 @@ body, html {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Dynamic Destination Autocomplete Dropdown (V2) */
-.dest-autocomplete-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  background: rgba(12, 43, 38, 0.96);
-  border: 1px solid var(--gold);
-  border-radius: 12px;
-  max-height: 320px;
-  overflow-y: auto;
-  z-index: 100;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 8px 0;
-}
 
-.dest-suggestion-item {
+/* PHASE 3: TRAVELERS & DATES CONTROLS */
+.travelers-control {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.travelers-control button {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid var(--primary-deep); background: transparent;
+  color: var(--primary-deep); font-size: 1.5rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.travelers-control button:hover:not(:disabled) { background: var(--primary-deep); color: var(--paper); }
+.travelers-control button:disabled,
+.duration-control button:disabled { opacity: 0.3; cursor: not-allowed; }
+.travelers-display { display: flex; flex-direction: column; align-items: center; min-width: 80px; }
+#travelers-val { font-size: 3.5rem; font-family: var(--font-serif); line-height: 1; }
+.travelers-unit { font-size: 0.7rem; font-weight: 700; letter-spacing: 2px; margin-top: 4px; }
+
+.journey-section-spacer {
+  width: 100%;
+  height: 1px;
+  background: rgba(10, 33, 30, 0.1);
+  margin: 48px 0;
+}
+
+.date-input-wrapper {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+.date-input {
+  background: transparent;
+  border: 1px solid rgba(10, 33, 30, 0.3);
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  color: var(--primary-deep);
+  outline: none;
   cursor: pointer;
-  transition: background 0.2s ease;
-  border-bottom: 1px solid rgba(244, 239, 227, 0.06);
+  transition: border-color 0.2s;
 }
-
-.dest-suggestion-item:last-child {
-  border-bottom: none;
+.date-input:focus {
+  border-color: var(--terracotta);
 }
-
-.dest-suggestion-item:hover,
-.dest-suggestion-item.highlighted {
-  background: rgba(214, 181, 109, 0.15);
-}
-
-.dest-sugg-main {
+.date-preview-range {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  text-align: left;
-}
-
-.dest-sugg-name {
-  font-family: var(--font-serif);
-  font-size: 1.05rem;
-  color: var(--paper);
-  letter-spacing: 0.5px;
-}
-
-.dest-sugg-sub {
-  font-size: 0.78rem;
-  color: var(--muted);
-}
-
-.dest-sugg-badge {
-  font-size: 0.68rem;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(214, 181, 109, 0.12);
-  color: var(--gold);
-  border: 1px solid rgba(214, 181, 109, 0.25);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.dest-sugg-status {
-  padding: 16px 20px;
-  text-align: center;
+  align-items: center;
+  gap: 6px;
   font-size: 0.85rem;
-  color: var(--muted);
+  color: var(--primary-deep);
+}
+.date-range-text {
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--terracotta);
+}
+.date-range-placeholder {
+  color: rgba(10, 33, 30, 0.5);
+  font-size: 0.8rem;
+}
+.date-clear-btn {
+  background: none;
+  border: none;
+  color: var(--terracotta);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+}
+.budget-per-person-hint {
+  font-size: 0.85rem;
+  color: var(--terracotta);
+  font-weight: 600;
+  margin-bottom: 20px;
+  letter-spacing: 0.5px;
+}
+.preview-per-person {
+  color: var(--gold);
+  font-size: 0.8rem;
+  margin-top: 4px;
 }

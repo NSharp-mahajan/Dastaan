@@ -12,11 +12,13 @@ import {
   onAuthStateChanged
 } from 'firebase/auth';
 
+const metaEnv = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : (typeof process !== 'undefined' && process.env ? process.env : {});
+
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'dastaan-32c4e.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'dastaan-32c4e',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: metaEnv.VITE_FIREBASE_API_KEY,
+  authDomain: metaEnv.VITE_FIREBASE_AUTH_DOMAIN || 'dastaan-32c4e.firebaseapp.com',
+  projectId: metaEnv.VITE_FIREBASE_PROJECT_ID || 'dastaan-32c4e',
+  appId: metaEnv.VITE_FIREBASE_APP_ID
 };
 
 export const isFirebaseConfigured = Boolean(

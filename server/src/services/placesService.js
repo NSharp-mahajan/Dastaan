@@ -9,6 +9,116 @@ import { haversineDistanceKm } from './routingService.js';
  * realistic visit durations, and verified operating hours.
  */
 export const CURATED_PLACES_CATALOG = {
+  'spiti-valley': [
+    {
+      placeId: 'spiti_key_monastery',
+      name: 'Key Gompa (Kye Monastery)',
+      category: 'attraction',
+      address: 'Key Village, Spiti Valley, Himachal Pradesh 172114',
+      latitude: 32.2989,
+      longitude: 78.0125,
+      rating: 4.8,
+      reviewCount: 5200,
+      photoUrl: '/images/spiti/keymonastery.jpg',
+      priceLevel: 'Free',
+      isOpen: true,
+      openingHours: ['Monday–Sunday: 07:00 – 18:00'],
+      visitDurationHours: 2.0,
+      timeOfDay: 'morning',
+      source: 'curated-catalog',
+      attribution: 'Dastaan Verified Heritage Archive'
+    },
+    {
+      placeId: 'spiti_chandratal_lake',
+      name: 'Chandratal Lake (Moon Lake)',
+      category: 'attraction',
+      address: 'Samudra Tapu Plateau, Spiti, Himachal Pradesh 175140',
+      latitude: 32.4824,
+      longitude: 77.6163,
+      rating: 4.9,
+      reviewCount: 8400,
+      photoUrl: '/images/spiti/chandratal.jpg',
+      priceLevel: 'Free',
+      isOpen: true,
+      openingHours: ['Open 24 hours (Daylight advised)'],
+      visitDurationHours: 4.0,
+      timeOfDay: 'midday',
+      source: 'curated-catalog',
+      attribution: 'Dastaan Verified Heritage Archive'
+    },
+    {
+      placeId: 'spiti_dhankar_gompa',
+      name: 'Dhankar Monastery & Cliff Fort',
+      category: 'attraction',
+      address: 'Dhankar Cliff, Spiti Valley, Himachal Pradesh 172113',
+      latitude: 32.1190,
+      longitude: 78.2140,
+      rating: 4.7,
+      reviewCount: 3100,
+      photoUrl: '/images/spiti/dhankar.jpg',
+      priceLevel: 'Free',
+      isOpen: true,
+      openingHours: ['Monday–Sunday: 08:00 – 17:00'],
+      visitDurationHours: 2.0,
+      timeOfDay: 'afternoon',
+      source: 'curated-catalog',
+      attribution: 'Dastaan Verified Heritage Archive'
+    },
+    {
+      placeId: 'spiti_hikkim_post',
+      name: 'Hikkim Highest Post Office',
+      category: 'attraction',
+      address: 'Hikkim Village, Spiti Valley, Himachal Pradesh 172114',
+      latitude: 32.2461,
+      longitude: 78.0136,
+      rating: 4.6,
+      reviewCount: 2200,
+      photoUrl: '/images/spiti/hikkim.jpg',
+      priceLevel: 'Free',
+      isOpen: true,
+      openingHours: ['Monday–Friday: 10:00 – 16:00'],
+      visitDurationHours: 1.0,
+      timeOfDay: 'midday',
+      source: 'curated-catalog',
+      attribution: 'Dastaan Verified Heritage Archive'
+    },
+    {
+      placeId: 'spiti_kaza_monastery',
+      name: 'Kaza Sakya Tangyud Monastery',
+      category: 'attraction',
+      address: 'New Kaza, Spiti Valley, Himachal Pradesh 172114',
+      latitude: 32.2276,
+      longitude: 78.0722,
+      rating: 4.7,
+      reviewCount: 4500,
+      photoUrl: '/images/spiti/kaza.jpg',
+      priceLevel: 'Free',
+      isOpen: true,
+      openingHours: ['Monday–Sunday: 07:00 – 19:00'],
+      visitDurationHours: 1.5,
+      timeOfDay: 'morning',
+      source: 'curated-catalog',
+      attribution: 'Dastaan Verified Heritage Archive'
+    },
+    {
+      placeId: 'spiti_tabo_monastery',
+      name: 'Tabo Monastery UNESCO Heritage',
+      category: 'attraction',
+      address: 'Tabo Village, Spiti Valley, Himachal Pradesh 172113',
+      latitude: 32.0917,
+      longitude: 78.3811,
+      rating: 4.8,
+      reviewCount: 3800,
+      photoUrl: '/images/spiti/tabo.jpg',
+      priceLevel: 'Free',
+      isOpen: true,
+      openingHours: ['Monday–Sunday: 06:00 – 18:00'],
+      visitDurationHours: 2.0,
+      timeOfDay: 'morning',
+      source: 'curated-catalog',
+      attribution: 'Dastaan Verified Heritage Archive'
+    }
+  ],
   'manali': [
     {
       placeId: 'manali_hadimba_temple',
@@ -1334,17 +1444,37 @@ export async function getPlacesPoolForDestination(destination, lat, lng) {
   const parsedLng = typeof lng === 'number' ? lng : parseFloat(lng);
   const hasCoords = !isNaN(parsedLat) && !isNaN(parsedLng);
 
-  // 1. Direct match in curated catalog with coordinate proximity verification
-  if (CURATED_PLACES_CATALOG[clean]) {
-    const list = CURATED_PLACES_CATALOG[clean];
+  const checkCoords = (list) => {
     if (hasCoords && list[0] && typeof list[0].latitude === 'number') {
       const dist = haversineDistanceKm(parsedLat, parsedLng, list[0].latitude, list[0].longitude);
-      if (dist <= 150) {
-        return list;
-      }
-    } else if (!hasCoords) {
-      return list;
+      return dist <= 150;
     }
+    return true;
+  };
+
+  // 1. Direct match in curated catalog with coordinate proximity verification
+  if (CURATED_PLACES_CATALOG[clean] && checkCoords(CURATED_PLACES_CATALOG[clean])) {
+    return CURATED_PLACES_CATALOG[clean];
+  }
+
+  // 2. Primary destination and alias match
+  const primary = clean.split(',')[0].trim();
+  const primarySlug = primary.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (CURATED_PLACES_CATALOG[primary] && checkCoords(CURATED_PLACES_CATALOG[primary])) {
+    return CURATED_PLACES_CATALOG[primary];
+  }
+  if (CURATED_PLACES_CATALOG[primarySlug] && checkCoords(CURATED_PLACES_CATALOG[primarySlug])) {
+    return CURATED_PLACES_CATALOG[primarySlug];
+  }
+
+  const PLACE_ALIASES = {
+    'delhi': 'new-delhi',
+    'new delhi': 'new-delhi',
+    'firenze': 'florence'
+  };
+  const aliasKey = PLACE_ALIASES[clean] || PLACE_ALIASES[primary] || PLACE_ALIASES[primarySlug];
+  if (aliasKey && CURATED_PLACES_CATALOG[aliasKey] && checkCoords(CURATED_PLACES_CATALOG[aliasKey])) {
+    return CURATED_PLACES_CATALOG[aliasKey];
   }
 
   // 2. Exact word match in curated catalog (avoid loose substring collisions)

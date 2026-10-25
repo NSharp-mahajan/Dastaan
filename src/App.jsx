@@ -9,6 +9,7 @@ import AuthPage from './pages/AuthPage';
 import NotFoundPage from './pages/NotFoundPage';
 import TripInspirationPage from './pages/TripInspirationPage';
 import DevApiStatus from './components/DevApiStatus';
+import AiAssistantModal from './components/AiAssistantModal';
 import { initAuthListener } from './utils/auth';
 import { firebaseConfigError } from './firebase';
 
@@ -84,6 +85,7 @@ export default function App() {
         </aside>
       )}
       <DevApiStatus />
+
       <Routes>
         <Route path="/" element={<LandingPage />} />
         
@@ -119,6 +121,9 @@ export default function App() {
         {/* 404 Fallback */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+
+      {/* Global AI Assistant Floating Widget */}
+      <AiAssistantModal />
     </>
   );
 }

@@ -5,6 +5,7 @@ import tripRoutes from './tripRoutes.js';
 import destinationRoutes from './destinationRoutes.js';
 import weatherRoutes from './weatherRoutes.js';
 import routingRoutes from './routingRoutes.js';
+import assistantRoutes from './assistantRoutes.js';
 
 const router = express.Router();
 
@@ -25,5 +26,8 @@ router.use('/weather', weatherRoutes);
 
 // Real-world road network and geodesic routing endpoints mounted at /api/routing
 router.use('/routing', routingRoutes);
+
+// Conversational AI Assistant endpoints mounted at /api/assistant
+router.use('/assistant', assistantRoutes);
 
 export default router;

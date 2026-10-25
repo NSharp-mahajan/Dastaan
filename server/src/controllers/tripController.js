@@ -1,8 +1,15 @@
 import crypto from 'crypto';
 import mongoose from 'mongoose';
 import Trip from '../models/Trip.js';
-import { generateItinerary, generateItineraryWithLiveRouting, recalculateItinerary } from '../services/itineraryGenerator.js';
+import { generateItineraryWithLiveRouting, recalculateItinerary } from '../services/itineraryGenerator.js';
 import { getDestinationHeroImage, isGenericOrStockImage } from '../services/imageService.js';
+import { generateItinerary, destinationTemplates } from '../utils/itineraryGenerator.js';
+import {
+  generateGroundedItinerary,
+  buildBudgetBreakdown,
+  calculateTripDates
+} from '../services/itineraryService.js';
+import { validateItinerary } from '../services/validationService.js';
 
 /**
  * Robustly resolves the authenticated user's ID to a valid Mongoose ObjectId.
@@ -40,17 +47,27 @@ function normalizeStyle(style) {
 
 /**
  * POST /api/trips
- * Creates and persists a new trip with preferences and full itinerary in MongoDB.
+ * Creates and persists a new trip with validated preferences and grounded itinerary in MongoDB.
  */
 export const createTrip = async (req, res, next) => {
   try {
-    const { destination, duration, budget, interests, travelStyle, itinerary } = req.body;
+    const {
+      destination,
+      duration,
+      travelers,
+      startDate,
+      endDate,
+      budget,
+      interests,
+      travelStyle,
+      itinerary
+    } = req.body;
 
     // Validation: Destination
-    if (!destination || typeof destination !== 'object' || !destination.id || !destination.name) {
+    if (!destination || typeof destination !== 'object' || !destination.name || destination.name.trim().length < 2) {
       return res.status(400).json({
         success: false,
-        message: 'A valid destination object with id and name is required.'
+        message: 'A valid destination object with a destination name is required.'
       });
     }
 
@@ -61,6 +78,28 @@ export const createTrip = async (req, res, next) => {
         success: false,
         message: 'Trip duration must be a number between 1 and 60 days.'
       });
+    }
+
+    // Validation: Travelers
+    const travNum = travelers !== undefined ? parseInt(travelers, 10) : 1;
+    if (isNaN(travNum) || travNum < 1 || travNum > 20) {
+      return res.status(400).json({
+        success: false,
+        message: 'Traveller count must be a number between 1 and 20.'
+      });
+    }
+
+    // Validation: Start Date (optional)
+    let parsedStartDate = null;
+    if (startDate) {
+      const parsed = new Date(startDate);
+      if (isNaN(parsed.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid start date format. Please provide a valid ISO date.'
+        });
+      }
+      parsedStartDate = parsed;
     }
 
     // Validation: Budget
@@ -85,19 +124,6 @@ export const createTrip = async (req, res, next) => {
         }
       } catch {}
     }
-
-    // Generate or format itinerary
-    let finalItinerary = itinerary;
-    if (!finalItinerary || !Array.isArray(finalItinerary.days) || finalItinerary.days.length === 0) {
-      finalItinerary = await generateItineraryWithLiveRouting({
-        destination,
-        duration: durNum,
-        budget: budNum,
-        travelStyle: normalizedTravelStyle,
-        interests: validInterests
-      });
-    }
-
     // Associate authenticated user (strictly required)
     const userId = getAuthenticatedUserId(req);
     if (!userId) {
@@ -107,21 +133,111 @@ export const createTrip = async (req, res, next) => {
       });
     }
 
+    let finalItinerary = itinerary;
+    let resolvedCountry = destination.country?.trim() || 'Worldwide';
+    let resolvedImage = destination.image || '';
+
+    // Step 1: If itinerary is explicitly provided, validate it
+    if (finalItinerary && Array.isArray(finalItinerary.days) && finalItinerary.days.length > 0) {
+      const valResult = validateItinerary(finalItinerary, {
+        expectedDays: durNum,
+        travelStyle: normalizedTravelStyle
+      });
+
+      if (!valResult.isValid) {
+        return res.status(400).json({
+          success: false,
+          message: `Provided itinerary failed validation: ${valResult.errors.join('; ')}`,
+          errors: valResult.errors
+        });
+      }
+
+      // Ensure budget breakdown and dates are attached
+      if (!finalItinerary.breakdown || finalItinerary.breakdown.length === 0) {
+        const { breakdown, estimatedCostPerPerson } = buildBudgetBreakdown(budNum, travNum);
+        finalItinerary.breakdown = breakdown;
+        finalItinerary.estimatedCostPerPerson = estimatedCostPerPerson;
+      }
+    } else {
+      // Step 2: Generate itinerary using shared grounded itinerary service
+      try {
+        const generated = await generateGroundedItinerary(
+          {
+            destination,
+            duration: durNum,
+            budget: budNum,
+            travelers: travNum,
+            startDate: parsedStartDate,
+            travelStyle: normalizedTravelStyle,
+            interests: validInterests
+          },
+          { fetchFn: req.fetchFn || fetch }
+        );
+
+        finalItinerary = generated.itinerary;
+        if (generated.destination) {
+          resolvedCountry = generated.destination.country || resolvedCountry;
+          resolvedImage = generated.destination.image || resolvedImage;
+        }
+      } catch (genErr) {
+        // Fallback: If destination matches a curated local archive template, use curated generator
+        const destKey = (destination.id || destination.name || '').toLowerCase().trim();
+        if (destinationTemplates[destKey]) {
+          try {
+            finalItinerary = generateItinerary({
+              destination,
+              duration: durNum,
+              budget: budNum,
+              travelers: travNum,
+              startDate: parsedStartDate,
+              travelStyle: normalizedTravelStyle,
+              interests: validInterests
+            });
+          } catch (templErr) {
+            return res.status(400).json({
+              success: false,
+              code: templErr.code || 'TEMPLATE_ERROR',
+              message: templErr.message
+            });
+          }
+        } else {
+          // Failure guarantee: Never save a misleading or partially generated trip!
+          const statusCode = genErr.code === 'DESTINATION_NOT_FOUND' ? 400
+            : (genErr.code === 'INSUFFICIENT_ATTRACTIONS' || genErr.code === 'ITINERARY_VALIDATION_FAILED') ? 422
+            : genErr.code === 'POI_SERVICE_UNAVAILABLE' ? 503
+            : 500;
+
+          return res.status(statusCode).json({
+            success: false,
+            code: genErr.code || 'GENERATION_FAILED',
+            message: genErr.message || 'Failed to generate a valid grounded itinerary for the requested destination.',
+            retryable: Boolean(genErr.retryable || genErr.code === 'POI_SERVICE_UNAVAILABLE'),
+            errors: genErr.validationErrors || []
+          });
+        }
+      }
+    }
+
+    const { startDate: cleanStart, endDate: cleanEnd } = calculateTripDates(parsedStartDate, durNum);
+
     const tripData = {
       user: userId,
       destination: {
-        id: destination.id.trim(),
+        id: destination.id ? destination.id.trim() : destination.name.toLowerCase().replace(/[^\w]/g, '-'),
         name: destination.name.trim(),
-        country: destination.country?.trim() || '',
+        country: destination.country?.trim() || resolvedCountry || '',
         countryCode: destination.countryCode?.trim() || '',
         latitude: typeof destination.latitude === 'number' ? destination.latitude : null,
         longitude: typeof destination.longitude === 'number' ? destination.longitude : null,
-        image: destination.image || '',
+        image: destination.image || resolvedImage || '',
         imageAttribution: destination.imageAttribution || '',
         defaultDur: destination.defaultDur || durNum,
         defaultBud: destination.defaultBud || budNum
       },
       duration: durNum,
+      travelers: travNum,
+      startDate: cleanStart,
+      endDate: cleanEnd,
       budget: budNum,
       interests: validInterests,
       travelStyle: normalizedTravelStyle,
@@ -252,7 +368,7 @@ export const getTripById = async (req, res, next) => {
 /**
  * PUT /api/trips/:id
  * Updates trip preferences and regenerates/updates itinerary.
- * Enforces ownership verification.
+ * Enforces ownership verification and quality validation.
  */
 export const updateTrip = async (req, res, next) => {
   try {
@@ -285,10 +401,53 @@ export const updateTrip = async (req, res, next) => {
       });
     }
 
-    const { destination, duration, budget, interests, travelStyle, itinerary } = req.body;
+    const {
+      destination,
+      duration,
+      travelers,
+      startDate,
+      budget,
+      interests,
+      travelStyle,
+      itinerary
+    } = req.body;
 
     let needsRegeneration = false;
 
+    // Validate and update Travelers
+    if (travelers !== undefined) {
+      const travNum = parseInt(travelers, 10);
+      if (isNaN(travNum) || travNum < 1 || travNum > 20) {
+        return res.status(400).json({
+          success: false,
+          message: 'Traveller count must be a number between 1 and 20.'
+        });
+      }
+      if (trip.travelers !== travNum) {
+        trip.travelers = travNum;
+      }
+    }
+
+    // Validate and update Start Date
+    if (startDate !== undefined) {
+      if (startDate === null) {
+        trip.startDate = null;
+        trip.endDate = null;
+      } else {
+        const parsed = new Date(startDate);
+        if (isNaN(parsed.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid start date format.'
+          });
+        }
+        trip.startDate = parsed;
+        const { endDate: calcEnd } = calculateTripDates(parsed, trip.duration);
+        trip.endDate = calcEnd;
+      }
+    }
+
+    // Validate and update Duration
     if (duration !== undefined) {
       const durNum = parseInt(duration, 10);
       if (isNaN(durNum) || durNum < 1 || durNum > 60) {
@@ -300,9 +459,14 @@ export const updateTrip = async (req, res, next) => {
       if (trip.duration !== durNum) {
         trip.duration = durNum;
         needsRegeneration = true;
+        if (trip.startDate) {
+          const { endDate: calcEnd } = calculateTripDates(trip.startDate, durNum);
+          trip.endDate = calcEnd;
+        }
       }
     }
 
+    // Validate and update Budget
     if (budget !== undefined) {
       const budNum = parseInt(budget, 10);
       if (isNaN(budNum) || budNum < 1000) {
@@ -314,6 +478,7 @@ export const updateTrip = async (req, res, next) => {
       trip.budget = budNum;
     }
 
+    // Validate and update Travel Style
     if (travelStyle !== undefined) {
       const normStyle = normalizeStyle(travelStyle);
       if (trip.travelStyle !== normStyle) {
@@ -322,12 +487,14 @@ export const updateTrip = async (req, res, next) => {
       }
     }
 
+    // Validate and update Interests
     if (interests !== undefined && Array.isArray(interests)) {
       trip.interests = interests;
       needsRegeneration = true;
     }
 
-    if (destination !== undefined && typeof destination === 'object') {
+    // Validate and update Destination
+    if (destination !== undefined && typeof destination === 'object' && destination.name) {
       trip.destination = {
         id: destination.id || trip.destination.id,
         name: destination.name || trip.destination.name,
@@ -343,22 +510,72 @@ export const updateTrip = async (req, res, next) => {
       needsRegeneration = true;
     }
 
-    // If explicit itinerary was passed in update body, validate and recalculate routing & feasibility
+    // Explicit itinerary passed in update body
     if (itinerary && Array.isArray(itinerary.days) && itinerary.days.length > 0) {
-      trip.itinerary = await recalculateItinerary({
-        destination: trip.destination,
-        travelStyle: trip.travelStyle,
-        itinerary
+      const valResult = validateItinerary(itinerary, {
+        expectedDays: trip.duration,
+        travelStyle: trip.travelStyle
       });
+
+      if (!valResult.isValid) {
+        return res.status(400).json({
+          success: false,
+          message: `Provided itinerary failed validation: ${valResult.errors.join('; ')}`,
+          errors: valResult.errors
+        });
+      }
+
+      trip.itinerary = itinerary;
+      needsRegeneration = false;
     } else if (needsRegeneration) {
-      // Regenerate updated itinerary
-      trip.itinerary = await generateItineraryWithLiveRouting({
-        destination: trip.destination,
-        duration: trip.duration,
-        budget: trip.budget,
-        travelStyle: trip.travelStyle,
-        interests: trip.interests
-      });
+      // Regenerate updated itinerary via shared service
+      try {
+        const generated = await generateGroundedItinerary(
+          {
+            destination: trip.destination,
+            duration: trip.duration,
+            budget: trip.budget,
+            travelers: trip.travelers,
+            startDate: trip.startDate,
+            travelStyle: trip.travelStyle,
+            interests: trip.interests
+          },
+          { fetchFn: req.fetchFn || fetch }
+        );
+        trip.itinerary = generated.itinerary;
+      } catch (genErr) {
+        // Curated template fallback if available
+        const destKey = (trip.destination.id || trip.destination.name || '').toLowerCase().trim();
+        if (destinationTemplates[destKey]) {
+          trip.itinerary = generateItinerary({
+            destination: trip.destination,
+            duration: trip.duration,
+            budget: trip.budget,
+            travelers: trip.travelers,
+            startDate: trip.startDate,
+            travelStyle: trip.travelStyle,
+            interests: trip.interests
+          });
+        } else {
+          // Do not save corrupt data
+          const statusCode = genErr.code === 'DESTINATION_NOT_FOUND' ? 400
+            : (genErr.code === 'INSUFFICIENT_ATTRACTIONS' || genErr.code === 'ITINERARY_VALIDATION_FAILED') ? 422
+            : 500;
+          return res.status(statusCode).json({
+            success: false,
+            code: genErr.code || 'GENERATION_FAILED',
+            message: genErr.message || 'Failed to regenerate itinerary for the updated trip.',
+            errors: genErr.validationErrors || []
+          });
+        }
+      }
+    }
+
+    // If budget or travelers changed without full itinerary regeneration, keep cost allocation consistent
+    if (trip.itinerary && (!trip.itinerary.breakdown || budget !== undefined || travelers !== undefined)) {
+      const { breakdown, estimatedCostPerPerson } = buildBudgetBreakdown(trip.budget, trip.travelers);
+      trip.itinerary.breakdown = breakdown;
+      trip.itinerary.estimatedCostPerPerson = estimatedCostPerPerson;
     }
 
     await trip.save();

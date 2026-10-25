@@ -1488,559 +1488,204 @@ body.itinerary-body {
   filter: brightness(0.85);
 }
 
-/* ==========================================================================
-   LIVE WEATHER FORECAST CAPSULE (V2)
-   ========================================================================== */
 
-.weather-capsule-card {
-  margin-top: 48px;
-  background: rgba(16, 50, 45, 0.04);
-  border: 1px solid rgba(16, 50, 45, 0.15);
-  border-radius: 12px;
-  padding: 28px 32px;
-  text-align: left;
+/* PHASE 3: ITINERARY RENDERER UPGRADES */
+.glance-sub-text {
+  font-size: 0.75rem;
+  color: var(--terracotta);
+  letter-spacing: 1px;
+  margin-top: 6px;
+  font-weight: 600;
 }
 
-.weather-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.weather-title-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.weather-current-badge {
+.day-btn {
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--primary-deep);
-  color: var(--gold);
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.weather-days-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 12px;
-}
-
-.weather-day-item {
-  background: #ffffff;
-  border: 1px solid rgba(16, 50, 45, 0.1);
-  border-radius: 8px;
-  padding: 14px 12px;
-  text-align: center;
-  display: flex;
   flex-direction: column;
-  gap: 4px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.weather-day-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-}
-
-.weather-day-date {
-  font-size: 0.72rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #7F9087;
-  font-weight: 600;
-}
-
-.weather-day-icon {
-  font-size: 1.5rem;
-  line-height: 1.2;
-}
-
-.weather-day-temp {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--primary-deep);
-}
-
-.weather-day-condition {
-  font-size: 0.7rem;
-  color: #666;
-}
-
-.weather-day-precip {
-  font-size: 0.68rem;
-  color: #2b7a78;
-  font-weight: 600;
-}
-
-/* ==========================================================================
-   VERIFIED PLACES & DINING SHOWCASE (V2)
-   ========================================================================== */
-
-.section-places-discovery {
-  background: var(--dark-bg);
-  color: var(--paper);
-  padding: 80px 0;
-  border-top: 1px solid var(--border-gold);
-}
-
-.places-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-  margin-top: 36px;
-}
-
-.verified-place-card {
-  background: rgba(16, 50, 45, 0.6);
-  border: 1px solid var(--border-gold);
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.25s ease, border-color 0.25s ease;
-}
-
-.verified-place-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--gold);
-}
-
-.place-img-wrap {
-  height: 170px;
-  position: relative;
-  overflow: hidden;
-  background: #09201c;
-}
-
-.place-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.place-category-pill {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  font-size: 0.68rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 4px;
-  background: rgba(7, 29, 26, 0.85);
-  color: var(--gold);
-  border: 1px solid var(--border-gold);
-  font-weight: 600;
-}
-
-.place-body {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  text-align: left;
-}
-
-.place-name {
-  font-family: var(--font-serif);
-  font-size: 1.2rem;
-  color: var(--paper);
-  margin-bottom: 6px;
-}
-
-.place-address {
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-bottom: 12px;
-  line-height: 1.4;
-}
-
-.place-meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid rgba(244, 239, 227, 0.08);
-  font-size: 0.78rem;
-}
-
-.place-rating {
-  color: var(--gold);
-  font-weight: 700;
-  display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.place-source-tag {
-  font-size: 0.66rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-
-/* Phase 2: Route & Transit UI */
-.activity-transit-row {
-  position: relative;
-  margin: -40px 0 32px 140px;
-  display: flex;
-  align-items: center;
-  z-index: 3;
-}
-
-.transit-badge-pill {
-  transform: translateX(-18px);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #09231F;
-  border: 1px solid rgba(214, 181, 109, 0.35);
-  border-radius: 24px;
-  padding: 5px 14px;
-  font-size: 0.76rem;
-  color: #F4EFE3;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-}
-
-.transit-arrow {
-  color: #D6B56D;
-  font-weight: 700;
+.day-btn-label {
   font-size: 0.85rem;
+  letter-spacing: 2px;
 }
 
-.transit-time {
-  font-weight: 600;
-  color: #F4EFE3;
-}
-
-.transit-dist {
-  color: #D6B56D;
-  font-size: 0.72rem;
-}
-
-.transit-chip {
-  font-size: 0.68rem;
-  padding: 2px 7px;
-  border-radius: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.day-btn-date {
+  font-size: 0.7rem;
+  color: var(--gold);
+  letter-spacing: 1px;
   font-weight: 500;
 }
 
-.transit-chip.road {
-  background: rgba(214, 181, 109, 0.2);
-  color: #D6B56D;
-  border: 1px solid rgba(214, 181, 109, 0.4);
+.day-btn-missing {
+  opacity: 0.45;
 }
 
-.transit-chip.est {
-  background: rgba(200, 121, 85, 0.2);
-  color: #C87955;
-  border: 1px solid rgba(200, 121, 85, 0.4);
+.day-btn-tag {
+  font-size: 0.65rem;
+  color: var(--terracotta);
+  letter-spacing: 1px;
 }
 
-.transit-unmapped {
-  color: rgba(244, 239, 227, 0.6);
-  font-size: 0.72rem;
-  font-style: italic;
-}
-
-.route-unmapped-placeholder {
+.journal-day-title-box {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 6px;
+}
+
+.journal-day-date {
+  font-size: 0.85rem;
+  color: var(--gold);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+
+.budget-hero-row {
+  display: flex;
   justify-content: center;
-  height: 180px;
-  text-align: center;
-  padding: 20px;
+  align-items: center;
+  gap: 48px;
+  margin: 24px 0 32px;
 }
-
-.unmapped-icon {
-  font-size: 1.6rem;
-  color: #D6B56D;
-  margin-bottom: 8px;
-  opacity: 0.7;
-}
-
-.unmapped-title {
-  font-family: var(--font-serif);
-  font-size: 1.05rem;
-  color: #F4EFE3;
-  letter-spacing: 1px;
-  margin: 0 0 6px 0;
-}
-
-.unmapped-desc {
-  font-size: 0.82rem;
-  color: rgba(244, 239, 227, 0.65);
-  max-width: 480px;
-  margin: 0;
-  line-height: 1.5;
-}
-
-@media (max-width: 900px) {
-  .activity-transit-row {
-    margin-left: 24px;
+@media (max-width: 640px) {
+  .budget-hero-row {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .budget-hero-divider {
+    width: 60px !important;
+    height: 1px !important;
   }
 }
 
-
-/* Phase 3: Itinerary Editing Controls & Modals */
-.activity-actions-bar {
+.budget-hero-col {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(214, 181, 109, 0.15);
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-.act-btn {
-  background: rgba(7, 29, 26, 0.8);
-  border: 1px solid rgba(214, 181, 109, 0.3);
-  color: #F4EFE3;
-  padding: 5px 11px;
-  font-size: 0.72rem;
-  font-weight: 600;
+.budget-hero-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(244, 239, 227, 0.6);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.budget-hero-divider {
+  width: 1px;
+  height: 60px;
+  background: rgba(214, 181, 109, 0.25);
+}
+
+.budget-per-person-hero {
+  color: var(--gold) !important;
+}
+
+.bg-item-per-person {
+  font-size: 0.8rem;
+  color: var(--gold);
+  margin-top: 4px;
   letter-spacing: 0.5px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
 
-.act-btn:hover:not(:disabled) {
-  background: rgba(214, 181, 109, 0.2);
-  border-color: #D6B56D;
-  color: #D6B56D;
-}
-
-.act-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  border-color: rgba(244, 239, 227, 0.1);
-}
-
-.act-btn-remove:hover:not(:disabled) {
-  background: rgba(200, 121, 85, 0.25);
-  border-color: #C87955;
-  color: #E88E6D;
-}
-
-.act-btn-replace {
-  border-color: rgba(214, 181, 109, 0.45);
-  color: #D6B56D;
-}
-
-.unsaved-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(200, 121, 85, 0.2);
-  border: 1px solid #C87955;
-  color: #E88E6D;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  padding: 4px 10px;
+/* Incomplete / Unplanned Day Recovery Card */
+.incomplete-day-card {
+  background: rgba(10, 33, 30, 0.6);
+  border: 1px dashed rgba(214, 181, 109, 0.35);
   border-radius: 12px;
-  text-transform: uppercase;
-  animation: pulseAmber 2s infinite ease-in-out;
+  padding: 48px 32px;
+  text-align: center;
+  max-width: 680px;
+  margin: 40px auto;
 }
 
-@keyframes pulseAmber {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; }
-}
-
-.saved-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(214, 181, 109, 0.15);
-  border: 1px solid #D6B56D;
-  color: #D6B56D;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  padding: 4px 10px;
-  border-radius: 12px;
-  text-transform: uppercase;
-}
-
-/* Modals */
-.edit-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(7, 29, 26, 0.85);
-  backdrop-filter: blur(6px);
-  z-index: 10000;
+.incomplete-day-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--terracotta);
+  color: var(--terracotta);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  animation: fadeIn 0.2s ease;
-}
-
-.edit-modal-content {
-  background: #0B2925;
-  border: 1px solid rgba(214, 181, 109, 0.4);
-  border-radius: 6px;
-  max-width: 580px;
-  width: 100%;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
-  color: #F4EFE3;
-  overflow: hidden;
-}
-
-.edit-modal-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid rgba(214, 181, 109, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.edit-modal-header h3 {
-  font-family: var(--font-serif);
-  font-size: 1.3rem;
-  color: #D6B56D;
-  margin: 0;
-  letter-spacing: 1px;
-}
-
-.edit-modal-close {
-  background: none;
-  border: none;
-  color: rgba(244, 239, 227, 0.6);
   font-size: 1.4rem;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-.edit-modal-close:hover {
-  color: #F4EFE3;
-}
-
-.edit-modal-body {
-  padding: 20px 24px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.place-item-card {
-  background: rgba(7, 29, 26, 0.6);
-  border: 1px solid rgba(214, 181, 109, 0.2);
-  border-radius: 4px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  transition: all 0.2s ease;
-}
-
-.place-item-card:hover {
-  border-color: #D6B56D;
-  background: rgba(7, 29, 26, 0.9);
-}
-
-.place-item-info h5 {
-  font-size: 1.05rem;
-  color: #F4EFE3;
-  margin: 0 0 4px 0;
-}
-
-.place-item-info p {
-  font-size: 0.8rem;
-  color: rgba(244, 239, 227, 0.7);
-  margin: 0 0 6px 0;
-}
-
-.place-item-badges {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.btn-select-place {
-  background: #D6B56D;
-  color: #071D1A;
-  border: none;
-  padding: 8px 16px;
-  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 1px;
-  border-radius: 3px;
-  cursor: pointer;
-  white-space: nowrap;
+  margin: 0 auto 16px;
 }
 
-.btn-select-place:hover {
-  background: #E5C98A;
+.incomplete-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--terracotta);
+  display: block;
+  margin-bottom: 12px;
+  text-transform: uppercase;
 }
 
-.empty-day-banner {
-  background: rgba(7, 29, 26, 0.5);
-  border: 1px dashed rgba(214, 181, 109, 0.35);
-  border-radius: 6px;
-  padding: 48px 24px;
-  text-align: center;
-  max-width: 680px;
-  margin: 20px auto 40px;
-}
-
-.empty-day-banner h4 {
+.incomplete-day-card h3 {
   font-family: var(--font-serif);
-  font-size: 1.3rem;
-  color: #D6B56D;
-  margin: 0 0 10px 0;
-  letter-spacing: 1px;
+  font-size: 1.8rem;
+  color: var(--paper);
+  margin: 0 0 16px;
+  letter-spacing: 1.5px;
 }
 
-.empty-day-banner p {
-  font-size: 0.9rem;
-  color: rgba(244, 239, 227, 0.75);
-  margin: 0 0 20px 0;
-  line-height: 1.5;
+.incomplete-day-card p {
+  color: rgba(244, 239, 227, 0.8);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 520px;
+  margin: 0 auto 28px;
 }
 
-.recalculating-overlay-pill {
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  background: #0B2925;
-  border: 1px solid #D6B56D;
-  color: #F4EFE3;
-  padding: 10px 20px;
-  border-radius: 30px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 1px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+.incomplete-actions {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 9999;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-return-day1 {
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-return-day1:hover {
+  background: var(--gold);
+  color: var(--primary-deep);
+}
+
+.btn-edit-pref {
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  color: var(--primary-deep);
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-edit-pref:hover {
+  background: #e5c98a;
 }
 
 

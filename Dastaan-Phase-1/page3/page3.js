@@ -323,7 +323,12 @@ function init() {
 }
 
 function getItineraryData() {
-  const destId = dastaanTrip.destination.id || 'default';
+  // Prioritize the actual generated itinerary if it exists in the trip object
+  if (dastaanTrip.itinerary && Array.isArray(dastaanTrip.itinerary.days)) {
+    return dastaanTrip.itinerary;
+  }
+
+  const destId = (dastaanTrip.destination?.id || 'default').toLowerCase();
   return mockItineraries[destId] || mockItineraries['default'];
 }
 
@@ -476,6 +481,8 @@ function selectDay(dayNum, data, btnEl) {
 
     const imgTag = actImgSrc ? `<img src="${actImgSrc}" alt="${act.title}" class="activity-img-element" onload="this.classList.add('loaded')" onerror="this.style.display='none'" />` : '';
 
+    const mapLinkTag = act.mapUrl ? `<a href="${act.mapUrl}" target="_blank" class="view-map-link" onclick="event.stopPropagation();">VIEW ON MAP</a>` : '';
+
     item.innerHTML = `
       <div class="activity-time-col">
         <span class="activity-time-text">${act.time}</span>
@@ -484,7 +491,10 @@ function selectDay(dayNum, data, btnEl) {
         <div class="activity-text-box">
           <h4>${act.title}</h4>
           <p class="activity-desc">${act.desc}</p>
-          <span class="activity-cat-tag">${act.cat}</span>
+          <div class="activity-meta-row">
+            <span class="activity-cat-tag">${act.cat}</span>
+            ${mapLinkTag}
+          </div>
         </div>
         <div class="activity-image-wrap image-placeholder" style="cursor:pointer;" title="Click to view full image">
           ${imgTag}
