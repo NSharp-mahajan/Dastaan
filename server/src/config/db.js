@@ -1,6 +1,7 @@
+// import dns from 'node:dns';
+// import mongoose from 'mongoose';
 import dns from 'node:dns';
 import mongoose from 'mongoose';
-
 // Ensure public DNS fallback for MongoDB Atlas SRV resolution
 try {
   dns.setServers(['8.8.8.8', '1.1.1.1']);

@@ -1131,19 +1131,37 @@ export default function ItineraryPage() {
             </div>
 
             {/* Travel Journal Day Title Header */}
-            <div className="day-journal-header" id="day-journal-header">
-              <div className="journal-day-badge" id="journal-day-num">
-                DAY {String(activeDay).padStart(2, '0')}
+            <div className="day-journal-header" id="day-journal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div className="journal-day-badge" id="journal-day-num">
+                  DAY {String(activeDay).padStart(2, '0')}
+                </div>
+                <div className="journal-day-title-box">
+                  <h3 className="journal-day-title" id="journal-day-title" style={{ margin: 0 }}>
+                    {currentDayData?.dayTitle || (currentDayData ? `EXPLORING ${destName}` : `DAY ${activeDay}`)}
+                  </h3>
+                  {getComputedDayDate(activeDay) && (
+                    <span className="journal-day-date">
+                      {formatCalendarDate(getComputedDayDate(activeDay))}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="journal-day-title-box">
-                <h3 className="journal-day-title" id="journal-day-title">
-                  {currentDayData?.dayTitle || (currentDayData ? `EXPLORING ${destName}` : `DAY ${activeDay}`)}
-                </h3>
-                {getComputedDayDate(activeDay) && (
-                  <span className="journal-day-date">
-                    {formatCalendarDate(getComputedDayDate(activeDay))}
-                  </span>
-                )}
+
+              <div className="day-header-actions">
+                {hasUnsavedChanges ? (
+                  <span className="unsaved-badge">● UNSAVED EDITS</span>
+                ) : isSaved ? (
+                  <span className="saved-badge">✓ SAVED</span>
+                ) : null}
+                <button
+                  type="button"
+                  className="act-btn"
+                  onClick={() => openReplaceModal(activeDay, -1, 'Add Place')}
+                  style={{ background: 'rgba(214, 181, 109, 0.15)', borderColor: '#D6B56D', color: '#D6B56D', padding: '8px 14px' }}
+                >
+                  + Add Place
+                </button>
               </div>
             </div>
 
@@ -1169,49 +1187,114 @@ export default function ItineraryPage() {
             ) : (
               /* Timeline / Travel Journal Content */
               <div className="travel-journal-container" id="timeline-container">
-                {currentDayData.activities?.map((act, idx) => {
-                  const layoutClass = act.layout || (idx % 2 === 0 ? 'image-right' : 'image-left');
-                  const imgLabel = act.imageLabel || `${act.title.toUpperCase()} \u00B7 ${act.cat}`;
-                  const actImgSrc = resolveImage(act.title, act.image);
-
-                  return (
-                    <div
-                      key={idx}
-                      className={`activity-card-row ${layoutClass}`}
-                      style={{ animationDelay: `${idx * 0.1}s` }}
+                {(!currentDayData.activities || currentDayData.activities.length === 0) ? (
+                  <div className="empty-day-banner">
+                    <h4>NO ACTIVITIES SCHEDULED FOR DAY {activeDay}</h4>
+                    <p>
+                      You can add a place from the destination catalog, enter a custom place, or move activities here from another day.
+                    </p>
+                    <button
+                      type="button"
+                      className="act-btn"
+                      onClick={() => openReplaceModal(activeDay, -1, 'Add Place')}
+                      style={{ background: '#D6B56D', color: '#071D1A', border: 'none', padding: '10px 22px', fontSize: '0.85rem' }}
                     >
-                      <div className="activity-time-col">
-                        <span className="activity-time-text">{act.time}</span>
-                      </div>
-                      <div className="activity-main-content">
-                        <div className="activity-text-box">
-                          <h4>{act.title}</h4>
-                          <p className="activity-desc">{act.desc}</p>
-                          <span className="activity-cat-tag">{act.cat}</span>
+                      + ADD PLACE
+                    </button>
+                  </div>
+                ) : (
+                  currentDayData.activities?.map((act, idx) => {
+                    const layoutClass = act.layout || (idx % 2 === 0 ? 'image-right' : 'image-left');
+                    const imgLabel = act.imageLabel || `${act.title.toUpperCase()} · ${act.cat}`;
+                    const actImgSrc = resolveImage(act.title, act.image);
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`activity-card-row ${layoutClass}`}
+                        style={{ animationDelay: `${idx * 0.1}s` }}
+                      >
+                        <div className="activity-time-col">
+                          <span className="activity-time-text">{act.time}</span>
                         </div>
-                        <div
-                          className="activity-image-wrap image-placeholder"
-                          style={{ cursor: 'pointer' }}
-                          title="Click to view full image"
-                          onClick={() => openLightbox(act.title, act.desc, act.cat, actImgSrc, imgLabel)}
-                        >
-                          {actImgSrc && (
-                            <img
-                              src={actImgSrc}
-                              alt={act.title}
-                              className="activity-img-element loaded"
-                              onError={(e) => { e.target.style.display = 'none'; }}
-                            />
-                          )}
-                          <div className="placeholder-overlay">
-                            <span className="placeholder-badge">[ {imgLabel} ]</span>
+                        <div className="activity-main-content">
+                          <div className="activity-text-box">
+                            <h4>{act.title}</h4>
+                            <p className="activity-desc">{act.desc}</p>
+                            <span className="activity-cat-tag">{act.cat}</span>
                           </div>
-                          <div className="view-place-badge">VIEW PLACE</div>
+                          <div
+                            className="activity-image-wrap image-placeholder"
+                            style={{ cursor: 'pointer' }}
+                            title="Click to view full image"
+                            onClick={() => openLightbox(act.title, act.desc, act.cat, actImgSrc, imgLabel)}
+                          >
+                            {actImgSrc && (
+                              <img
+                                src={actImgSrc}
+                                alt={act.title}
+                                className="activity-img-element loaded"
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                              />
+                            )}
+                            <div className="placeholder-overlay">
+                              <span className="placeholder-badge">[ {imgLabel} ]</span>
+                            </div>
+                            <div className="view-place-badge">VIEW PLACE</div>
+                          </div>
+
+                          {/* 5 Activity Action Buttons */}
+                          <div className="activity-card-actions">
+                            <button
+                              type="button"
+                              className="act-btn"
+                              disabled={idx === 0}
+                              onClick={() => handleMoveActivity(activeDay, idx, -1)}
+                              title={idx === 0 ? "Already first in day" : "Move place earlier in the day"}
+                            >
+                              ↑ Move Up
+                            </button>
+                            <button
+                              type="button"
+                              className="act-btn"
+                              disabled={idx === (currentDayData.activities?.length - 1)}
+                              onClick={() => handleMoveActivity(activeDay, idx, 1)}
+                              title={idx === (currentDayData.activities?.length - 1) ? "Already last in day" : "Move place later in the day"}
+                            >
+                              ↓ Move Down
+                            </button>
+                            {daysList.length > 1 && (
+                              <button
+                                type="button"
+                                className="act-btn"
+                                onClick={() => openMoveDayModal(activeDay, idx, act.title)}
+                                title="Move this place to another day"
+                              >
+                                ⇄ Move to Day...
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="act-btn"
+                              onClick={() => openReplaceModal(activeDay, idx, act.title)}
+                              title="Replace this place with another place or custom place"
+                            >
+                              ↻ Replace
+                            </button>
+                            <button
+                              type="button"
+                              className="act-btn act-btn-remove"
+                              onClick={() => handleRemoveActivity(activeDay, idx)}
+                              title="Remove this place from day"
+                            >
+                              ✕ Remove
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             )}
           </div>
