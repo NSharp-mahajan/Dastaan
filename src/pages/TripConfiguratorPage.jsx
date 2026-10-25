@@ -528,7 +528,7 @@ export default function TripConfiguratorPage() {
                   disabled={duration <= 1}
                   aria-label="Decrease duration"
                 >
-                  &minus;
+                  −
                 </button>
                 <div className="duration-display">
                   <span id="dur-val">{duration}</span>
@@ -542,7 +542,7 @@ export default function TripConfiguratorPage() {
                   disabled={duration >= 60}
                   aria-label="Increase duration"
                 >
-                  &plus;
+                  +
                 </button>
               </div>
 
@@ -573,7 +573,7 @@ export default function TripConfiguratorPage() {
                   disabled={travelers <= 1}
                   aria-label="Decrease travelers"
                 >
-                  &minus;
+                  −
                 </button>
                 <div className="travelers-display">
                   <span id="travelers-val">{travelers}</span>
@@ -586,7 +586,7 @@ export default function TripConfiguratorPage() {
                   disabled={travelers >= 20}
                   aria-label="Increase travelers"
                 >
-                  &plus;
+                  +
                 </button>
               </div>
 
