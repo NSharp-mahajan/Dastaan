@@ -46,8 +46,14 @@ async function request(endpoint, options = {}) {
       // Ignore localStorage access issues
     }
   }
+  let body = options.body;
+  if (body && typeof body === 'object' && !(body instanceof FormData) && !(body instanceof Blob)) {
+    body = JSON.stringify(body);
+  }
+
   const config = {
     ...options,
+    ...(body !== undefined ? { body } : {}),
     headers: {
       ...defaultHeaders,
       ...options.headers
@@ -117,7 +123,7 @@ export const apiClient = {
   },
 
   // Real-world Routing Methods (Stage 2)
-  calculateRoute: ({ waypoints, mode = 'driving' }) => request('routing/calculate', { method: 'POST', body: { waypoints, mode } }),
+  calculateRoute: ({ waypoints, mode = 'driving' }) => request('routing/calculate', { method: 'POST', body: JSON.stringify({ waypoints, mode }) }),
 
   // Saved Destination API Methods
   getSavedDestinations: () => request('destinations/saved', { method: 'GET' }),

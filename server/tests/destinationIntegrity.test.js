@@ -8,7 +8,7 @@ import {
   generateItinerary,
   generateItineraryWithLiveRouting
 } from '../src/services/itineraryGenerator.js';
-import { previewTrip } from '../src/controllers/tripController.js';
+import { previewTrip, createTrip } from '../src/controllers/tripController.js';
 import { searchDestinations } from '../src/services/destinationService.js';
 
 function createMockRes() {
@@ -134,5 +134,38 @@ test('--- Destination Integrity & Image Verification ---', async (t) => {
     assert.equal(typeof first.latitude, 'number');
     assert.equal(typeof first.longitude, 'number');
     assert.ok(Math.abs(first.latitude - 49.28) < 1.0, `Latitude should be near 49.28, got ${first.latitude}`);
+  });
+  await t.test('7. createTrip preserves destination coordinates and does not default international country to India', async () => {
+    const req = {
+      user: { _id: '507f1f77bcf86cd799439011', uid: 'test-user-123' },
+      body: {
+        destination: {
+          id: 'vancouver-canada',
+          name: 'Vancouver',
+          country: 'Canada',
+          countryCode: 'CA',
+          latitude: 49.2827,
+          longitude: -123.1207,
+          image: 'https://images.unsplash.com/vancouver.jpg'
+        },
+        duration: 3,
+        budget: 45000,
+        interests: ['nature'],
+        travelStyle: 'Balanced',
+        itinerary: { days: [{ dayNum: 1, activities: [{ title: 'Stanley Park', placeId: 'van_1' }] }] }
+      }
+    };
+
+    const res = createMockRes();
+    await createTrip(req, res, () => {});
+
+    assert.equal(res.statusCode, 201);
+    assert.ok(res.body.success);
+    const saved = res.body.data;
+    assert.equal(saved.destination.name, 'Vancouver');
+    assert.equal(saved.destination.country, 'Canada');
+    assert.equal(saved.destination.countryCode, 'CA');
+    assert.equal(saved.destination.latitude, 49.2827);
+    assert.equal(saved.destination.longitude, -123.1207);
   });
 });

@@ -112,7 +112,10 @@ export const createTrip = async (req, res, next) => {
       destination: {
         id: destination.id.trim(),
         name: destination.name.trim(),
-        country: destination.country?.trim() || 'India',
+        country: destination.country?.trim() || '',
+        countryCode: destination.countryCode?.trim() || '',
+        latitude: typeof destination.latitude === 'number' ? destination.latitude : null,
+        longitude: typeof destination.longitude === 'number' ? destination.longitude : null,
         image: destination.image || '',
         imageAttribution: destination.imageAttribution || '',
         defaultDur: destination.defaultDur || durNum,
@@ -328,8 +331,12 @@ export const updateTrip = async (req, res, next) => {
       trip.destination = {
         id: destination.id || trip.destination.id,
         name: destination.name || trip.destination.name,
-        country: destination.country || trip.destination.country,
+        country: destination.country !== undefined ? destination.country : trip.destination.country,
+        countryCode: destination.countryCode !== undefined ? destination.countryCode : trip.destination.countryCode,
+        latitude: typeof destination.latitude === 'number' ? destination.latitude : trip.destination.latitude,
+        longitude: typeof destination.longitude === 'number' ? destination.longitude : trip.destination.longitude,
         image: destination.image || trip.destination.image,
+        imageAttribution: destination.imageAttribution || trip.destination.imageAttribution,
         defaultDur: destination.defaultDur || trip.destination.defaultDur,
         defaultBud: destination.defaultBud || trip.destination.defaultBud
       };
