@@ -980,28 +980,24 @@ export default function ItineraryPage() {
                 <span className="glance-label">DAYS</span>
                 {dateRangeText && <span className="glance-sub-text">{dateRangeText}</span>}
               </div>
-              <div className="glance-divider"></div>
               <div className="glance-col">
                 <span className="glance-num" id="glance-travelers">
                   {String(travelers).padStart(2, '0')}
                 </span>
                 <span className="glance-label">{travelers === 1 ? 'TRAVELLER' : 'TRAVELLERS'}</span>
               </div>
-              <div className="glance-divider"></div>
               <div className="glance-col">
                 <span className="glance-num" id="glance-budget">
                   ₹{budget.toLocaleString('en-IN')}
                 </span>
                 <span className="glance-label">TOTAL BUDGET</span>
               </div>
-              <div className="glance-divider"></div>
               <div className="glance-col">
                 <span className="glance-num" id="glance-per-person">
                   ₹{estimatedCostPerPerson.toLocaleString('en-IN')}
                 </span>
                 <span className="glance-label">PER PERSON</span>
               </div>
-              <div className="glance-divider"></div>
               <div className="glance-col">
                 <span className="glance-num" id="glance-style">
                   {travelStyle.toUpperCase()}
@@ -1010,34 +1006,44 @@ export default function ItineraryPage() {
               </div>
             </div>
 
-            <div className="glance-interests-bar" id="glance-interests-list">
-              {interests.length > 0
-                ? interests.map(i => i.toUpperCase()).join(' \u2022 ')
-                : 'BALANCED \u2022 CURATED \u2022 PERSONALIZED'}
+            <div className="glance-interests-container">
+              <span className="glance-interests-eyebrow">TAILORED EXPERIENCES</span>
+              <div className="glance-interests-pills" id="glance-interests-list">
+                {interests.length > 0
+                  ? interests.map(i => (
+                      <span key={i} className="glance-interest-pill">
+                        {i.toUpperCase()}
+                      </span>
+                    ))
+                  : ['BALANCED', 'CURATED', 'PERSONALIZED'].map(i => (
+                      <span key={i} className="glance-interest-pill">{i}</span>
+                    ))}
+              </div>
             </div>
           
             {/* LIVE WEATHER OUTLOOK (Open-Meteo Integration) */}
             <div className="weather-capsule-card">
               <div className="weather-header-row">
                 <div className="weather-title-group">
-                  <span className="section-eyebrow" style={{ margin: 0 }}>LIVE DESTINATION CLIMATE</span>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary-deep)' }}>
+                  <span className="weather-eyebrow">LIVE DESTINATION CLIMATE</span>
+                  <h3 className="weather-city-title">
                     {destName} Forecast
-                  </span>
+                  </h3>
                 </div>
                 {(weather?.current || weather?.data?.current) && (
                   <div className="weather-current-badge">
-                    <span>{(weather?.current || weather?.data?.current).icon}</span>
-                    <span>{(weather?.current || weather?.data?.current).temperature}°C</span>
-                    <span>&bull;</span>
-                    <span>{(weather?.current || weather?.data?.current).condition}</span>
+                    <span className="weather-curr-icon">{(weather?.current || weather?.data?.current).icon}</span>
+                    <span className="weather-curr-temp">{(weather?.current || weather?.data?.current).temperature}°C</span>
+                    <span className="weather-curr-dot">&bull;</span>
+                    <span className="weather-curr-condition">{(weather?.current || weather?.data?.current).condition}</span>
                   </div>
                 )}
               </div>
 
               {isLoadingWeather ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: '#7F9087', fontSize: '0.88rem' }}>
-                  Connecting to live meteorological satellites...
+                <div className="weather-loading-state">
+                  <div className="weather-spinner"></div>
+                  <span>Connecting to real-time meteorological models...</span>
                 </div>
               ) : ((weather?.daily || weather?.data?.daily) && (weather?.daily || weather?.data?.daily).length > 0) ? (
                 <div className="weather-days-grid">
@@ -1058,17 +1064,18 @@ export default function ItineraryPage() {
                   ))}
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '16px', color: '#7F9087', fontSize: '0.85rem' }}>
+                <div className="weather-empty-state">
                   Weather forecast synchronizes automatically for destinations with verified coordinates.
                 </div>
               )}
 
-              <div style={{ marginTop: '14px', fontSize: '0.72rem', color: '#7F9087', textAlign: 'right' }}>
+              <div className="weather-source-footer">
                 Source: Real-time atmospheric models via Open-Meteo &bull; Coords:{' '}
                 {trip.destination?.latitude ? `${trip.destination.latitude.toFixed(2)}°, ${trip.destination.longitude?.toFixed(2)}°` : 'Regional centroid'}
               </div>
             </div>
           </div>
+
         </section>
 
         {/* SECTION 3: ITINERARY INTRO & TRAVEL JOURNAL (Dark Forest Green) */}

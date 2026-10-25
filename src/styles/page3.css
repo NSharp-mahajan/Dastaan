@@ -318,14 +318,15 @@ body.itinerary-body {
 
 /* SECTION 2: TRIP AT A GLANCE (Warm Ivory) */
 .section-glance {
-  background: var(--paper);
-  color: var(--primary-deep);
-  padding: 90px 0;
+  background: var(--paper, #F4EFE3);
+  color: var(--primary-deep, #071D1A);
+  padding: 80px 0 90px;
+  position: relative;
 }
 
 .section-header-editorial {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 36px;
 }
 
 .section-eyebrow {
@@ -340,64 +341,273 @@ body.itinerary-body {
 
 .section-title-serif {
   font-family: var(--font-serif);
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 400;
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-weight: 500;
   letter-spacing: 2px;
   text-transform: uppercase;
+  color: var(--primary-deep);
   margin: 0;
+  line-height: 1.15;
 }
 
+/* 5-Column Luxury Metric Cards */
 .glance-editorial-grid {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  gap: 20px;
-  padding: 40px 0;
-  border-top: 1px solid var(--border-dark);
-  border-bottom: 1px solid var(--border-dark);
-  margin: 32px 0 24px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin: 32px 0 28px;
+  padding: 0;
+  border-top: none;
+  border-bottom: none;
 }
 
 .glance-col {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
-  flex: 1;
+  padding: 26px 16px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(7, 29, 26, 0.09);
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(7, 29, 26, 0.04);
+  transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.glance-col:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 26px rgba(7, 29, 26, 0.08);
+  border-color: rgba(223, 186, 115, 0.45);
 }
 
 .glance-num {
   font-family: var(--font-serif);
-  font-size: clamp(2.5rem, 4.5vw, 4rem);
-  font-weight: 500;
+  font-size: clamp(1.8rem, 2.5vw, 2.7rem);
+  font-weight: 600;
   color: var(--primary-deep);
-  line-height: 1;
-  margin-bottom: 6px;
+  line-height: 1.1;
+  margin-bottom: 8px;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .glance-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 2.5px;
+  letter-spacing: 2px;
   color: var(--terracotta);
   text-transform: uppercase;
 }
 
-.glance-divider {
-  width: 1px;
-  height: 50px;
-  background: var(--border-dark);
+.glance-sub-text {
+  font-size: 0.72rem;
+  color: #7F9087;
+  margin-top: 6px;
+  font-weight: 500;
 }
 
-.glance-interests-bar {
-  text-align: center;
-  font-size: 0.85rem;
+.glance-divider {
+  display: none;
+}
+
+/* Interests Pill Row */
+.glance-interests-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 32px;
+}
+
+.glance-interests-eyebrow {
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
+  color: #8C9E96;
+  text-transform: uppercase;
+}
+
+.glance-interests-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.glance-interest-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 18px;
+  background: rgba(7, 29, 26, 0.05);
+  border: 1px solid rgba(7, 29, 26, 0.12);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
   color: var(--primary-deep);
   text-transform: uppercase;
-  opacity: 0.85;
+  transition: all 0.2s ease;
+}
+
+.glance-interest-pill:hover {
+  background: rgba(7, 29, 26, 0.08);
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
+/* Weather Capsule Card */
+.weather-capsule-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(247, 244, 236, 0.96) 100%);
+  border: 1px solid rgba(223, 186, 115, 0.38);
+  border-radius: 20px;
+  padding: 30px 36px;
+  box-shadow: 0 10px 32px rgba(7, 29, 26, 0.05), 0 2px 8px rgba(0, 0, 0, 0.02);
+  margin-top: 24px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.weather-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(7, 29, 26, 0.08);
+}
+
+.weather-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weather-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: var(--terracotta);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.weather-city-title {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--primary-deep);
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.weather-current-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(7, 29, 26, 0.05);
+  border: 1px solid rgba(223, 186, 115, 0.4);
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--primary-deep);
+}
+
+.weather-curr-icon {
+  font-size: 1.2rem;
+}
+
+.weather-curr-dot {
+  color: var(--gold);
+}
+
+.weather-days-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+.weather-day-item {
+  background: #FFFFFF;
+  border: 1px solid rgba(7, 29, 26, 0.08);
+  border-radius: 14px;
+  padding: 18px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.weather-day-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(7, 29, 26, 0.07);
+  border-color: rgba(223, 186, 115, 0.5);
+}
+
+.weather-day-date {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--terracotta);
+  text-transform: uppercase;
+}
+
+.weather-day-icon {
+  font-size: 1.85rem;
+  line-height: 1;
+  margin: 4px 0;
+}
+
+.weather-day-temp {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--primary-deep);
+  white-space: nowrap;
+}
+
+.weather-day-condition {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #556B61;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.weather-day-precip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #1F6F8B;
+  background: rgba(31, 111, 139, 0.1);
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+.weather-loading-state,
+.weather-empty-state {
+  text-align: center;
+  padding: 24px;
+  color: #7F9087;
+  font-size: 0.88rem;
+}
+
+.weather-source-footer {
+  margin-top: 18px;
+  font-size: 0.72rem;
+  color: #8C9E96;
+  text-align: right;
+  letter-spacing: 0.5px;
 }
 
 /* SECTION 3: ITINERARY INTRO & TRAVEL JOURNAL */
