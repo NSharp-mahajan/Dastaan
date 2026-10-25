@@ -7,17 +7,17 @@
 
 :root {
   --insp-primary: #062F2B;
-  --insp-primary-dark: #031B18;
+  --insp-primary-dark: #071D1A;
   --insp-primary-light: #0B3A35;
   --insp-paper: #F4EFE3;
   --insp-ivory: #FAF7EF;
-  --insp-gold: #D8B45A;
-  --insp-gold-hover: #E5C98A;
-  --insp-terracotta: #C87955;
-  --insp-muted: #7F9087;
-  --insp-dark-text: #102F2B;
-  --insp-border-gold: rgba(214, 181, 109, 0.25);
-  --insp-border-subtle: rgba(16, 47, 43, 0.12);
+  --insp-gold: #DFBA73;
+  --insp-gold-hover: #E8CA8C;
+  --insp-terracotta: #DFBA73;
+  --insp-muted: rgba(244, 239, 227, 0.78);
+  --insp-dark-text: #071D1A;
+  --insp-border-gold: rgba(223, 186, 115, 0.28);
+  --insp-border-subtle: rgba(223, 186, 115, 0.14);
   --insp-shadow-card: 0 16px 40px rgba(0, 0, 0, 0.22);
   --insp-shadow-hover: 0 24px 50px rgba(0, 0, 0, 0.35);
   --insp-transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -67,8 +67,8 @@
    ========================================================================== */
 .insp-hero-section {
   position: relative;
-  padding: clamp(100px, 12vh, 140px) 0 36px;
-  background: radial-gradient(circle at 50% 15%, rgba(214, 181, 109, 0.08) 0%, rgba(3, 27, 24, 0) 70%),
+  padding: clamp(120px, 14vh, 160px) 0 54px;
+  background: radial-gradient(ellipse 70% 60% at 50% 25%, rgba(223, 186, 115, 0.1) 0%, rgba(7, 29, 26, 0) 75%),
               var(--insp-primary-dark);
   text-align: center;
   box-sizing: border-box;
@@ -76,22 +76,24 @@
 
 .insp-hero-heading {
   font-family: var(--insp-font-serif);
-  font-size: clamp(2.2rem, 4.5vw, 3.8rem);
-  font-weight: normal;
-  letter-spacing: 2px;
-  color: var(--insp-paper);
+  font-size: clamp(2.4rem, 4.2vw, 3.8rem);
+  font-weight: 400;
+  letter-spacing: 2.5px;
+  color: #F4EFE3;
   text-transform: uppercase;
-  margin: 0 auto 16px;
-  max-width: 950px;
-  line-height: 1.15;
+  margin: 0 auto 20px;
+  max-width: 900px;
+  line-height: 1.2;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
 
 .insp-hero-desc {
-  font-size: clamp(14px, 1.25vw, 16px);
-  color: var(--insp-muted);
-  max-width: 680px;
+  font-size: clamp(15px, 1.15vw, 17px);
+  color: rgba(244, 239, 227, 0.82);
+  max-width: 660px;
   margin: 0 auto;
-  line-height: 1.6;
+  line-height: 1.7;
+  font-weight: 400;
 }
 
 .insp-hero {
@@ -280,10 +282,11 @@
    ========================================================================== */
 .insp-filter-section {
   position: static;
-  background: transparent;
-  border-top: 1px solid rgba(214, 181, 109, 0.15);
-  border-bottom: 1px solid rgba(214, 181, 109, 0.15);
-  padding: 20px 0;
+  background: linear-gradient(180deg, rgba(7, 29, 26, 0.4) 0%, rgba(3, 27, 24, 0.75) 100%);
+  border-top: 1px solid rgba(223, 186, 115, 0.16);
+  border-bottom: 1px solid rgba(223, 186, 115, 0.16);
+  padding: 22px 0;
+  margin-bottom: 24px;
 }
 
 .insp-filter-header {
@@ -313,12 +316,12 @@
 
 .insp-filter-chip {
   position: relative;
-  background: rgba(244, 239, 227, 0.05);
-  border: 1px solid rgba(214, 181, 109, 0.22);
-  color: rgba(244, 239, 227, 0.85);
-  padding: 10px 20px;
+  background: rgba(244, 239, 227, 0.04);
+  border: 1px solid rgba(223, 186, 115, 0.2);
+  color: rgba(244, 239, 227, 0.82);
+  padding: 9px 20px;
   border-radius: 999px;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.8px;
   text-transform: uppercase;
@@ -332,42 +335,33 @@
 }
 
 .insp-filter-chip .chip-label {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: inherit;
   letter-spacing: inherit;
 }
 
 .insp-filter-chip::after {
   content: '';
-  position: absolute;
-  bottom: 0;
-  left: 15%;
-  right: 15%;
-  height: 2px;
-  background: #031B18;
-  border-radius: 999px;
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform 350ms cubic-bezier(0.25, 1, 0.5, 1);
+  display: none;
 }
 
 .insp-filter-chip:hover {
-  background: rgba(214, 181, 109, 0.12);
-  border-color: var(--insp-gold);
-  color: var(--insp-paper);
+  background: rgba(223, 186, 115, 0.12);
+  border-color: #DFBA73;
+  color: #F4EFE3;
   transform: translateY(-1px);
 }
 
 .insp-filter-chip.active {
-  background: var(--insp-gold);
-  border-color: var(--insp-gold);
-  color: var(--insp-primary-dark);
+  background: #DFBA73;
+  border-color: #DFBA73;
+  color: #071D1A;
   font-weight: 700;
-  box-shadow: 0 4px 14px rgba(216, 180, 90, 0.3);
+  box-shadow: 0 4px 16px rgba(223, 186, 115, 0.35);
 }
 
 .insp-filter-chip.active::after {
-  transform: scaleX(1);
+  display: none;
 }
 
 .chip-count {
@@ -512,13 +506,21 @@ html {
 }
 
 .insp-eyebrow {
-  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--insp-terracotta);
-  letter-spacing: 3px;
+  color: #DFBA73;
+  letter-spacing: 3.5px;
   text-transform: uppercase;
-  display: block;
-  margin-bottom: 10px;
+  margin-bottom: 22px;
+  padding: 6px 18px;
+  background: rgba(223, 186, 115, 0.08);
+  border: 1px solid rgba(223, 186, 115, 0.28);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 .insp-section-heading {
@@ -1476,56 +1478,62 @@ html {
    ========================================================================== */
 .insp-hero-cta-group {
   display: flex;
-  gap: 16px;
+  gap: 18px;
   justify-content: center;
   align-items: center;
-  margin-top: 32px;
+  margin-top: 36px;
   flex-wrap: wrap;
 }
 
 .btn-hero-journey-reel {
-  background: linear-gradient(135deg, #E5C98A 0%, #D8B45A 100%);
-  color: #031B18;
-  padding: 14px 28px;
+  background: linear-gradient(135deg, #E6C887 0%, #DFBA73 50%, #C49842 100%);
+  color: #071D1A;
+  padding: 13px 30px;
   font-family: var(--insp-font-sans);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
   border: none;
-  border-radius: 4px;
-  box-shadow: 0 8px 24px rgba(216, 180, 90, 0.28);
+  border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(223, 186, 115, 0.28), 0 2px 6px rgba(0, 0, 0, 0.3);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .btn-hero-journey-reel:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(216, 180, 90, 0.42);
-  filter: brightness(1.05);
+  box-shadow: 0 10px 28px rgba(223, 186, 115, 0.42), 0 4px 12px rgba(0, 0, 0, 0.35);
+  filter: brightness(1.06);
 }
 
 .btn-hero-explore-collections {
-  background: transparent;
-  color: var(--insp-paper);
-  border: 1px solid rgba(214, 181, 109, 0.35);
-  padding: 13px 24px;
+  background: rgba(244, 239, 227, 0.04);
+  color: #F4EFE3;
+  border: 1px solid rgba(223, 186, 115, 0.35);
+  padding: 12px 26px;
   font-family: var(--insp-font-sans);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
-  border-radius: 4px;
+  border-radius: 999px;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
 }
 
 .btn-hero-explore-collections:hover {
-  border-color: var(--insp-gold);
-  color: var(--insp-gold);
+  border-color: #DFBA73;
+  color: #DFBA73;
+  background: rgba(223, 186, 115, 0.1);
   transform: translateY(-2px);
 }
 
@@ -4382,7 +4390,7 @@ html {
    ========================================================================== */
 .gravity-map-section {
   position: relative;
-  padding: 20px 0 60px;
+  padding: 56px 0 68px;
   overflow: hidden;
 }
 

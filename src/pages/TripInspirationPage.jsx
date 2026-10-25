@@ -198,7 +198,7 @@ export default function TripInspirationPage() {
         {/* INSPIRATION HERO SECTION */}
         <section className="insp-hero-section" aria-label="Trip Inspiration Introduction">
           <div className="insp-container text-center">
-            <span className="insp-eyebrow">DASTAAN EDITORIAL COLLECTIONS</span>
+            <span className="insp-eyebrow">✦ DASTAAN EDITORIAL COLLECTIONS ✦</span>
             <h1 className="insp-hero-heading">Some places are seen. Others are experienced.</h1>
             <p className="insp-hero-desc">
               Each journey is crafted around cultural rhythm, iconic sights, and intimate local flavors.
