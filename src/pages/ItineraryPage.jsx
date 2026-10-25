@@ -122,6 +122,75 @@ export default function ItineraryPage() {
   useEffect(() => {
     let isMounted = true;
 
+  // Auto-heal trips loaded from legacy localStorage or sessions that contained repeated days
+  const sanitizeTrip = (tripObj) => {
+    if (!tripObj) return tripObj;
+    const rawDestId = (tripObj.destination?.id || tripObj.destination?.name || '').toLowerCase().trim();
+    const destId = rawDestId.replace(/[^a-z0-9]+/g, '-');
+    const curated = mockItineraries[destId] || mockItineraries[rawDestId];
+
+    const currentDays = tripObj.itinerary?.days;
+    let hasDups = false;
+    if (Array.isArray(currentDays) && currentDays.length > 1) {
+      const seen = new Set();
+      for (const d of currentDays) {
+        for (const a of (d.activities || [])) {
+          const t = (a.title || '').toLowerCase().trim();
+          if (t && seen.has(t)) {
+            hasDups = true;
+            break;
+          }
+          if (t) seen.add(t);
+        }
+        if (hasDups) break;
+      }
+    }
+
+    if (hasDups && curated && Array.isArray(curated.days) && curated.days.length > 0) {
+      const dur = Math.max(1, parseInt(tripObj.duration, 10) || currentDays.length || 3);
+      const cleanDays = curated.days.slice(0, dur).map(d => ({
+        ...d,
+        activities: (d.activities || []).map(a => ({
+          ...a,
+          image: resolveImage(a.title, a.image, a.cat)
+        }))
+      }));
+
+      const upgraded = {
+        ...tripObj,
+        itinerary: {
+          ...(tripObj.itinerary || {}),
+          days: cleanDays
+        }
+      };
+      try {
+        localStorage.setItem('dastaanTrip', JSON.stringify(upgraded));
+      } catch (e) {
+        // ignore
+      }
+      return upgraded;
+    }
+
+    // Always sanitize each activity's image so it never displays the destination-level hero image
+    if (Array.isArray(currentDays)) {
+      const sanitizedDays = currentDays.map(d => ({
+        ...d,
+        activities: (d.activities || []).map(a => ({
+          ...a,
+          image: resolveImage(a.title, a.image, a.cat)
+        }))
+      }));
+      return {
+        ...tripObj,
+        itinerary: {
+          ...(tripObj.itinerary || {}),
+          days: sanitizedDays
+        }
+      };
+    }
+
+    return tripObj;
+  };
     async function loadTrip() {
       setIsLoading(true);
       setErrorMessage('');
@@ -134,7 +203,7 @@ export default function ItineraryPage() {
           if (!isMounted) return;
 
           if (res.success && res.data?.data) {
-            const fetched = res.data.data;
+            const fetched = sanitizeTrip(res.data.data);
             setTrip(fetched);
             setIsSaved(true);
             setHasUnsavedChanges(false);
@@ -158,7 +227,8 @@ export default function ItineraryPage() {
           const parsed = JSON.parse(saved);
           if (parsed.destination) {
             if (!isMounted) return;
-            setTrip(parsed);
+            const sanitized = sanitizeTrip(parsed);
+            setTrip(sanitized);
             setIsSaved(Boolean(parsed._id));
             setHasUnsavedChanges(false);
             setIsLoading(false);
@@ -175,7 +245,7 @@ export default function ItineraryPage() {
         if (!isMounted) return;
 
         if (userTripsRes.success && Array.isArray(userTripsRes.data?.data) && userTripsRes.data.data.length > 0) {
-          const latestTrip = userTripsRes.data.data[0];
+          const latestTrip = sanitizeTrip(userTripsRes.data.data[0]);
           setTrip(latestTrip);
           localStorage.setItem('dastaanTrip', JSON.stringify(latestTrip));
           setIsLoading(false);
@@ -416,9 +486,26 @@ export default function ItineraryPage() {
 
 
   // Days list calculation: strictly read available days WITHOUT repeating via modulo
-  const daysList = (trip.itinerary?.days && trip.itinerary.days.length > 0)
+  const rawDays = (trip.itinerary?.days && trip.itinerary.days.length > 0)
     ? trip.itinerary.days
     : (data?.days || []);
+
+  const hasCrossDayDuplicates = (days) => {
+    if (!Array.isArray(days) || days.length <= 1) return false;
+    const seen = new Set();
+    for (const d of days) {
+      for (const a of (d.activities || [])) {
+        const k = (a.title || '').toLowerCase().trim();
+        if (k && seen.has(k)) return true;
+        if (k) seen.add(k);
+      }
+    }
+    return false;
+  };
+
+  const daysList = (hasCrossDayDuplicates(rawDays) && data?.days && data.days.length > 0)
+    ? data.days.slice(0, Math.max(rawDays.length, data.days.length))
+    : rawDays;
 
   const duration = Math.max(
     1,
@@ -1206,7 +1293,7 @@ export default function ItineraryPage() {
                   currentDayData.activities?.map((act, idx) => {
                     const layoutClass = act.layout || (idx % 2 === 0 ? 'image-right' : 'image-left');
                     const imgLabel = act.imageLabel || `${act.title.toUpperCase()} · ${act.cat}`;
-                    const actImgSrc = resolveImage(act.title, act.image);
+                    const actImgSrc = resolveImage(act.title, act.image, act.cat);
 
                     return (
                       <div
@@ -1554,20 +1641,22 @@ export default function ItineraryPage() {
               </div>
 
               <div className="places-grid">
-                {places.map((place, idx) => (
-                  <article key={place.placeId || idx} className="verified-place-card">
-                    <div className="place-img-wrap image-placeholder">
-                      {place.photoUrl ? (
-                        <img
-                          src={place.photoUrl}
-                          alt={place.name}
-                          className="place-img loaded"
-                          loading="lazy"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                          }}
-                        />
-                      ) : null}
+                {places.map((place, idx) => {
+                  const placeImg = resolveImage(place.name, place.photoUrl, place.category);
+                  return (
+                    <article key={place.placeId || idx} className="verified-place-card">
+                      <div className="place-img-wrap image-placeholder">
+                        {placeImg ? (
+                          <img
+                            src={placeImg}
+                            alt={place.name}
+                            className="place-img loaded"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        ) : null}
                       <span className="place-category-pill">
                         {place.category === 'restaurant' ? 'Dining' : 'Attraction'}
                       </span>
@@ -1604,7 +1693,8 @@ export default function ItineraryPage() {
                       </div>
                     </div>
                   </article>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </section>

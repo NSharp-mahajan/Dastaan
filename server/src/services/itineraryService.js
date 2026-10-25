@@ -352,6 +352,7 @@ export function buildDeterministicGroundedItinerary({ destName, durNum, travelSt
         desc: poi.operationalStatusNote || poi.address || `Explore and experience ${poi.name} in ${destName}.`,
         cat: (poi.category || 'EXPLORE').toUpperCase(),
         poiId: poi.id, // Stable POI ID (never appended with synthetic suffixes)
+        image: poi.photoUrl || poi.image || '',
         lat: poi.lat !== undefined && poi.lat !== null ? parseFloat(poi.lat) : null,
         lon: poi.lon !== undefined && poi.lon !== null ? parseFloat(poi.lon) : null
       });
@@ -476,6 +477,7 @@ export function repairItineraryWithPoiPool(itinerary, poiPool = [], { expectedDa
             desc: replacementPoi.operationalStatusNote || replacementPoi.address || `Explore ${replacementPoi.name} in ${destName}.`,
             cat: (replacementPoi.category || 'EXPLORE').toUpperCase(),
             poiId: replId || `poi_repaired_${dIdx + 1}_${aIdx + 1}`,
+            image: replacementPoi.photoUrl || replacementPoi.image || act.image || '',
             lat: replacementPoi.lat !== undefined ? replacementPoi.lat : null,
             lon: replacementPoi.lon !== undefined ? replacementPoi.lon : null
           };
@@ -727,12 +729,21 @@ export async function generateGroundedItinerary(
       let lat = act.lat !== undefined && act.lat !== null ? parseFloat(act.lat) : null;
       let lon = act.lon !== undefined && act.lon !== null ? parseFloat(act.lon) : null;
 
-      if ((lat === null || lon === null) && act.poiId && poiPool.length > 0) {
-        const poolPoi = poiPool.find(p => p.id === act.poiId);
+      let actImage = act.image;
+      if (poiPool.length > 0) {
+        const poolPoi = poiPool.find(p => p.id === act.poiId || p.placeId === act.poiId || (p.name && act.title && p.name.toLowerCase() === act.title.toLowerCase()));
         if (poolPoi) {
-          lat = poolPoi.lat !== undefined ? parseFloat(poolPoi.lat) : lat;
-          lon = poolPoi.lon !== undefined ? parseFloat(poolPoi.lon) : lon;
+          lat = (lat === null && poolPoi.lat !== undefined) ? parseFloat(poolPoi.lat) : lat;
+          lon = (lon === null && poolPoi.lon !== undefined) ? parseFloat(poolPoi.lon) : lon;
+          if (!actImage || actImage === destination?.image) {
+            actImage = poolPoi.photoUrl || poolPoi.image || actImage;
+          }
         }
+      }
+
+      // Individual venue activities should never inherit destination hero image
+      if (actImage === destination?.image) {
+        actImage = '';
       }
 
       const mapUrl = (lat !== null && lon !== null)
@@ -745,7 +756,7 @@ export async function generateGroundedItinerary(
         desc: act.desc || '',
         cat: (act.cat || 'EXPLORE').toUpperCase(),
         poiId: act.poiId || '',
-        image: act.image || destination?.image || '',
+        image: actImage || '',
         imageLabel: `${act.title.toUpperCase()} · ${(act.cat || 'EXPLORE').toUpperCase()}`,
         layout: aIdx % 2 === 0 ? 'image-right' : 'image-left',
         lat,

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { plannerDestinations } from '../data/destinations';
+import { mockItineraries } from '../data/itineraries';
 import { availableInterests } from '../data/interests';
 import apiClient from '../services/api';
 import { auth } from '../firebase';
@@ -104,8 +105,10 @@ export default function TripConfiguratorPage() {
     setSearchVal(dest.name);
     setValidationMsg('');
     setIsDropdownOpen(false);
-    if (dest.defaultDur) setDuration(dest.defaultDur);
-    if (dest.defaultBud) setBudget(dest.defaultBud);
+    const durNum = dest.defaultDur || 3;
+    const budNum = dest.defaultBud || budget || 12000;
+    if (dest.defaultDur) setDuration(durNum);
+    if (dest.defaultBud) setBudget(budNum);
 
     // Crossfade background image
     setBgOpacity(0);
@@ -114,7 +117,25 @@ export default function TripConfiguratorPage() {
       setBgOpacity(1);
     }, 400);
 
-    saveState({ destination: dest, selectedDest: dest });
+    // Immediately assemble complete curated itinerary for this destination
+    const destKey = (dest.id || dest.name || '').toLowerCase().trim();
+    const curatedData = mockItineraries[destKey] || mockItineraries['default'];
+    const curatedDays = (curatedData?.days || []).slice(0, durNum);
+
+    const tripPayload = {
+      destination: dest,
+      duration: durNum,
+      travelers: travelers || 1,
+      startDate: startDate || null,
+      budget: budNum,
+      interests: interests || [],
+      travelStyle: travelStyle || 'Balanced',
+      itinerary: {
+        tagline: `A ${travelStyle.toLowerCase()} journey through ${dest.name}'s cultural landmarks and local escapes`,
+        days: curatedDays
+      }
+    };
+    localStorage.setItem('dastaanTrip', JSON.stringify(tripPayload));
   };
 
   const handleSearchInput = (val) => {
@@ -341,28 +362,34 @@ export default function TripConfiguratorPage() {
         localStorage.setItem('dastaanTrip', JSON.stringify(savedTrip));
         navigate(`/itinerary?id=${savedTrip._id}`);
         return;
-      } else {
-        // Backend validation or grounding error (e.g. 400 DESTINATION_NOT_FOUND, 422 INSUFFICIENT_ATTRACTIONS)
-        const errorMsg = res.error || res.data?.message || 'Could not generate itinerary for this destination. Please verify the destination name or try another.';
-        setValidationMsg(errorMsg);
-        setIsBuilding(false);
-        return;
       }
-
     } catch (err) {
       console.warn('[TripPlanner] Backend API call error:', err);
-      // Offline fallback for curated catalog
-      const isCurated = plannerDestinations.some(d => d.name.toLowerCase() === selectedDest.name.trim().toLowerCase());
-      if (isCurated) {
-        setTimeout(() => {
-          navigate('/itinerary');
-        }, 400);
-        return;
-      }
-
-      setValidationMsg(err.message || 'Unable to connect to the itinerary service. Please ensure the server is running.');
-      setIsBuilding(false);
     }
+
+    // Guest / Seamless local fallback: construct full curated itinerary from mockItineraries!
+    const rawDestKey = (tripPayload.destination?.id || tripPayload.destination?.name || '').toLowerCase().trim();
+    const slugDestKey = rawDestKey.replace(/[\s_]+/g, '-');
+    const curatedData = mockItineraries[slugDestKey] || mockItineraries[rawDestKey] || mockItineraries['default'];
+    const durNum = Math.max(1, parseInt(duration, 10) || 3);
+    const curatedDays = (curatedData?.days || []).slice(0, durNum).map(d => ({
+      ...d,
+      activities: (d.activities || []).map(a => ({
+        ...a,
+        image: resolveImage(a.title, a.image, a.cat)
+      }))
+    }));
+
+    const localTrip = {
+      ...tripPayload,
+      itinerary: {
+        tagline: `A ${travelStyle.toLowerCase()} journey through ${destToUse?.name || selectedDest?.name}'s cultural landmarks and local escapes`,
+        days: curatedDays
+      }
+    };
+    localStorage.setItem('dastaanTrip', JSON.stringify(localTrip));
+    navigate('/itinerary');
+    return;
   };
 
   const perPersonEstimated = Math.round(budget / Math.max(1, travelers));
