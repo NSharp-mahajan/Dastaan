@@ -1458,7 +1458,7 @@ export default function ItineraryPage() {
 
         {/* SECTION 6.5: VERIFIED PLACES & DINING (Live & Curated Places) */}
         {places.length > 0 && (
-          <section className="section-places-discovery reveal-on-scroll" id="places-section">
+          <section className="section-places-discovery" id="places-section">
             <div className="container">
               <div className="section-header-editorial" style={{ textAlign: 'left', marginBottom: '24px' }}>
                 <span className="section-eyebrow gold-eyebrow">VERIFIED LOCAL DISCOVERIES</span>
@@ -1528,7 +1528,7 @@ export default function ItineraryPage() {
         )}
 
         {/* SECTION 7: FINAL CINEMATIC CTA SECTION (Dark Closing) */}
-        <section className="section-final reveal-on-scroll" id="final-section">
+        <section className="section-final" id="final-section">
           <div className="final-bg-placeholder image-placeholder">
             {heroImgSrc && (
               <img
@@ -1568,12 +1568,14 @@ export default function ItineraryPage() {
               >
                 <span>{isSaving ? 'SAVING JOURNEY...' : hasUnsavedChanges ? 'SAVE EDITED JOURNEY \u2192' : isSaved ? '\u2713 JOURNEY SAVED' : 'SAVE MY JOURNEY \u2192'}</span>
               </button>
-              <button type="button" className="btn-secondary-outline" id="btn-edit" onClick={handleEditPreferences}>
-                EDIT PREFERENCES
-              </button>
-              <button type="button" className="btn-tertiary-link" id="btn-reset" onClick={handleStartOver}>
-                START OVER
-              </button>
+              <div className="final-sub-actions">
+                <button type="button" className="btn-secondary-outline" id="btn-edit" onClick={handleEditPreferences}>
+                  EDIT PREFERENCES
+                </button>
+                <button type="button" className="btn-tertiary-link" id="btn-reset" onClick={handleStartOver}>
+                  START OVER
+                </button>
+              </div>
             </div>
 
             {/* Save Confirmation Toast Container */}
