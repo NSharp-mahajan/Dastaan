@@ -9,6 +9,7 @@ import { getCurrentUser } from '../utils/auth';
 import { auth } from '../firebase';
 import '../styles/navigation.css';
 import '../styles/page3.css';
+import { exportItineraryToPdf } from '../utils/pdfExport';
 
 const DEST_COORDS = {
   'new-delhi': { lat: 28.6139, lng: 77.2090 },
@@ -75,6 +76,7 @@ export default function ItineraryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEmpty, setIsEmpty] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   // Phase 3: Interactive Itinerary Editing & Persistence States
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -992,6 +994,43 @@ export default function ItineraryPage() {
     navigate('/plan');
   };
 
+  const handleDownloadPdf = async () => {
+    if (!trip) return;
+    setIsDownloadingPdf(true);
+    try {
+      await exportItineraryToPdf(trip, {
+        download: true,
+        days: daysList,
+        destName,
+        countryName,
+        breakdown,
+        budget,
+        duration,
+        travelers,
+        travelStyle,
+        tagline
+      });
+      setToastInfo({
+        type: 'success',
+        title: 'PDF DOWNLOADED',
+        message: 'Your luxury Dastaan itinerary PDF is ready!'
+      });
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 4500);
+    } catch (err) {
+      console.error('[ItineraryPage] Error generating PDF:', err);
+      setToastInfo({
+        type: 'error',
+        title: 'DOWNLOAD FAILED',
+        message: err?.message || 'Could not generate itinerary PDF. Please try again.'
+      });
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 5000);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const handleStartOver = () => {
     localStorage.removeItem('dastaanTrip');
     localStorage.removeItem('dastaanSavedJourney');
@@ -1175,6 +1214,18 @@ export default function ItineraryPage() {
                 YOUR JOURNEY THROUGH {destName}
               </h2>
               <p className="itinerary-subtitle">"Every day is arranged around your pace, interests and budget."</p>
+              <div className="itinerary-actions-bar">
+                <button
+                  type="button"
+                  className="btn-download-pdf"
+                  onClick={handleDownloadPdf}
+                  disabled={isDownloadingPdf}
+                  title="Download complete itinerary as a print-ready PDF"
+                >
+                  <span className="btn-pdf-icon">{isDownloadingPdf ? '⏳' : '📄'}</span>
+                  <span>{isDownloadingPdf ? 'PREPARING PDF...' : 'DOWNLOAD ITINERARY (PDF)'}</span>
+                </button>
+              </div>
               <div className="gold-line-accent"></div>
             </div>
 
