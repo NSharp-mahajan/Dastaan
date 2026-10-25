@@ -1,5 +1,6 @@
 import TravelCache from '../models/TravelCache.js';
 import { getDestinationDetails } from './destinationService.js';
+import { haversineDistanceKm } from './routingService.js';
 
 /**
  * Curated offline catalog of verified places for popular destinations.
@@ -126,7 +127,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 77.1770,
       rating: 4.5,
       reviewCount: 5200,
-      photoUrl: '/images/newdelhi/chandnichowkfood.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '₹₹',
       isOpen: true,
       openingHours: ['Monday–Sunday: 11:00 – 23:00'],
@@ -144,7 +145,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 77.1901,
       rating: 4.5,
       reviewCount: 16000,
-      photoUrl: '/images/manali/hadimbatemple.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1200&q=80',
       priceLevel: 'Free',
       isOpen: true,
       openingHours: ['Monday–Sunday: 07:00 – 21:00'],
@@ -272,7 +273,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 77.2410,
       rating: 4.5,
       reviewCount: 142000,
-      photoUrl: '/images/newdelhi/indiagate.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '₹35 Domestic / ₹500 Foreign',
       isOpen: true,
       openingHours: ['Tuesday–Sunday: 09:30 – 16:30 (Closed Mondays)'],
@@ -290,7 +291,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 77.2091,
       rating: 4.8,
       reviewCount: 98000,
-      photoUrl: '/images/newdelhi/Humayun\'s Tomb.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1608958435020-e8a7109ba809?auto=format&fit=crop&w=1200&q=80',
       priceLevel: 'Free',
       isOpen: true,
       openingHours: ['Open 24 hours'],
@@ -308,7 +309,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 77.2334,
       rating: 4.4,
       reviewCount: 39000,
-      photoUrl: '/images/newdelhi/chandnichowkfood.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '₹₹',
       isOpen: true,
       openingHours: ['Monday–Sunday: 09:00 – 01:00'],
@@ -436,7 +437,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 75.8237,
       rating: 4.5,
       reviewCount: 68000,
-      photoUrl: '/images/jaipur/amerfortandasheeshmahal.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '₹200 Domestic / ₹700 Foreign',
       isOpen: true,
       openingHours: ['Monday–Sunday: 09:30 – 17:00, 19:00 – 22:00'],
@@ -454,7 +455,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 75.8055,
       rating: 4.7,
       reviewCount: 32000,
-      photoUrl: '/images/jaipur/hawamahal.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1609137144813-7d9921338f24?auto=format&fit=crop&w=1200&q=80',
       priceLevel: 'Free',
       isOpen: true,
       openingHours: ['Open 24 hours'],
@@ -472,7 +473,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 75.8240,
       rating: 4.3,
       reviewCount: 18400,
-      photoUrl: '/images/jaipur/joharibazaar.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '₹₹',
       isOpen: true,
       openingHours: ['Monday–Sunday: 07:00 – 23:00'],
@@ -510,7 +511,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 135.7649,
       rating: 4.4,
       reviewCount: 28000,
-      photoUrl: '/images/newdelhi/chandnichowkfood.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '¥¥',
       isOpen: true,
       openingHours: ['Monday–Sunday: 10:00 – 18:00'],
@@ -528,7 +529,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 135.7772,
       rating: 4.6,
       reviewCount: 31000,
-      photoUrl: '/images/image2.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80',
       priceLevel: 'Free',
       isOpen: true,
       openingHours: ['Open 24 hours (Evening lanterns)'],
@@ -546,7 +547,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 135.6713,
       rating: 4.7,
       reviewCount: 52000,
-      photoUrl: '/images/image3.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=1200&q=80',
       priceLevel: 'Free',
       isOpen: true,
       openingHours: ['Open 24 hours (Morning best)'],
@@ -564,7 +565,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 135.6776,
       rating: 4.6,
       reviewCount: 24000,
-      photoUrl: '/images/image4.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '¥500',
       isOpen: true,
       openingHours: ['Monday–Sunday: 08:30 – 17:00'],
@@ -600,7 +601,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 135.7850,
       rating: 4.7,
       reviewCount: 58000,
-      photoUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80',
+      photoUrl: 'https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '¥400',
       isOpen: true,
       openingHours: ['Monday–Sunday: 06:00 – 18:00'],
@@ -618,7 +619,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 135.7481,
       rating: 4.5,
       reviewCount: 38000,
-      photoUrl: '/images/image1.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '¥1030',
       isOpen: true,
       openingHours: ['Monday–Sunday: 08:45 – 16:00'],
@@ -638,7 +639,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 11.2560,
       rating: 4.8,
       reviewCount: 74000,
-      photoUrl: '/images/image3.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '€18 (Dome Climb)',
       isOpen: true,
       openingHours: ['Monday–Saturday: 10:00 – 16:30'],
@@ -656,7 +657,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 11.2533,
       rating: 4.5,
       reviewCount: 29000,
-      photoUrl: '/images/newdelhi/chandnichowkfood.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '€€',
       isOpen: true,
       openingHours: ['Monday–Sunday: 09:00 – 00:00'],
@@ -674,7 +675,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 11.2553,
       rating: 4.7,
       reviewCount: 68000,
-      photoUrl: '/images/newdelhi/lodhiart.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '€25',
       isOpen: true,
       openingHours: ['Tuesday–Sunday: 08:15 – 18:30 (Closed Mondays)'],
@@ -692,7 +693,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 11.2532,
       rating: 4.7,
       reviewCount: 81000,
-      photoUrl: '/images/image2.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=1200&q=80',
       priceLevel: 'Free',
       isOpen: true,
       openingHours: ['Open 24 hours'],
@@ -710,7 +711,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 11.2650,
       rating: 4.8,
       reviewCount: 62000,
-      photoUrl: 'https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=1200&q=80',
+      photoUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1200&q=80',
       priceLevel: 'Free',
       isOpen: true,
       openingHours: ['Open 24 hours'],
@@ -730,7 +731,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 28.9802,
       rating: 4.8,
       reviewCount: 125000,
-      photoUrl: '/images/image4.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '€25 Foreign Visitors',
       isOpen: true,
       openingHours: ['Monday–Sunday: 09:00 – 19:30'],
@@ -748,7 +749,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 28.9680,
       rating: 4.5,
       reviewCount: 88000,
-      photoUrl: '/images/jaipur/joharibazaar.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1563298723-dcfebaa392e3?auto=format&fit=crop&w=1200&q=80',
       priceLevel: 'Free Entry',
       isOpen: true,
       openingHours: ['Monday–Saturday: 08:30 – 19:00 (Closed Sundays)'],
@@ -766,7 +767,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 28.9734,
       rating: 4.7,
       reviewCount: 46000,
-      photoUrl: '/images/image2.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1527838832700-5059252407fa?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '₺75–150',
       isOpen: true,
       openingHours: ['Departures daily: 10:00 – 19:00'],
@@ -804,7 +805,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 17.8150,
       rating: 4.8,
       reviewCount: 28000,
-      photoUrl: '/images/image4.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=1200&q=80',
       priceLevel: 'Free',
       isOpen: true,
       openingHours: ['Open 24 hours'],
@@ -822,7 +823,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 17.8148,
       rating: 4.6,
       reviewCount: 11000,
-      photoUrl: '/images/jaipur/joharibazaar.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1200&q=80',
       priceLevel: 'Free Entry',
       isOpen: true,
       openingHours: ['Monday–Sunday: 09:00 – 21:00'],
@@ -840,7 +841,7 @@ export const CURATED_PLACES_CATALOG = {
       longitude: 17.8155,
       rating: 4.7,
       reviewCount: 8900,
-      photoUrl: '/images/image2.jpg',
+      photoUrl: 'https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?auto=format&fit=crop&w=1200&q=80',
       priceLevel: '€6 (Includes Minaret climb)',
       isOpen: true,
       openingHours: ['Monday–Sunday: 09:00 – 19:00'],
@@ -953,6 +954,150 @@ function normalizeOpenTripMapPlace(poi) {
  * @param {number} [options.longitude]
  * @returns {Promise<{ success: boolean, places: Array, provider: string, isLive: boolean, message?: string }>}
  */
+
+/**
+ * Normalizes a Wikimedia Geosearch result into Dastaan's standard place schema
+ */
+export function normalizeWikimediaPlace(page, destination = '') {
+  const text = `${page.title || ''} ${page.description || ''} ${page.extract || ''}`.toLowerCase();
+  let category = 'attraction';
+  let cat = 'CULTURE';
+  let visitDurationHours = 1.5;
+
+  if (/(restaurant|café|cafe|bistro|dining|market|bakery|eatery|brasserie|culinary|food|tavern|pub)/i.test(text)) {
+    category = 'restaurant';
+    cat = 'FOOD';
+    visitDurationHours = 1.5;
+  } else if (/(park|garden|nature|waterfall|forest|mountain|river|lake|beach|botanical|trail|reserve|valley)/i.test(text)) {
+    category = 'attraction';
+    cat = 'NATURE';
+    visitDurationHours = 1.5;
+  } else if (/(museum|gallery|art|exhibition|sculpture|theatre|theater|opera)/i.test(text)) {
+    category = 'attraction';
+    cat = 'ART';
+    visitDurationHours = 2.0;
+  } else if (/(church|cathedral|mosque|temple|shrine|synagogue|basilica|monastery|abbey|pagoda)/i.test(text)) {
+    category = 'attraction';
+    cat = 'CULTURE';
+    visitDurationHours = 1.5;
+  } else if (/(castle|palace|fort|ruins|historic|monument|memorial|archaeological|tower|citadel|heritage|gate)/i.test(text)) {
+    category = 'attraction';
+    cat = 'HISTORY';
+    visitDurationHours = 2.0;
+  }
+
+  const lat = page.coordinates?.[0]?.lat ?? null;
+  const lon = page.coordinates?.[0]?.lon ?? null;
+
+  return {
+    placeId: `wiki_${page.pageid || Math.random().toString(36).substring(2, 9)}`,
+    name: page.title || 'Historic Point of Interest',
+    category,
+    cat,
+    address: destination ? `${page.title}, ${destination}` : page.title,
+    latitude: typeof lat === 'number' ? lat : null,
+    longitude: typeof lon === 'number' ? lon : null,
+    rating: null, // Transparently unrated by provider; do not invent fake ratings
+    reviewCount: null,
+    photoUrl: page.thumbnail?.source || null,
+    description: page.description || page.extract || `Verified landmark and point of interest in ${destination}.`,
+    priceLevel: 'Free Entry / Variable',
+    isOpen: true,
+    openingHours: null,
+    visitDurationHours,
+    source: 'wikimedia-geosearch',
+    attribution: 'Wikipedia & Wikimedia contributors (CC BY-SA 4.0)',
+    retrievedAt: new Date().toISOString()
+  };
+}
+
+/**
+ * Zero-Cost Live Global Attraction Provider: Wikimedia Geosearch API
+ * Queries geotagged Wikipedia landmarks, monuments, museums, and attractions worldwide.
+ * Free, zero-config, no API key required, with authentic photos, coordinates, and descriptions.
+ */
+export async function queryWikimediaPlaces({ destination, latitude, longitude, category = 'all' }) {
+  let targetLat = latitude;
+  let targetLng = longitude;
+
+  if (typeof targetLat !== 'number' || typeof targetLng !== 'number') {
+    const details = await getDestinationDetails(destination);
+    if (details && typeof details.latitude === 'number' && typeof details.longitude === 'number') {
+      targetLat = details.latitude;
+      targetLng = details.longitude;
+    }
+  }
+
+  if (typeof targetLat !== 'number' || typeof targetLng !== 'number') {
+    return [];
+  }
+
+  try {
+    const radiusMeters = 10000;
+    const limit = 25;
+    const url = `https://en.wikipedia.org/w/api.php?action=query&generator=geosearch&ggscoord=${targetLat}|${targetLng}&ggsradius=${radiusMeters}&ggslimit=${limit}&prop=coordinates|pageimages|description|extracts&exintro=1&explaintext=1&exchars=140&piprop=thumbnail&pithumbsize=800&format=json&origin=*`;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4500);
+
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'DastaanTravel/2.0 (contact: support@dastaan.travel)'
+      }
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    const pages = Object.values(data.query?.pages || {});
+    if (!pages.length) return [];
+
+    const destLower = (destination || '').toLowerCase().trim();
+
+    const normalized = pages
+      .filter((p) => {
+        if (!p.coordinates || !p.coordinates[0] || !p.title) return false;
+        const titleLower = p.title.toLowerCase().trim();
+        // Exclude the destination name itself and non-venue meta / transport articles
+        if (
+          titleLower === destLower ||
+          titleLower.startsWith('history of') ||
+          titleLower.startsWith('geography of') ||
+          titleLower.startsWith('demographics of') ||
+          titleLower.includes('railway station') ||
+          titleLower.includes('metro station') ||
+          titleLower.includes('line (metro)') ||
+          titleLower.includes('constituency') ||
+          (titleLower.includes('district') && titleLower === `${destLower} district`)
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((p) => normalizeWikimediaPlace(p, destination));
+
+    // Deduplicate by normalized name
+    const seenNames = new Set();
+    const unique = [];
+    for (const place of normalized) {
+      const key = place.name.toLowerCase().trim();
+      if (!seenNames.has(key)) {
+        seenNames.add(key);
+        unique.push(place);
+      }
+    }
+
+    return unique;
+  } catch (err) {
+    console.warn(`[PlacesService] Wikimedia Geosearch error for '${destination}': ${err.message}`);
+    return [];
+  }
+}
+
 export async function getDestinationPlaces({ destination, category = 'all', latitude, longitude }) {
   if (!destination) {
     return {
@@ -1131,7 +1276,38 @@ export async function getDestinationPlaces({ destination, category = 'all', lati
     };
   }
 
-  // 6. When no external credentials exist and destination is not in catalog:
+    // 6. Zero-Cost Live Global Provider: Wikimedia Geosearch
+  try {
+    const wikiPlaces = await queryWikimediaPlaces({
+      destination,
+      latitude,
+      longitude,
+      category: cleanCat
+    });
+
+    if (Array.isArray(wikiPlaces) && wikiPlaces.length > 0) {
+      let filtered = wikiPlaces;
+      if (cleanCat === 'attraction' || cleanCat === 'attractions') {
+        filtered = wikiPlaces.filter(p => p.category === 'attraction');
+      } else if (cleanCat === 'restaurant' || cleanCat === 'restaurants') {
+        filtered = wikiPlaces.filter(p => p.category === 'restaurant');
+      }
+
+      await TravelCache.setWithTTL(cacheKey, 'places', 'wikimedia-geosearch', filtered, 1209600);
+      return {
+        success: true,
+        places: filtered,
+        provider: 'wikimedia-geosearch',
+        isLive: true,
+        message: 'Live points of interest discovered via Wikimedia Geosearch.',
+        count: filtered.length
+      };
+    }
+  } catch (err) {
+    console.warn(`[PlacesService] Wikimedia live search failed: ${err.message}`);
+  }
+
+  // 7. When no external credentials exist and destination is not in catalog:
   return {
     success: true,
     places: [],
@@ -1154,21 +1330,46 @@ export async function getPlacesPoolForDestination(destination, lat, lng) {
   if (!destination) return [];
 
   const clean = destination.toLowerCase().trim();
-  // 1. Direct match in curated catalog
-  if (CURATED_PLACES_CATALOG[clean]) {
-    return CURATED_PLACES_CATALOG[clean];
-  }
+  const parsedLat = typeof lat === 'number' ? lat : parseFloat(lat);
+  const parsedLng = typeof lng === 'number' ? lng : parseFloat(lng);
+  const hasCoords = !isNaN(parsedLat) && !isNaN(parsedLng);
 
-  // 2. Partial match in curated catalog
-  for (const [key, list] of Object.entries(CURATED_PLACES_CATALOG)) {
-    if (clean.includes(key) || key.includes(clean)) {
+  // 1. Direct match in curated catalog with coordinate proximity verification
+  if (CURATED_PLACES_CATALOG[clean]) {
+    const list = CURATED_PLACES_CATALOG[clean];
+    if (hasCoords && list[0] && typeof list[0].latitude === 'number') {
+      const dist = haversineDistanceKm(parsedLat, parsedLng, list[0].latitude, list[0].longitude);
+      if (dist <= 150) {
+        return list;
+      }
+    } else if (!hasCoords) {
       return list;
     }
   }
 
-  // 3. Fallback to getDestinationPlaces (which queries active providers or cache)
+  // 2. Exact word match in curated catalog (avoid loose substring collisions)
+  const cleanSpaced = clean.replace(/[-_]+/g, ' ');
+  for (const [key, list] of Object.entries(CURATED_PLACES_CATALOG)) {
+    if (key === cleanSpaced || key === clean) {
+      if (hasCoords && list[0] && typeof list[0].latitude === 'number') {
+        const dist = haversineDistanceKm(parsedLat, parsedLng, list[0].latitude, list[0].longitude);
+        if (dist <= 150) {
+          return list;
+        }
+      } else if (!hasCoords) {
+        return list;
+      }
+    }
+  }
+
+  // 3. Fallback to getDestinationPlaces (queries active providers or Wikimedia Geosearch)
   try {
-    const res = await getDestinationPlaces({ destination, category: 'all', latitude: lat, longitude: lng });
+    const res = await getDestinationPlaces({
+      destination,
+      category: 'all',
+      latitude: hasCoords ? parsedLat : undefined,
+      longitude: hasCoords ? parsedLng : undefined
+    });
     if (res && res.success && Array.isArray(res.places) && res.places.length > 0) {
       return res.places;
     }

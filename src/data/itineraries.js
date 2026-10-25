@@ -15,6 +15,13 @@ export const localImageMap = {
   "mostar": "/images/firstImage.jpeg",
   "florence": "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=1800&q=80",
   "istanbul": "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1800&q=80",
+  "vancouver": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1800&q=80",
+  "vancouver-canada": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1800&q=80",
+  "bosphorus strait sunset ferry": "https://images.unsplash.com/photo-1527838832700-5059252407fa?auto=format&fit=crop&w=1200&q=80",
+  "bosphorus strait": "https://images.unsplash.com/photo-1527838832700-5059252407fa?auto=format&fit=crop&w=1200&q=80",
+  "ponte vecchio medieval bridge": "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=1200&q=80",
+  "gion historic machiya district": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80",
+  "koski mehmed pasha mosque & minaret": "https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?auto=format&fit=crop&w=1200&q=80",
 
   // New Delhi Activities
   "humayun's tomb": "/images/newdelhi/Humayun's Tomb.jpg",
@@ -29,12 +36,12 @@ export const localImageMap = {
   "lodhi art": "/images/newdelhi/lodhiart.jpg",
   "hauz khas village sunset": "/images/newdelhi/sunsethauzkhas.jpg",
   "hauz khas": "/images/newdelhi/sunsethauzkhas.jpg",
-  "red fort & jama masjid": "/images/newdelhi/Humayun's Tomb.jpg",
-  "national museum & janpath bazaar": "/images/newdelhi/lodhiart.jpg",
-  "hazrat nizamuddin dargah & sufi qawwali": "/images/newdelhi/sunsethauzkhas.jpg",
-  "lotus temple & dilli haat crafts": "/images/newdelhi/indiagate.jpg",
-  "national gallery of modern art": "/images/newdelhi/lodhiart.jpg",
-  "agrasen ki baoli & connaught place": "/images/newdelhi/chandnichowkfood.jpg",
+  "red fort & jama masjid": "https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?auto=format&fit=crop&w=1200&q=80",
+  "national museum & janpath bazaar": "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?auto=format&fit=crop&w=1200&q=80",
+  "hazrat nizamuddin dargah & sufi qawwali": "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=80",
+  "lotus temple & dilli haat crafts": "https://images.unsplash.com/photo-1592635196078-9fdc757f27f4?auto=format&fit=crop&w=1200&q=80",
+  "national gallery of modern art": "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=1200&q=80",
+  "agrasen ki baoli & connaught place": "https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=1200&q=80",
 
   // Jaipur Activities
   "amer fort & sheesh mahal": "/images/jaipur/amerfortandasheeshmahal.jpg",
@@ -49,12 +56,12 @@ export const localImageMap = {
   "albert museum": "/images/jaipur/albert museum.jpg",
   "nahargarh fort sunset": "/images/jaipur/nahargarhfort.jpg",
   "nahargarh fort": "/images/jaipur/nahargarhfort.jpg",
-  "jantar mantar observatory": "/images/jaipur/amerfortandasheeshmahal.jpg",
-  "city palace museum & pritam niwas chowk": "/images/jaipur/hawamahal.jpg",
-  "jaigarh fort & cannon foundry": "/images/jaipur/nahargarhfort.jpg",
-  "panna meena ka kund & anokhi museum": "/images/jaipur/jalmahal.jpg",
-  "bapu bazaar & traditional rajasthani lunch": "/images/jaipur/joharibazaar.jpg",
-  "galta ji temple (monkey temple)": "/images/jaipur/albert museum.jpg",
+  "jantar mantar observatory": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1200&q=80",
+  "city palace museum & pritam niwas chowk": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1200&q=80",
+  "jaigarh fort & cannon foundry": "https://images.unsplash.com/photo-1609137144813-7d9921338f24?auto=format&fit=crop&w=1200&q=80",
+  "panna meena ka kund & anokhi museum": "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=1200&q=80",
+  "bapu bazaar & traditional rajasthani lunch": "https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?auto=format&fit=crop&w=1200&q=80",
+  "galta ji temple (monkey temple)": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
 
   // Manali Activities
   "hadimba temple": "/images/manali/hadimbatemple.jpg",
@@ -127,8 +134,8 @@ export const localImageMap = {
   "blagaj tekke dervish monastery": "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?auto=format&fit=crop&w=800&q=80",
   "traditional bosnian culinary tasting": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80",
   "muslibegović house & tara tower": "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=800&q=80",
-  "kravica waterfalls excursion": "/images/firstImage.jpeg",
-  "počitelj medieval stone citadel": "/images/stari_most_bridge.jpeg",
+  "kravica waterfalls excursion": "https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1200&q=80",
+  "počitelj medieval stone citadel": "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=1200&q=80",
   "biscevic house & neretva riverside dining": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80",
 
   // Florence Activities
@@ -262,7 +269,7 @@ export const mockItineraries = {
         dayNum: 4,
         dayTitle: 'CONTEMPORARY SPACES & CRAFT TRADITIONS',
         activities: [
-          { time: '09:30', title: 'Lotus Temple & Dilli Haat Crafts', desc: 'Marvel at the pure white Greek marble Baháʼí lotus petals, then discover regional handicrafts and state food stalls at Dilli Haat.', cat: 'CULTURE', imageLabel: 'LOTUS TEMPLE & DILLI HAAT · CULTURE', image: '/images/newdelhi/indiagate.jpg', layout: 'image-right' },
+          { time: '09:30', title: 'Lotus Temple & Dilli Haat Crafts', desc: 'Marvel at the pure white Greek marble Baháʼí lotus petals, then discover regional handicrafts and state food stalls at Dilli Haat.', cat: 'CULTURE', imageLabel: 'LOTUS TEMPLE & DILLI HAAT · CULTURE', image: 'https://images.unsplash.com/photo-1592635196078-9fdc757f27f4?auto=format&fit=crop&w=800&q=80', layout: 'image-right' },
           { time: '13:30', title: 'National Gallery of Modern Art', desc: 'Explore historic Jaipur House showcasing landmark modern Indian masterpieces from Amrita Sher-Gil and Rabindranath Tagore.', cat: 'ART', imageLabel: 'NGMA MODERN ART · ART', image: '/images/newdelhi/lodhiart.jpg', layout: 'image-left' },
           { time: '17:00', title: 'Agrasen ki Baoli & Connaught Place', desc: 'Descend 108 stone steps of the 14th-century stepwell before evening coffee among British colonial Georgian white colonnades.', cat: 'RELAX', imageLabel: 'AGRASEN KI BAOLI · RELAX', image: '/images/newdelhi/chandnichowkfood.jpg', layout: 'image-right' }
         ]
@@ -573,7 +580,7 @@ export const mockItineraries = {
   'default': {
     name: 'Curated Escapes',
     country: 'World',
-    image: '/images/newdelhi/indiagate.jpg',
+    image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80',
     days: [
       {
         dayNum: 1,
@@ -589,18 +596,33 @@ export const mockItineraries = {
 };
 
 export function resolveImage(keyOrTitle, providedImage) {
+  // 1. If providedImage is already authentic and specific, prioritize it
+  if (providedImage && typeof providedImage === 'string') {
+    let clean = providedImage;
+    if (clean.startsWith('../images/')) {
+      clean = clean.replace('../images/', '/images/');
+    } else if (clean.startsWith('images/')) {
+      clean = '/' + clean;
+    }
+
+    const lower = clean.toLowerCase();
+    const isGenericStock =
+      lower.includes('image1.jpg') ||
+      lower.includes('image2.jpg') ||
+      lower.includes('image3.jpg') ||
+      lower.includes('image4.jpg') ||
+      lower.includes('photo-1500534623283-312aade485b7');
+
+    if (!isGenericStock && clean.trim().length > 0) {
+      return clean;
+    }
+  }
+
+  // 2. Check local curated map if providedImage was missing or generic
   const k = (keyOrTitle || '').toLowerCase().trim();
   if (localImageMap[k]) {
     return localImageMap[k];
   }
-  if (providedImage) {
-    if (providedImage.startsWith('../images/')) {
-      return providedImage.replace('../images/', '/images/');
-    }
-    if (providedImage.startsWith('images/')) {
-      return '/' + providedImage;
-    }
-    return providedImage;
-  }
+
   return '';
 }

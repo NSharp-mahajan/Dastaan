@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import mongoose from 'mongoose';
 import Trip from '../models/Trip.js';
 import { generateItinerary, generateItineraryWithLiveRouting, recalculateItinerary } from '../services/itineraryGenerator.js';
+import { getDestinationHeroImage, isGenericOrStockImage } from '../services/imageService.js';
 
 /**
  * Robustly resolves the authenticated user's ID to a valid Mongoose ObjectId.
@@ -74,6 +75,17 @@ export const createTrip = async (req, res, next) => {
     const normalizedTravelStyle = normalizeStyle(travelStyle);
     const validInterests = Array.isArray(interests) ? interests : [];
 
+    // Ensure authentic destination hero image is resolved
+    if (!destination.image || isGenericOrStockImage(destination.image)) {
+      try {
+        const hero = await getDestinationHeroImage(destination);
+        if (hero?.url) {
+          destination.image = hero.url;
+          destination.imageAttribution = hero.attribution;
+        }
+      } catch {}
+    }
+
     // Generate or format itinerary
     let finalItinerary = itinerary;
     if (!finalItinerary || !Array.isArray(finalItinerary.days) || finalItinerary.days.length === 0) {
@@ -102,6 +114,7 @@ export const createTrip = async (req, res, next) => {
         name: destination.name.trim(),
         country: destination.country?.trim() || 'India',
         image: destination.image || '',
+        imageAttribution: destination.imageAttribution || '',
         defaultDur: destination.defaultDur || durNum,
         defaultBud: destination.defaultBud || budNum
       },
@@ -436,6 +449,17 @@ export const previewTrip = async (req, res, next) => {
     const normalizedTravelStyle = normalizeStyle(travelStyle);
     const validInterests = Array.isArray(interests) ? interests.map(i => String(i).trim()) : [];
 
+    // Ensure authentic destination hero image is resolved
+    if (!destination.image || isGenericOrStockImage(destination.image)) {
+      try {
+        const hero = await getDestinationHeroImage(destination);
+        if (hero?.url) {
+          destination.image = hero.url;
+          destination.imageAttribution = hero.attribution;
+        }
+      } catch {}
+    }
+
     const generatedItinerary = await generateItineraryWithLiveRouting({
       destination,
       duration: durNum,
@@ -452,7 +476,8 @@ export const previewTrip = async (req, res, next) => {
         countryCode: destination.countryCode?.trim() || '',
         latitude: typeof destination.latitude === 'number' ? destination.latitude : null,
         longitude: typeof destination.longitude === 'number' ? destination.longitude : null,
-        image: destination.image || ''
+        image: destination.image || '',
+        imageAttribution: destination.imageAttribution || ''
       },
       duration: durNum,
       budget: budNum,

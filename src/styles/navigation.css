@@ -1,7 +1,7 @@
 /* Dastaan Unified Navigation & Footer Stylesheet */
 @font-face {
   font-family: 'Ogg Medium';
-  src: url('https://dcym8fthxf5uu.cloudfront.net/fonts/247a073c-29f5-4a89-aa3a-741020f346fc/OggText-Medium.woff2') format('woff2');
+  src: url('/fonts/OggText-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
 }

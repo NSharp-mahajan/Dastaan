@@ -195,6 +195,121 @@ body, html {
 .search-box input::placeholder { color: rgba(244, 239, 227, 0.4); }
 .search-box input:focus { background: rgba(244, 239, 227, 0.1); border-color: var(--gold); }
 
+
+/* Autocomplete Dropdown Styles */
+.search-box-spinner {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.spinner-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(214, 181, 109, 0.3);
+  border-top-color: var(--gold);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.dest-autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: rgba(7, 29, 26, 0.98);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-gold);
+  border-radius: 14px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 50;
+  padding: 6px;
+  list-style: none;
+  margin: 0;
+}
+.dest-autocomplete-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+.dest-autocomplete-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(214, 181, 109, 0.3);
+  border-radius: 4px;
+}
+.dest-autocomplete-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(214, 181, 109, 0.08);
+}
+.dest-autocomplete-item:last-child {
+  border-bottom: none;
+}
+.dest-autocomplete-item:hover,
+.dest-autocomplete-item.selected {
+  background: rgba(214, 181, 109, 0.15);
+}
+.dest-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+.dest-item-name {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  color: var(--paper);
+  font-weight: 600;
+}
+.dest-item-context {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.dest-item-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(214, 181, 109, 0.12);
+  color: var(--gold);
+  border: 1px solid rgba(214, 181, 109, 0.25);
+  white-space: nowrap;
+}
+.dest-autocomplete-status {
+  padding: 14px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dest-coord-pill,
+.dest-source-pill {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(214, 181, 109, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(214, 181, 109, 0.3);
+}
+
 .popular-label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--muted); letter-spacing: 2px; margin-bottom: 16px; }
 .dest-tags { display: flex; flex-wrap: wrap; gap: 12px; }
 .dest-tag {

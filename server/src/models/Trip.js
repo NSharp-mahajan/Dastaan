@@ -74,6 +74,8 @@ const activitySchema = new mongoose.Schema(
     openingStatus: { type: String, trim: true },
     source: { type: String, trim: true },
     attribution: { type: String, trim: true },
+    imageSource: { type: String, trim: true },
+    imageAttribution: { type: String, trim: true },
     isSelfGuided: { type: Boolean, default: false }
   },
   { _id: false }
@@ -107,6 +109,7 @@ const tripSchema = new mongoose.Schema(
       latitude: { type: Number },
       longitude: { type: Number },
       image: { type: String, trim: true },
+      imageAttribution: { type: String, trim: true },
       defaultDur: { type: Number },
       defaultBud: { type: Number }
     },

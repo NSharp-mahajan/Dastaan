@@ -1,5 +1,6 @@
-import { CURATED_PLACES_CATALOG } from './placesService.js';
+import { CURATED_PLACES_CATALOG, getPlacesPoolForDestination } from './placesService.js';
 import { generateEstimatedRoute, calculateRoute, haversineDistanceKm } from './routingService.js';
+import { enrichActivitiesWithAuthenticImages, getDestinationHeroImage, isGenericOrStockImage } from './imageService.js';
 
 /**
  * Standard destination image fallbacks
@@ -12,7 +13,8 @@ const DESTINATION_IMAGES = {
   'florence': 'https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=1800&q=80',
   'istanbul': 'https://images.unsplash.com/photo-1526080652727-5b77f74eacb2?auto=format&fit=crop&w=1800&q=80',
   'mostar': 'https://images.unsplash.com/photo-1600204739704-51a44c5b1616?auto=format&fit=crop&w=1800&q=80',
-  'default': '/images/newdelhi/indiagate.jpg'
+  'vancouver': 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1800&q=80',
+  'default': 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80'
 };
 
 /**
@@ -189,8 +191,9 @@ function resolvePlacesForDestination(destId, destName) {
     return [...CURATED_PLACES_CATALOG[clean]];
   }
 
+  const cleanSpaced = clean.replace(/[-_]+/g, ' ');
   for (const [key, list] of Object.entries(CURATED_PLACES_CATALOG)) {
-    if (clean.includes(key) || key.includes(clean)) {
+    if (key === cleanSpaced || key === clean) {
       return [...list];
     }
   }
@@ -394,7 +397,8 @@ export function generateItinerary({
   duration = 3,
   budget = 8000,
   travelStyle = 'Balanced',
-  interests = []
+  interests = [],
+  places = []
 }) {
   const destName = destination?.name || 'Selected Destination';
   const destId = (destination?.id || destName).toLowerCase().trim();
@@ -409,10 +413,12 @@ export function generateItinerary({
       : 'Balanced';
 
   const validInterests = Array.isArray(interests) ? interests : [];
-  const defaultImg = DESTINATION_IMAGES[destId] || DESTINATION_IMAGES['default'];
+  const defaultImg = destination?.image || DESTINATION_IMAGES[destId] || DESTINATION_IMAGES['default'];
 
-  // 1. Fetch verified places from catalog & score by user's interests
-  const rawPlaces = resolvePlacesForDestination(destId, destName);
+  // 1. Fetch verified places from pre-fetched pool, catalog, or score by user's interests
+  const rawPlaces = Array.isArray(places) && places.length > 0
+    ? places
+    : resolvePlacesForDestination(destId, destName);
   const scoredPlaces = rawPlaces
     .map(p => ({
       ...p,
@@ -446,20 +452,21 @@ export function generateItinerary({
       // Build raw activities for this cluster
       cluster.forEach((place) => {
         visitedIds.add(place.placeId);
-        const cat = (place.category || 'attraction').toUpperCase();
-        const visitDurationHours = place.visitDurationHours || (cat === 'RESTAURANT' ? 1.5 : 2.0);
+                const rawCat = (place.cat || place.category || 'attraction').toUpperCase();
+        const cat = rawCat === 'RESTAURANT' ? 'FOOD' : (rawCat || 'CULTURE');
+        const visitDurationHours = place.visitDurationHours || (cat === 'FOOD' ? 1.5 : 2.0);
 
         activities.push({
           title: place.name,
-          desc: place.address ? `Located at ${place.address}. Realistic visit: ~${visitDurationHours}h.` : `Curated sight in ${destName}.`,
-          cat: cat === 'RESTAURANT' ? 'FOOD' : 'CULTURE',
+          desc: place.description || (place.address ? `Located at ${place.address}. Realistic visit: ~${visitDurationHours}h.` : `Curated sight in ${destName}.`),
+          cat,
           image: place.photoUrl || defaultImg,
-          imageLabel: `${place.name.toUpperCase()} \u00B7 ${cat === 'RESTAURANT' ? 'FOOD' : 'CULTURE'}`,
+          imageLabel: `${place.name.toUpperCase()} \u00B7 ${cat}`,
           placeId: place.placeId,
-          latitude: place.latitude,
-          longitude: place.longitude,
+          latitude: typeof place.latitude === 'number' ? place.latitude : null,
+          longitude: typeof place.longitude === 'number' ? place.longitude : null,
           address: place.address,
-          rating: place.rating,
+          rating: place.rating !== undefined ? place.rating : null,
           visitDurationHours,
           openingHours: place.openingHours || null,
           openingStatus: place.openingHours && place.openingHours.length > 0 ? 'verified_hours' : 'unknown',
@@ -638,9 +645,25 @@ export function applyCrossDayShiftSuggestions(days, travelStyle) {
  * from OSRM demo server when available.
  */
 export async function generateItineraryWithLiveRouting(params) {
-  const itin = generateItinerary(params);
+  let places = params.places;
+  if (!Array.isArray(places) || places.length === 0) {
+    const destName = params.destination?.name || (typeof params.destination === 'string' ? params.destination : '');
+    const destLat = params.destination?.latitude;
+    const destLng = params.destination?.longitude;
+    places = await getPlacesPoolForDestination(destName, destLat, destLng);
+  }
+
+  const itin = generateItinerary({ ...params, places });
   const normalizedStyle = (params.travelStyle || 'Balanced');
   const mode = normalizedStyle.toLowerCase() === 'relaxed' ? 'walking' : 'driving';
+  const destNameParam = params.destination?.name || (typeof params.destination === 'string' ? params.destination : 'Destination');
+
+  // Dynamically enrich activities with authentic photography from Wikimedia Commons
+  await Promise.all(
+    itin.days.map(async (day) => {
+      day.activities = await enrichActivitiesWithAuthenticImages(day.activities, destNameParam);
+    })
+  );
 
   // Enrich each day's route via OSRM in parallel
   const enrichedDays = await Promise.all(

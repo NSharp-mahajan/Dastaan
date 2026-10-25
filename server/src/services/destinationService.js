@@ -1,4 +1,5 @@
 import TravelCache from '../models/TravelCache.js';
+import { getDestinationHeroImage, isGenericOrStockImage } from './imageService.js';
 
 /**
  * Curated destination catalog with verified coordinates and local imagery
@@ -136,8 +137,6 @@ function normalizeDestination(raw, query) {
   const defaultBud = isSouthAsia ? 12000 : 35000;
   const defaultDur = 4;
 
-  const photoUrl = `https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80`;
-
   return {
     id: slug,
     name,
@@ -146,7 +145,7 @@ function normalizeDestination(raw, query) {
     latitude: typeof raw.latitude === 'number' ? raw.latitude : null,
     longitude: typeof raw.longitude === 'number' ? raw.longitude : null,
     admin1: raw.admin1 || '',
-    image: photoUrl,
+    image: null, // Dynamically resolved via getDestinationHeroImage
     defaultDur,
     defaultBud,
     source: raw.source || 'open-meteo-geocoding'
@@ -232,7 +231,28 @@ export async function searchDestinations(query = '') {
     if (response.ok) {
       const data = await response.json();
       if (Array.isArray(data.results)) {
-        liveResults = data.results.map((r) => normalizeDestination(r, cleanQ));
+        const rawNormalized = data.results.map((r) => normalizeDestination(r, cleanQ));
+        // Enrich top live destinations with authentic hero photography
+        liveResults = await Promise.all(
+          rawNormalized.map(async (dest) => {
+            try {
+              const hero = await getDestinationHeroImage({
+                name: dest.name,
+                country: dest.country,
+                countryCode: dest.countryCode,
+                latitude: dest.latitude,
+                longitude: dest.longitude
+              });
+              return {
+                ...dest,
+                image: hero?.url || null,
+                imageAttribution: hero?.attribution || null
+              };
+            } catch {
+              return dest;
+            }
+          })
+        );
       }
     }
   } catch (err) {
@@ -280,5 +300,15 @@ export async function getDestinationDetails(destinationId) {
 
   // 2. Search live provider
   const search = await searchDestinations(destinationId);
-  return search.destinations[0] || null;
+  const match = search.destinations[0] || null;
+  if (match && (!match.image || isGenericOrStockImage(match.image))) {
+    try {
+      const hero = await getDestinationHeroImage(match);
+      if (hero?.url) {
+        match.image = hero.url;
+        match.imageAttribution = hero.attribution;
+      }
+    } catch {}
+  }
+  return match;
 }

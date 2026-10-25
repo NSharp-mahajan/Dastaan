@@ -399,12 +399,13 @@ export default function ItineraryPage() {
   const destId = (trip.destination?.id || '').toLowerCase();
   const data = mockItineraries[destId] || mockItineraries['default'];
   const destName = (trip.destination?.name || data.name).toUpperCase();
-  const countryName = (trip.destination?.country || data.country || 'India').toUpperCase();
+  const countryName = (trip.destination?.country || (data.country && data.country !== 'World' ? data.country : '')).toUpperCase();
   const budget = trip.budget || 8000;
   const travelStyle = trip.travelStyle || 'Balanced';
   const interests = Array.isArray(trip.interests) ? trip.interests : [];
 
-  const heroImgSrc = resolveImage(destId, resolveImage(destName, trip.destination?.image || data.image));
+  const rawHero = trip.destination?.image || (data?.image && !data.image.includes('indiagate') ? data.image : 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80');
+  const heroImgSrc = resolveImage(destId, resolveImage(destName, rawHero));
 
   // Dynamic tagline (prefer persisted tagline if available)
   let tagline = trip.itinerary?.tagline;
@@ -762,7 +763,8 @@ export default function ItineraryPage() {
       title: placeName,
       desc: selectedPlace.desc || (selectedPlace.address ? `Located at ${selectedPlace.address}. Realistic visit: ~${visitDur}h.` : `Curated sight in ${destName}.`),
       cat: isRestaurant ? 'FOOD' : (selectedPlace.cat || cat || 'CULTURE'),
-      image: selectedPlace.photoUrl || selectedPlace.image || heroImgSrc,
+      image: selectedPlace.photoUrl || selectedPlace.image || null,
+      photoUrl: selectedPlace.photoUrl || selectedPlace.image || null,
       imageLabel: selectedPlace.imageLabel || `${placeName.toUpperCase()} · ${isRestaurant ? 'FOOD' : (selectedPlace.cat || cat || 'CULTURE')}`,
       placeId: selectedPlace.placeId || `custom-${Date.now()}`,
       latitude: selectedPlace.latitude,
@@ -1610,16 +1612,18 @@ export default function ItineraryPage() {
               <div className="places-grid">
                 {places.map((place, idx) => (
                   <article key={place.placeId || idx} className="verified-place-card">
-                    <div className="place-img-wrap">
-                      <img
-                        src={place.photoUrl || heroImgSrc}
-                        alt={place.name}
-                        className="place-img"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.target.src = heroImgSrc || '/images/newdelhi/indiagate.jpg';
-                        }}
-                      />
+                    <div className="place-img-wrap image-placeholder">
+                      {place.photoUrl ? (
+                        <img
+                          src={place.photoUrl}
+                          alt={place.name}
+                          className="place-img loaded"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      ) : null}
                       <span className="place-category-pill">
                         {place.category === 'restaurant' ? 'Dining' : 'Attraction'}
                       </span>

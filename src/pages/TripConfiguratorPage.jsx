@@ -23,6 +23,12 @@ export default function TripConfiguratorPage() {
   const [bgOpacity, setBgOpacity] = useState(1);
   const [validationMsg, setValidationMsg] = useState('');
   const [isBuilding, setIsBuilding] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const searchContainerRef = useRef(null);
+  const debounceTimerRef = useRef(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('dastaanTrip');
@@ -46,6 +52,20 @@ export default function TripConfiguratorPage() {
     }
   }, []);
 
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, []);
+
   // Save changes to localStorage
   const saveState = (updated) => {
     const current = {
@@ -63,6 +83,7 @@ export default function TripConfiguratorPage() {
     setSelectedDest(dest);
     setSearchVal(dest.name);
     setValidationMsg('');
+    setIsDropdownOpen(false);
     if (dest.defaultDur) setDuration(dest.defaultDur);
     if (dest.defaultBud) setBudget(dest.defaultBud);
     if (dest.image) setBgImage(dest.image);
@@ -71,10 +92,39 @@ export default function TripConfiguratorPage() {
 
   const handleSearchInput = (val) => {
     setSearchVal(val);
-    const found = plannerDestinations.find(d => d.name.toLowerCase().includes(val.toLowerCase()));
-    if (found && val.length > 2) {
-      handleSelectDest(found);
+    setValidationMsg('');
+
+    if (!val || val.trim().length < 2) {
+      setSuggestions([]);
+      setIsDropdownOpen(false);
+      setIsSearching(false);
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      return;
     }
+
+    setIsSearching(true);
+    setIsDropdownOpen(true);
+    setSearchError('');
+
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await apiClient.searchDestinations(val.trim());
+        if (res.success && Array.isArray(res.data?.data)) {
+          setSuggestions(res.data.data);
+          setIsDropdownOpen(true);
+        } else {
+          setSuggestions([]);
+          if (res.error) setSearchError(res.error);
+        }
+      } catch (err) {
+        setSuggestions([]);
+        setSearchError('Unable to connect to destination service.');
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
   };
 
   const handleDurationChange = (val) => {
@@ -109,7 +159,37 @@ export default function TripConfiguratorPage() {
   };
 
   const handleBuild = async () => {
-    if (!selectedDest) {
+    let destToUse = selectedDest;
+
+    // Guard against mismatch: user typed destination without clicking dropdown suggestion
+    if (!destToUse || (searchVal.trim() && destToUse.name.toLowerCase() !== searchVal.trim().toLowerCase())) {
+      if (!searchVal.trim()) {
+        setValidationMsg('Please select a destination to continue.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      setIsBuilding(true);
+      try {
+        const searchRes = await apiClient.searchDestinations(searchVal.trim());
+        if (searchRes.success && Array.isArray(searchRes.data?.data) && searchRes.data.data.length > 0) {
+          destToUse = searchRes.data.data[0];
+          setSelectedDest(destToUse);
+          saveState({ destination: destToUse });
+        } else {
+          setIsBuilding(false);
+          setValidationMsg(`Could not find a destination matching "${searchVal}". Please choose a valid city or destination.`);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+      } catch (e) {
+        setIsBuilding(false);
+        setValidationMsg(`Failed to look up "${searchVal}". Please check your connection and try again.`);
+        return;
+      }
+    }
+
+    if (!destToUse) {
       setValidationMsg('Please select a destination to continue.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -119,7 +199,7 @@ export default function TripConfiguratorPage() {
     setIsBuilding(true);
 
     const tripPayload = {
-      destination: selectedDest,
+      destination: destToUse,
       duration,
       budget,
       interests,
@@ -135,6 +215,8 @@ export default function TripConfiguratorPage() {
       }
 
       const generatedTrip = previewRes.data.data;
+      // Guarantee no stale trip from previous destinations remains
+      localStorage.removeItem('dastaanTrip');
       localStorage.setItem('dastaanTrip', JSON.stringify(generatedTrip));
 
       // 2. If user is authenticated, persist to MongoDB Atlas
@@ -200,7 +282,7 @@ export default function TripConfiguratorPage() {
           <div className="dest-search-area">
             <h2>WHERE WILL YOUR STORY TAKE YOU?</h2>
 
-            <div className="search-box">
+            <div className="search-box" ref={searchContainerRef}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -208,11 +290,64 @@ export default function TripConfiguratorPage() {
               <input
                 type="text"
                 id="dest-search"
-                placeholder="Search for a city or destination..."
+                placeholder="Search for any city worldwide (e.g. Vancouver, Kyoto, Paris)..."
                 autoComplete="off"
                 value={searchVal}
                 onChange={(e) => handleSearchInput(e.target.value)}
+                onFocus={() => {
+                  if (suggestions.length > 0 || searchVal.trim().length >= 2) {
+                    setIsDropdownOpen(true);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (isDropdownOpen && suggestions.length > 0) {
+                      handleSelectDest(suggestions[0]);
+                    }
+                  } else if (e.key === 'Escape') {
+                    setIsDropdownOpen(false);
+                  }
+                }}
               />
+              {isSearching && (
+                <div className="search-box-spinner">
+                  <div className="spinner-dot"></div>
+                </div>
+              )}
+
+              {isDropdownOpen && (
+                <ul className="dest-autocomplete-dropdown">
+                  {suggestions.map((item) => (
+                    <li
+                      key={item.id}
+                      className={`dest-autocomplete-item ${selectedDest?.id === item.id ? 'selected' : ''}`}
+                      onClick={() => handleSelectDest(item)}
+                    >
+                      <div className="dest-item-main">
+                        <span className="dest-item-name">{item.name}</span>
+                        <span className="dest-item-context">
+                          {[item.admin1, item.country].filter(Boolean).join(', ')}
+                        </span>
+                      </div>
+                      <span className="dest-item-badge">
+                        {item.countryCode || (item.source === 'curated-popular' ? 'CURATED' : 'GLOBAL')}
+                      </span>
+                    </li>
+                  ))}
+
+                  {suggestions.length === 0 && !isSearching && searchVal.trim().length >= 2 && (
+                    <li className="dest-autocomplete-status">
+                      No destinations found matching "{searchVal}". Try another city name.
+                    </li>
+                  )}
+                  {searchError && (
+                    <li className="dest-autocomplete-status" style={{ color: '#E06C75' }}>
+                      {searchError}
+                    </li>
+                  )}
+                </ul>
+              )}
             </div>
 
             <div className="popular-dests">
