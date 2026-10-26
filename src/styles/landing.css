@@ -70,9 +70,9 @@ button { border:0; font:inherit; }
 .stage .hero-title, .stage .hero-sky-content {
   z-index: 3;
   left: 50%;
-  top: clamp(80px, 12vh, 130px);
-  bottom: auto;
-  width: min(92vw, 1100px);
+  bottom: calc(15vh + 7.5vw);
+  top: auto;
+  width: min(94vw, 1780px);
   text-align: center;
   transform: translate3d(-50%, var(--title-y), 0) scale(var(--title-scale));
   opacity: var(--title-opacity);
@@ -114,18 +114,41 @@ button { border:0; font:inherit; }
   position: absolute;
   z-index: 7;
   left: 50%;
-  bottom: clamp(60px, 12vh + 2vw, 140px);
+  bottom: clamp(40px, 9vh + 1.5vw, 115px);
   width: auto;
   max-width: 90vw;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 10px;
   transform: translate3d(-50%, var(--title-y), 0) scale(var(--title-scale));
   opacity: var(--title-opacity);
   will-change: transform, opacity;
   pointer-events: auto;
+  text-align: center;
+}
+
+.hero-arch-content .hero-tagline-main {
+  margin: 0;
+  color: var(--gold);
+  font-family: Inter, Satoshi, sans-serif;
+  font-size: clamp(0.72rem, 1vw, 0.92rem);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+}
+
+.hero-arch-content .hero-description {
+  margin: 0 auto 4px;
+  max-width: 520px;
+  color: #F4EFE3;
+  font-size: clamp(0.85rem, 1.02vw, 0.98rem);
+  line-height: 1.45;
+  font-weight: 400;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+  opacity: 0.95;
 }
 
 .btn-hero-plan {
@@ -659,7 +682,7 @@ button { border:0; font:inherit; }
   .stage { min-height: 640px; }
   /* Mobile header handled in navigation.css */
   
-  .stage .hero-title, .stage .hero-sky-content { top: clamp(64px, 9vh, 90px); }
+  .stage .hero-title, .stage .hero-sky-content { bottom: calc(8vh + 14vw); top: auto; }
   .hero-main-title { font-size: clamp(1.9rem, 6.0vw, 3.2rem); }
   .hero-tagline-main { font-size: clamp(0.66rem, 1.2vw, 0.8rem); letter-spacing: 0.18em; margin: 4px 0 8px; }
   .hero-description { font-size: clamp(0.78rem, 1.0vw, 0.86rem); padding: 0 16px; max-width: 88vw; }

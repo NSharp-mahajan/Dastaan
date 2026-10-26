@@ -263,8 +263,6 @@ export default function LandingPage() {
 
             <div className="hero-title hero-sky-content">
               <h1 className="hero-main-title">DASTAAN</h1>
-              <p className="hero-tagline-main">EXPLORE. DISCOVER. JOURNEY.</p>
-              <p className="hero-description">Plan your destination, days, budget, and experiences in one personalized trip.</p>
             </div>
 
             <img
@@ -279,6 +277,8 @@ export default function LandingPage() {
             />
 
             <div className="hero-arch-content">
+              <p className="hero-tagline-main">EXPLORE. DISCOVER. JOURNEY.</p>
+              <p className="hero-description">Plan your destination, days, budget, and experiences in one personalized trip.</p>
               <Link to="/plan" className="btn-hero-plan">
                 PLAN MY TRIP &rarr;
               </Link>

@@ -8,7 +8,6 @@ import ProfilePage from './pages/ProfilePage';
 import AuthPage from './pages/AuthPage';
 import NotFoundPage from './pages/NotFoundPage';
 import TripInspirationPage from './pages/TripInspirationPage';
-import DevApiStatus from './components/DevApiStatus';
 import AiAssistantModal from './components/AiAssistantModal';
 import { initAuthListener } from './utils/auth';
 import { firebaseConfigError } from './firebase';
@@ -84,7 +83,6 @@ export default function App() {
           </button>
         </aside>
       )}
-      <DevApiStatus />
 
       <Routes>
         <Route path="/" element={<LandingPage />} />
