@@ -811,31 +811,22 @@ export function resolveImage(keyOrTitle, providedImage, category) {
       lower.includes('image2.jpg') ||
       lower.includes('image3.jpg') ||
       lower.includes('image4.jpg') ||
-      lower.includes('photo-1500534623283-312aade485b7');
+      lower.includes('photo-1500534623283-312aade485b7') || // generic valley
+      lower.includes('photo-1516483638261-f4dbaf036963') || // cinque terre
+      lower.includes('photo-1464822759023-fed622ff2c3b') || // mountain landscape
+      lower.includes('photo-1506744038136-46273834b3fb') || // generic landscape
+      lower.includes('photo-1507525428034-b723cf961d3e') || // generic beach
+      lower.includes('photo-1472214103451-9374bd1c798e') || // generic scenic
+      lower.includes('photo-1513694203232-719a280e022f') || // generic old town
+      lower.includes('photo-1504674900247-0877df9cc836');   // generic food
 
     if (!isGenericStock && clean.length > 0) {
       return clean;
     }
   }
 
-  // 3. Fallback by Category
-  if (category) {
-    const catKey = String(category).toLowerCase().trim();
-    if (categoryFallbackImages[catKey]) {
-      return categoryFallbackImages[catKey];
-    }
-  }
-
-  // 4. Deterministic hash fallback based on title so every place gets a distinct consistent photo
-  if (k.length > 0) {
-    let hash = 0;
-    for (let i = 0; i < k.length; i++) {
-      hash = (hash << 5) - hash + k.charCodeAt(i);
-      hash |= 0;
-    }
-    const idx = Math.abs(hash) % diverseFallbacks.length;
-    return diverseFallbacks[idx];
-  }
-
-  return diverseFallbacks[0];
+  // 3. Authentic attraction photograph not found:
+  // Return null so the UI cleanly renders Dastaan's branded luxury placeholder badge
+  // instead of displaying an unrelated, misleading stock photo.
+  return null;
 }

@@ -213,4 +213,69 @@ test('--- Image Pipeline: Destination Hero & Attraction Photography ---', async 
     assert.notEqual(vancouverHero.url, sydneyHero.url, 'Vancouver and Sydney hero images must be distinct');
     assert.notEqual(stanleyPlace.url, operaHouse.url, 'Stanley Park and Sydney Opera House must have distinct photos');
   });
+
+  await t.test('8. Attraction-to-image association for dynamically discovered places in arbitrary destinations', async () => {
+    // Dynamically discovered attractions in Chandigarh
+    const pu = await getAttractionPhoto('Panjab University', 'Chandigarh', { latitude: 30.76, longitude: 76.77 });
+    const stadium = await getAttractionPhoto('Sector 16 Stadium', 'Chandigarh', { latitude: 30.74, longitude: 76.78 });
+
+    assert.ok(pu && pu.url, 'Panjab University must resolve an authentic photo');
+    assert.ok(stadium && stadium.url, 'Sector 16 Stadium must resolve an authentic photo');
+
+    assert.match(pu.url, /wikimedia\.org/i, 'Panjab University photo must come from verified Wikimedia Commons');
+    assert.match(stadium.url, /wikimedia\.org/i, 'Sector 16 Stadium photo must come from verified Wikimedia Commons');
+
+    assert.notEqual(pu.url, stadium.url, 'Panjab University and Sector 16 Stadium must not share the same photo');
+
+    // Verify metadata and licensing
+    assert.ok(pu.attribution, 'Panjab University must preserve attribution');
+    assert.equal(pu.license, 'CC BY-SA 4.0', 'Must preserve licensing metadata');
+    assert.ok(stadium.attribution, 'Sector 16 Stadium must preserve attribution');
+    assert.equal(stadium.license, 'CC BY-SA 4.0', 'Must preserve licensing metadata');
+  });
+
+  await t.test('9. Geographic mismatch rejection: Geographically mismatched candidate is rejected', async () => {
+    // Searching for Eiffel Tower (Paris) with Chandigarh coordinates (~6000km away) must be rejected
+    const mismatched = await getAttractionPhoto('Eiffel Tower', 'Chandigarh', { latitude: 30.7333, longitude: 76.7794 });
+    assert.equal(mismatched, null, 'Eiffel Tower in Chandigarh coordinates must be rejected as null');
+  });
+
+  await t.test('10. Two unknown attractions never share an unrelated fallback image', async () => {
+    const unknownPlace1 = 'UnknownHiddenGemA101';
+    const unknownPlace2 = 'UnknownHiddenGemB202';
+
+    const photo1 = await getAttractionPhoto(unknownPlace1, 'Chandigarh');
+    const photo2 = await getAttractionPhoto(unknownPlace2, 'Chandigarh');
+
+    assert.equal(photo1, null, 'Unmatched attraction 1 must be null');
+    assert.equal(photo2, null, 'Unmatched attraction 2 must be null');
+
+    const activities = [
+      { title: unknownPlace1, cat: 'CULTURE', image: null },
+      { title: unknownPlace2, cat: 'NATURE', image: null }
+    ];
+    const enriched = await enrichActivitiesWithAuthenticImages(activities, 'Chandigarh');
+
+    // Neither receives an unrelated stock photo (e.g. Cinque Terre or mountain landscape)
+    assert.equal(enriched[0].image, null, 'Unknown attraction 1 must remain null for clean UI placeholder');
+    assert.equal(enriched[1].image, null, 'Unknown attraction 2 must remain null for clean UI placeholder');
+  });
+
+  await t.test('11. Generic stock photos are identified and replaced during activity enrichment', async () => {
+    const activitiesWithStock = [
+      {
+        title: 'Sector 16 Stadium',
+        cat: 'SPORTS',
+        image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b', // Mountain landscape stock
+        latitude: 30.74,
+        longitude: 76.78
+      }
+    ];
+
+    const enriched = await enrichActivitiesWithAuthenticImages(activitiesWithStock, 'Chandigarh');
+    assert.ok(enriched[0].image, 'Stock image should be replaced with authentic photo');
+    assert.notEqual(enriched[0].image, 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b');
+    assert.match(enriched[0].image, /wikimedia\.org/i);
+    assert.match(enriched[0].attribution, /Sector 16 Stadium/i);
+  });
 });

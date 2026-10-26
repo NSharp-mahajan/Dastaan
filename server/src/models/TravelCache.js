@@ -12,7 +12,7 @@ const travelCacheSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, 'Cache category is required'],
-      enum: ['search', 'destination', 'places', 'weather'],
+      enum: ['search', 'destination', 'places', 'weather', 'destination-image', 'attraction-image', 'image'],
       index: true
     },
     provider: {

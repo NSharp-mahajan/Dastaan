@@ -20,6 +20,7 @@ import {
   calculateHaversineKm
 } from './validationService.js';
 import { verifyDestinationAndPois } from './groundingService.js';
+import { enrichActivitiesWithAuthenticImages } from './imageService.js';
 
 /**
  * Deterministic Budget Breakdown Calculator
@@ -773,6 +774,19 @@ export async function generateGroundedItinerary(
     };
   });
 
+  // Enrich activities with authentic photography from Wikimedia Commons
+  const destCoords = {
+    latitude: typeof grounding.destination?.latitude === 'number' ? grounding.destination.latitude : null,
+    longitude: typeof grounding.destination?.longitude === 'number' ? grounding.destination.longitude : null
+  };
+
+  const enrichedFinalDays = await Promise.all(
+    finalDays.map(async (day) => ({
+      ...day,
+      activities: await enrichActivitiesWithAuthenticImages(day.activities, destName, destCoords)
+    }))
+  );
+
   return {
     destination: {
       id: (grounding.destination?.name || destName).toLowerCase().replace(/[^\w]/g, '-'),
@@ -793,7 +807,7 @@ export async function generateGroundedItinerary(
       estimatedCostPerPerson,
       breakdown,
       qualityLimitation: finalQualityLimitation,
-      days: finalDays
+      days: enrichedFinalDays
     },
     attribution: grounding.attribution || null
   };

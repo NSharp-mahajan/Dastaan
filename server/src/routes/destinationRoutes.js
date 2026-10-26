@@ -2,7 +2,8 @@ import express from 'express';
 import {
   searchDestinationsHandler,
   getPopularDestinationsHandler,
-  getDestinationPlacesHandler
+  getDestinationPlacesHandler,
+  getAttractionPhotoHandler
 } from '../controllers/travelDataController.js';
 import {
   getSavedDestinations,
@@ -16,6 +17,7 @@ const router = express.Router();
 // 1. Dynamic Destination Discovery Endpoints (Public)
 router.get('/search', searchDestinationsHandler);
 router.get('/popular', getPopularDestinationsHandler);
+router.get('/attraction-photo', getAttractionPhotoHandler);
 router.get('/places', getDestinationPlacesHandler);
 router.get('/:destination/places', getDestinationPlacesHandler);
 

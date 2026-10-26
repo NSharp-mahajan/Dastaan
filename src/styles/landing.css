@@ -70,7 +70,7 @@ button { border:0; font:inherit; }
 .stage .hero-title, .stage .hero-sky-content {
   z-index: 3;
   left: 50%;
-  bottom: calc(15vh + 7.5vw);
+  bottom: calc(26vh + 9vw);
   top: auto;
   width: min(94vw, 1780px);
   text-align: center;
@@ -616,7 +616,7 @@ button { border:0; font:inherit; }
 }
 
 @media (max-width: 1100px) {
-  .hero-title { bottom: calc(3vh + 12vw); }
+  .stage .hero-title, .stage .hero-sky-content { bottom: calc(22vh + 10vw); }
   .hero-main-title { font-size: clamp(2.4rem, 6.0vw, 4.8rem); }
   .bridge-img { width: 138vw; }
   .frame-two-img { width: 132vw; }
@@ -682,7 +682,7 @@ button { border:0; font:inherit; }
   .stage { min-height: 640px; }
   /* Mobile header handled in navigation.css */
   
-  .stage .hero-title, .stage .hero-sky-content { bottom: calc(8vh + 14vw); top: auto; }
+  .stage .hero-title, .stage .hero-sky-content { bottom: calc(18vh + 16vw); top: auto; }
   .hero-main-title { font-size: clamp(1.9rem, 6.0vw, 3.2rem); }
   .hero-tagline-main { font-size: clamp(0.66rem, 1.2vw, 0.8rem); letter-spacing: 0.18em; margin: 4px 0 8px; }
   .hero-description { font-size: clamp(0.78rem, 1.0vw, 0.86rem); padding: 0 16px; max-width: 88vw; }

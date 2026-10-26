@@ -460,7 +460,7 @@ export function generateItinerary({
           title: place.name,
           desc: place.description || (place.address ? `Located at ${place.address}. Realistic visit: ~${visitDurationHours}h.` : `Curated sight in ${destName}.`),
           cat,
-          image: place.photoUrl || defaultImg,
+          image: place.photoUrl || null,
           imageLabel: `${place.name.toUpperCase()} \u00B7 ${cat}`,
           placeId: place.placeId,
           latitude: typeof place.latitude === 'number' ? place.latitude : null,
@@ -526,7 +526,7 @@ export function generateItinerary({
           title: act.title,
           desc: act.desc,
           cat: act.cat,
-          image: defaultImg,
+          image: null,
           imageLabel: `${act.title.toUpperCase()} \u00B7 ${act.cat}`,
           layout: idx % 2 === 0 ? 'image-right' : 'image-left',
           latitude: null, // NO synthetic coordinates fabricated
@@ -657,11 +657,15 @@ export async function generateItineraryWithLiveRouting(params) {
   const normalizedStyle = (params.travelStyle || 'Balanced');
   const mode = normalizedStyle.toLowerCase() === 'relaxed' ? 'walking' : 'driving';
   const destNameParam = params.destination?.name || (typeof params.destination === 'string' ? params.destination : 'Destination');
+  const destCoords = {
+    latitude: typeof params.destination?.latitude === 'number' ? params.destination.latitude : null,
+    longitude: typeof params.destination?.longitude === 'number' ? params.destination.longitude : null
+  };
 
   // Dynamically enrich activities with authentic photography from Wikimedia Commons
   await Promise.all(
     itin.days.map(async (day) => {
-      day.activities = await enrichActivitiesWithAuthenticImages(day.activities, destNameParam);
+      day.activities = await enrichActivitiesWithAuthenticImages(day.activities, destNameParam, destCoords);
     })
   );
 

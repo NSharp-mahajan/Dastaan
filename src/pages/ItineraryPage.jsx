@@ -323,6 +323,68 @@ export default function ItineraryPage() {
     return () => { isMounted = false; };
   }, [trip]);
 
+  // V2: Dynamically enrich activities missing authentic photos from verified sources
+  useEffect(() => {
+    if (!trip || !trip.itinerary?.days || !trip.destination) return;
+    let isMounted = true;
+
+    async function enrichMissingActivityPhotos() {
+      const destName = trip.destination?.name || '';
+      const destLat = trip.destination?.latitude;
+      const destLng = trip.destination?.longitude;
+
+      let hasUpdates = false;
+      const updatedDays = await Promise.all(
+        trip.itinerary.days.map(async (day) => {
+          let dayChanged = false;
+          const updatedActivities = await Promise.all(
+            (day.activities || []).map(async (act) => {
+              if (act.image && !act.image.includes('indiagate') && !act.image.includes('photo-1500534623283-312aade485b7')) {
+                return act;
+              }
+              try {
+                const res = await apiClient.getAttractionPhoto(
+                  act.title,
+                  destName,
+                  act.latitude || destLat,
+                  act.longitude || destLng
+                );
+                if (res?.success && res.data?.url) {
+                  dayChanged = true;
+                  return {
+                    ...act,
+                    image: res.data.url,
+                    photoUrl: res.data.url,
+                    attribution: res.data.attribution || act.attribution,
+                    license: res.data.license || 'CC BY-SA 4.0'
+                  };
+                }
+              } catch (e) {
+                // Gracefully retain placeholder
+              }
+              return act;
+            })
+          );
+          if (dayChanged) hasUpdates = true;
+          return { ...day, activities: updatedActivities };
+        })
+      );
+
+      if (isMounted && hasUpdates) {
+        setTrip(prev => ({
+          ...prev,
+          itinerary: {
+            ...prev.itinerary,
+            days: updatedDays
+          }
+        }));
+      }
+    }
+
+    enrichMissingActivityPhotos();
+    return () => { isMounted = false; };
+  }, [trip?.destination?.name, trip?._id]);
+
   // Scroll reveal observer
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -472,7 +534,7 @@ export default function ItineraryPage() {
   const interests = Array.isArray(trip.interests) ? trip.interests : [];
 
   const rawHero = trip.destination?.image || (data?.image && !data.image.includes('indiagate') ? data.image : 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80');
-  const heroImgSrc = resolveImage(destId, resolveImage(destName, rawHero));
+  const heroImgSrc = resolveImage(destId, resolveImage(destName, rawHero)) || rawHero;
 
   // Dynamic tagline (prefer persisted tagline if available)
   let tagline = trip.itinerary?.tagline;
@@ -676,7 +738,7 @@ export default function ItineraryPage() {
       visitDurationHours: 2.0,
       rating: 4.8,
       source: 'curated-catalog',
-      photoUrl: act.image || heroImgSrc
+      photoUrl: act.image || null
     }));
 
   const allAvailablePlaces = [...places, ...curatedFallbackPlaces].filter((p, index, self) => {
@@ -1974,7 +2036,7 @@ export default function ItineraryPage() {
                       address: customPlace.address.trim() || `${customPlace.name.trim()}, ${destName}`,
                       desc: customPlace.desc.trim() || `Custom place in ${destName}.`,
                       source: 'user-custom',
-                      photoUrl: heroImgSrc
+                      photoUrl: null
                     });
                   }}
                 >

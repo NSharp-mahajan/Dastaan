@@ -16,7 +16,7 @@ function slugify(text) {
 /**
  * Generic fetch with AbortController timeout protection
  */
-async function fetchWithTimeout(url, options = {}, timeoutMs = 4000) {
+async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -48,6 +48,13 @@ export function isGenericOrStockImage(url) {
     lower.includes('image3.jpg') ||
     lower.includes('image4.jpg') ||
     lower.includes('photo-1500534623283-312aade485b7') || // generic valley
+    lower.includes('photo-1516483638261-f4dbaf036963') || // cinque terre
+    lower.includes('photo-1464822759023-fed622ff2c3b') || // mountain landscape
+    lower.includes('photo-1506744038136-46273834b3fb') || // generic landscape
+    lower.includes('photo-1507525428034-b723cf961d3e') || // generic beach
+    lower.includes('photo-1472214103451-9374bd1c798e') || // generic scenic
+    lower.includes('photo-1513694203232-719a280e022f') || // generic old town
+    lower.includes('photo-1504674900247-0877df9cc836') || // generic food
     lower.includes('indiagate.jpg')
   );
 }
@@ -235,11 +242,20 @@ export async function getAttractionPhoto(attractionName, destinationName = '', c
       if (!img) continue;
 
       let score = 0;
+      let matchedWords = 0;
 
       // Word match scoring with target attraction
       for (const word of targetWords) {
-        if (pageTitle.includes(word)) score += 3;
+        if (pageTitle.includes(word)) {
+          score += 3;
+          matchedWords++;
+        }
         if (pageDesc.includes(word)) score += 1;
+      }
+
+      // If attraction has distinct words but none matched the candidate title, skip
+      if (targetWords.length > 0 && matchedWords === 0 && !pageTitle.includes(cleanAttr.toLowerCase())) {
+        continue;
       }
 
       // Context scoring: Destination mentioned in description or title
@@ -257,10 +273,11 @@ export async function getAttractionPhoto(attractionName, destinationName = '', c
         typeof pLon === 'number'
       ) {
         const distKm = haversineDistanceKm(coords.latitude, coords.longitude, pLat, pLon);
-        if (distKm <= 35) {
+        if (distKm > 80) {
+          // Strictly reject geographically mismatched candidate (>80km from target context)
+          continue;
+        } else if (distKm <= 35) {
           score += 5; // Strong geographic confidence
-        } else if (distKm > 100) {
-          score -= 10; // Geographically unrelated candidate
         }
       }
 
@@ -277,7 +294,8 @@ export async function getAttractionPhoto(attractionName, destinationName = '', c
           url: imgUrl,
           source: 'wikimedia-commons',
           attribution: `${bestPage.title} via Wikimedia Commons (CC BY-SA)`,
-          title: bestPage.title
+          title: bestPage.title,
+          license: 'CC BY-SA 4.0'
         };
 
         try {
@@ -303,7 +321,7 @@ export async function getAttractionPhoto(attractionName, destinationName = '', c
  * @param {string} destinationName - Context destination
  * @returns {Promise<Array<object>>} Enriched activities
  */
-export async function enrichActivitiesWithAuthenticImages(activities, destinationName) {
+export async function enrichActivitiesWithAuthenticImages(activities, destinationName, destCoords = {}) {
   if (!Array.isArray(activities) || activities.length === 0) return [];
 
   return await Promise.all(
@@ -323,8 +341,8 @@ export async function enrichActivitiesWithAuthenticImages(activities, destinatio
 
       // 3. Query authentic image from live provider
       const coords = {
-        latitude: act.latitude,
-        longitude: act.longitude
+        latitude: typeof act.latitude === 'number' ? act.latitude : destCoords?.latitude,
+        longitude: typeof act.longitude === 'number' ? act.longitude : destCoords?.longitude
       };
       const found = await getAttractionPhoto(act.title, destinationName, coords);
 
@@ -334,7 +352,8 @@ export async function enrichActivitiesWithAuthenticImages(activities, destinatio
           image: found.url,
           photoUrl: found.url,
           attribution: found.attribution || act.attribution,
-          imageSource: found.source
+          imageSource: found.source,
+          license: found.license || 'CC BY-SA 4.0'
         };
       }
 

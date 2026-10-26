@@ -282,6 +282,12 @@ export const apiClient = {
   // Dynamic Travel Data & Discovery Methods
   searchDestinations: (query) => request(`destinations/search?q=${encodeURIComponent(query || '')}`, { method: 'GET' }),
   getPopularDestinations: () => request('destinations/popular', { method: 'GET' }),
+  getAttractionPhoto: (attraction, destination, lat, lng) => {
+    let q = `destinations/attraction-photo?attraction=${encodeURIComponent(attraction || '')}`;
+    if (destination) q += `&destination=${encodeURIComponent(destination)}`;
+    if (lat && lng) q += `&lat=${lat}&lng=${lng}`;
+    return request(q, { method: 'GET' });
+  },
   getDestinationPlaces: (destination, category = 'all', lat, lng) => {
     let q = `destinations/places?destination=${encodeURIComponent(destination || '')}&category=${encodeURIComponent(category)}`;
     if (lat && lng) q += `&lat=${lat}&lng=${lng}`;

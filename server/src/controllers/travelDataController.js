@@ -1,6 +1,7 @@
 import { searchDestinations, CURATED_DESTINATIONS } from '../services/destinationService.js';
 import { getDestinationWeather } from '../services/weatherService.js';
 import { getDestinationPlaces } from '../services/placesService.js';
+import { getAttractionPhoto } from '../services/imageService.js';
 
 /**
  * GET /api/destinations/search?q=Kyoto
@@ -132,6 +133,45 @@ export const getWeatherHandler = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to retrieve weather forecast: ' + err.message
+    });
+  }
+};
+
+/**
+ * GET /api/destinations/attraction-photo?attraction=Panjab+University&destination=Chandigarh&lat=30.76&lng=76.77
+ * Retrieves verified photograph from Wikimedia Commons for a specific attraction.
+ */
+export const getAttractionPhotoHandler = async (req, res) => {
+  try {
+    const attraction = req.query?.attraction || req.query?.name || '';
+    const destination = req.query?.destination || req.query?.dest || '';
+    const lat = parseFloat(req.query?.lat || req.query?.latitude);
+    const lng = parseFloat(req.query?.lng || req.query?.longitude);
+
+    if (!attraction || typeof attraction !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'An attraction name parameter is required.'
+      });
+    }
+
+    const coords = {
+      latitude: !isNaN(lat) ? lat : undefined,
+      longitude: !isNaN(lng) ? lng : undefined
+    };
+
+    const photo = await getAttractionPhoto(attraction, destination, coords);
+
+    return res.status(200).json({
+      success: true,
+      found: !!photo,
+      data: photo
+    });
+  } catch (err) {
+    console.error('[TravelDataController] Attraction photo error:', err.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve attraction photo: ' + err.message
     });
   }
 };
