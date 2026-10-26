@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { plannerDestinations } from '../data/destinations';
-import { mockItineraries } from '../data/itineraries';
+import { mockItineraries, resolveImage } from '../data/itineraries';
 import { availableInterests } from '../data/interests';
 import apiClient from '../services/api';
 import { auth } from '../firebase';
@@ -278,24 +278,38 @@ export default function TripConfiguratorPage() {
   };
 
   const handleBuild = async () => {
-    let destToUse = selectedDest;
+    setIsBuilding(true);
+    setValidationMsg('');
 
-    // Guard against mismatch: user typed destination without clicking dropdown suggestion
-    if (!destToUse || (searchVal.trim() && destToUse.name.toLowerCase() !== searchVal.trim().toLowerCase())) {
-      if (!searchVal.trim()) {
-        setValidationMsg('Please enter or select a destination to continue.');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
+    try {
+      let destToUse = selectedDest;
 
-      setIsBuilding(true);
-      try {
-        const searchRes = await apiClient.searchDestinations(searchVal.trim());
-        if (searchRes.success && Array.isArray(searchRes.data?.data) && searchRes.data.data.length > 0) {
-          destToUse = searchRes.data.data[0];
-          setSelectedDest(destToUse);
-          saveState({ destination: destToUse, selectedDest: destToUse });
-        } else {
+      // Guard against mismatch: user typed destination without clicking dropdown suggestion
+      if (!destToUse || (searchVal.trim() && destToUse.name.toLowerCase() !== searchVal.trim().toLowerCase())) {
+        if (!searchVal.trim()) {
+          setValidationMsg('Please enter or select a destination to continue.');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setIsBuilding(false);
+          return;
+        }
+
+        try {
+          const searchRes = await apiClient.searchDestinations(searchVal.trim(), { timeoutMs: 2500 });
+          if (searchRes.success && Array.isArray(searchRes.data?.data) && searchRes.data.data.length > 0) {
+            destToUse = searchRes.data.data[0];
+            setSelectedDest(destToUse);
+            saveState({ destination: destToUse, selectedDest: destToUse });
+          } else {
+            destToUse = {
+              name: searchVal.trim(),
+              country: 'Worldwide',
+              id: searchVal.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              image: bgImage || 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80'
+            };
+            setSelectedDest(destToUse);
+            saveState({ destination: destToUse, selectedDest: destToUse });
+          }
+        } catch (e) {
           destToUse = {
             name: searchVal.trim(),
             country: 'Worldwide',
@@ -305,91 +319,88 @@ export default function TripConfiguratorPage() {
           setSelectedDest(destToUse);
           saveState({ destination: destToUse, selectedDest: destToUse });
         }
-      } catch (e) {
-        destToUse = {
-          name: searchVal.trim(),
-          country: 'Worldwide',
-          id: searchVal.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          image: bgImage || 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=80'
-        };
-        setSelectedDest(destToUse);
-        saveState({ destination: destToUse, selectedDest: destToUse });
       }
-    }
 
-    if (!destToUse || !destToUse.name?.trim()) {
-      setValidationMsg('Please enter or select a destination to continue.');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    if (travelers < 1 || travelers > 20) {
-      setValidationMsg('Traveller count must be between 1 and 20.');
-      return;
-    }
-
-    if (startDate) {
-      const todayStr = getTodayDateString();
-      if (startDate < todayStr) {
-        setValidationMsg('Travel date cannot be in the past.');
+      if (!destToUse || !destToUse.name?.trim()) {
+        setValidationMsg('Please enter or select a destination to continue.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setIsBuilding(false);
         return;
       }
-    }
 
-    setValidationMsg('');
-    setIsBuilding(true);
-
-    const tripPayload = {
-      destination: {
-        ...(destToUse || selectedDest),
-        name: (destToUse?.name || selectedDest?.name || '').trim(),
-        country: destToUse?.country || selectedDest?.country || 'Worldwide',
-        id: destToUse?.id || selectedDest?.id || (destToUse?.name || selectedDest?.name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        image: destToUse?.image || selectedDest?.image || bgImage
-      },
-      duration,
-      travelers,
-      startDate: startDate || undefined,
-      budget,
-      interests,
-      travelStyle
-    };
-
-    try {
-      const res = await apiClient.createTrip(tripPayload);
-      if (res.success && res.data?.data) {
-        const savedTrip = res.data.data;
-        localStorage.setItem('dastaanTrip', JSON.stringify(savedTrip));
-        navigate(`/itinerary?id=${savedTrip._id}`);
+      if (travelers < 1 || travelers > 20) {
+        setValidationMsg('Traveller count must be between 1 and 20.');
+        setIsBuilding(false);
         return;
       }
+
+      if (startDate) {
+        const todayStr = getTodayDateString();
+        if (startDate < todayStr) {
+          setValidationMsg('Travel date cannot be in the past.');
+          setIsBuilding(false);
+          return;
+        }
+      }
+
+      const tripPayload = {
+        destination: {
+          ...(destToUse || selectedDest),
+          name: (destToUse?.name || selectedDest?.name || '').trim(),
+          country: destToUse?.country || selectedDest?.country || 'Worldwide',
+          id: destToUse?.id || selectedDest?.id || (destToUse?.name || selectedDest?.name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          image: destToUse?.image || selectedDest?.image || bgImage
+        },
+        duration,
+        travelers,
+        startDate: startDate || undefined,
+        budget,
+        interests,
+        travelStyle
+      };
+
+      try {
+        const res = await apiClient.createTrip(tripPayload, { timeoutMs: 3000 });
+        if (res.success && res.data?.data) {
+          const savedTrip = res.data.data;
+          localStorage.setItem('dastaanTrip', JSON.stringify(savedTrip));
+          setIsBuilding(false);
+          navigate(`/itinerary?id=${savedTrip._id}`);
+          return;
+        }
+      } catch (err) {
+        console.warn('[TripPlanner] Backend API call error:', err);
+      }
+
+      // Guest / Seamless local fallback: construct full curated itinerary from mockItineraries!
+      const rawDestKey = (tripPayload.destination?.id || tripPayload.destination?.name || '').toLowerCase().trim();
+      const slugDestKey = rawDestKey.replace(/[\s_]+/g, '-');
+      const curatedData = mockItineraries[slugDestKey] || mockItineraries[rawDestKey] || mockItineraries['default'];
+      const durNum = Math.max(1, parseInt(duration, 10) || 3);
+      const curatedDays = (curatedData?.days || []).slice(0, durNum).map(d => ({
+        ...d,
+        activities: (d.activities || []).map(a => ({
+          ...a,
+          image: typeof resolveImage === 'function' ? resolveImage(a.title, a.image, a.cat) : (a.image || '')
+        }))
+      }));
+
+      const localTrip = {
+        ...tripPayload,
+        itinerary: {
+          tagline: `A ${travelStyle.toLowerCase()} journey through ${destToUse?.name || selectedDest?.name}'s cultural landmarks and local escapes`,
+          days: curatedDays
+        }
+      };
+      localStorage.setItem('dastaanTrip', JSON.stringify(localTrip));
+      setIsBuilding(false);
+      navigate('/itinerary');
+      return;
     } catch (err) {
-      console.warn('[TripPlanner] Backend API call error:', err);
+      console.error('[TripPlanner] Error building itinerary:', err);
+      setValidationMsg('Something went wrong while preparing your itinerary. Please try again.');
+      setIsBuilding(false);
     }
-
-    // Guest / Seamless local fallback: construct full curated itinerary from mockItineraries!
-    const rawDestKey = (tripPayload.destination?.id || tripPayload.destination?.name || '').toLowerCase().trim();
-    const slugDestKey = rawDestKey.replace(/[\s_]+/g, '-');
-    const curatedData = mockItineraries[slugDestKey] || mockItineraries[rawDestKey] || mockItineraries['default'];
-    const durNum = Math.max(1, parseInt(duration, 10) || 3);
-    const curatedDays = (curatedData?.days || []).slice(0, durNum).map(d => ({
-      ...d,
-      activities: (d.activities || []).map(a => ({
-        ...a,
-        image: resolveImage(a.title, a.image, a.cat)
-      }))
-    }));
-
-    const localTrip = {
-      ...tripPayload,
-      itinerary: {
-        tagline: `A ${travelStyle.toLowerCase()} journey through ${destToUse?.name || selectedDest?.name}'s cultural landmarks and local escapes`,
-        days: curatedDays
-      }
-    };
-    localStorage.setItem('dastaanTrip', JSON.stringify(localTrip));
-    navigate('/itinerary');
-    return;
   };
 
   const perPersonEstimated = Math.round(budget / Math.max(1, travelers));

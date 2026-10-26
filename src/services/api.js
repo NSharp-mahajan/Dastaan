@@ -172,7 +172,7 @@ async function request(endpoint, options = {}) {
     }
   }
 
-  const timeoutMs = options.timeoutMs || 25000;
+  const timeoutMs = options.timeoutMs || 8000;
   let lastError = null;
   let attemptedUrls = [];
 
@@ -271,7 +271,7 @@ export const apiClient = {
   delete: (endpoint, options) => request(endpoint, { ...options, method: 'DELETE' }),
 
   // Trip API Methods
-  createTrip: (tripData) => request('trips', { method: 'POST', body: tripData }),
+  createTrip: (tripData, options = {}) => request('trips', { method: 'POST', body: tripData, ...options }),
   previewTrip: (tripData) => request('trips/preview', { method: 'POST', body: tripData }),
   recalculateItinerary: (payload) => request('trips/recalculate', { method: 'POST', body: payload }),
   getUserTrips: () => request('trips', { method: 'GET' }),
@@ -280,7 +280,7 @@ export const apiClient = {
   deleteTrip: (id) => request(`trips/${id}`, { method: 'DELETE' }),
 
   // Dynamic Travel Data & Discovery Methods
-  searchDestinations: (query) => request(`destinations/search?q=${encodeURIComponent(query || '')}`, { method: 'GET' }),
+  searchDestinations: (query, options = {}) => request(`destinations/search?q=${encodeURIComponent(query || '')}`, { method: 'GET', ...options }),
   getPopularDestinations: () => request('destinations/popular', { method: 'GET' }),
   getAttractionPhoto: (attraction, destination, lat, lng) => {
     let q = `destinations/attraction-photo?attraction=${encodeURIComponent(attraction || '')}`;
